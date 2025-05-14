@@ -1,3 +1,122 @@
-import { pgTable } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, timestamp, integer, pgEnum, jsonb } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
-export const users = pgTable('users', {})
+// Enums
+export const userRoleEnum = pgEnum('user_role', ['user', 'admin']);
+export const materialStatusEnum = pgEnum('material_status', ['pending', 'processed', 'failed']);
+export const aiOutputTypeEnum = pgEnum('ai_output_type', ['summary', 'flashcards', 'quiz']);
+export const flashcardStatusEnum = pgEnum('flashcard_status', ['known', 'review']);
+export const subscriptionPlanEnum = pgEnum('subscription_plan', ['free', 'pro', 'unlimited']);
+export const subscriptionStatusEnum = pgEnum('subscription_status', ['active', 'canceled', 'trialing', 'past_due']);
+
+// Tables
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: varchar('email').unique().notNull(),
+  passwordHash: text('password_hash').notNull(),
+  role: userRoleEnum('role').default('user').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  stripeCustomerId: text('stripe_customer_id'),
+});
+
+export const materials = pgTable('materials', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  status: materialStatusEnum('status').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const aiOutputs = pgTable('ai_outputs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  materialId: uuid('material_id').notNull().references(() => materials.id),
+  type: aiOutputTypeEnum('type').notNull(),
+  content: jsonb('content').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  errorMessage: text('error_message'),
+});
+
+export const quizResults = pgTable('quiz_results', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  materialId: uuid('material_id').notNull().references(() => materials.id),
+  score: integer('score').notNull(),
+  totalQuestions: integer('total_questions').notNull(),
+  completedAt: timestamp('completed_at').defaultNow().notNull(),
+});
+
+export const flashcardProgress = pgTable('flashcard_progress', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  materialId: uuid('material_id').notNull().references(() => materials.id),
+  flashcardId: text('flashcard_id').notNull(),
+  status: flashcardStatusEnum('status').notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const subscriptions = pgTable('subscriptions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  stripeSubscriptionId: text('stripe_subscription_id').notNull(),
+  plan: subscriptionPlanEnum('plan').notNull(),
+  status: subscriptionStatusEnum('status').notNull(),
+  currentPeriodEnd: timestamp('current_period_end').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  materials: many(materials),
+  quizResults: many(quizResults),
+  flashcardProgress: many(flashcardProgress),
+  subscriptions: many(subscriptions),
+}));
+
+export const materialsRelations = relations(materials, ({ one, many }) => ({
+  user: one(users, {
+    fields: [materials.userId],
+    references: [users.id],
+  }),
+  aiOutputs: many(aiOutputs),
+  quizResults: many(quizResults),
+  flashcardProgress: many(flashcardProgress),
+}));
+
+export const aiOutputsRelations = relations(aiOutputs, ({ one }) => ({
+  material: one(materials, {
+    fields: [aiOutputs.materialId],
+    references: [materials.id],
+  }),
+}));
+
+export const quizResultsRelations = relations(quizResults, ({ one }) => ({
+  user: one(users, {
+    fields: [quizResults.userId],
+    references: [users.id],
+  }),
+  material: one(materials, {
+    fields: [quizResults.materialId],
+    references: [materials.id],
+  }),
+}));
+
+export const flashcardProgressRelations = relations(flashcardProgress, ({ one }) => ({
+  user: one(users, {
+    fields: [flashcardProgress.userId],
+    references: [users.id],
+  }),
+  material: one(materials, {
+    fields: [flashcardProgress.materialId],
+    references: [materials.id],
+  }),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptions.userId],
+    references: [users.id],
+  }),
+}));
