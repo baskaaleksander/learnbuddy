@@ -1,0 +1,59 @@
+import { Body, Controller, Post, Res } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { Response } from 'express';
+
+@Controller('auth') 
+export class AuthController {
+    constructor(private authService: AuthService) {}
+    @Post('register')
+    async register(@Body() body: any, @Res() res: Response) {
+
+        const registerRes = await this.authService.register(body);
+
+        res.cookie('jwt', registerRes.access_token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'none',
+            maxAge: 24 * 60 * 60 * 1000,
+        })
+
+        return res.status(201).send({
+            message: 'User created successfully',
+            email: registerRes.email,
+            id: registerRes.id,
+            role: registerRes.role,
+        })
+    }
+
+    @Post('login')
+    async login(@Body() body: any, @Res() res: Response) {
+        const loginRes = await this.authService.login(body);
+
+        res.cookie('jwt', loginRes.access_token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'none',
+            maxAge: 24 * 60 * 60 * 1000,
+        })
+
+        return res.status(200).send({
+            message: 'User logged in successfully',
+            email: loginRes.email,
+            id: loginRes.id,
+            role: loginRes.role,
+        })
+    }
+
+    @Post('logout')
+    async logout(@Res() res: Response) {
+        res.clearCookie('jwt', {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'none',
+        })
+
+        return res.status(200).send({
+            message: 'User logged out successfully',
+        })
+    }
+}
