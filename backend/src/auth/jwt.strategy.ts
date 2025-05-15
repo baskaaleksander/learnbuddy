@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-import { LoginUserDto } from './dtos/login-user.dto';
+import { PayloadDto } from './dtos/payload.dto';
 import { Request } from 'express';
 
 @Injectable()
@@ -21,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: LoginUserDto) {
+  async validate(payload: PayloadDto) {
     return payload;
   }
 }

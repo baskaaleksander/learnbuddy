@@ -1,12 +1,13 @@
 import { Body, Controller, Post, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
+import { UserCredentialsDto } from './dtos/user-credentials.dto';
 
 @Controller('auth') 
 export class AuthController {
     constructor(private authService: AuthService) {}
     @Post('register')
-    async register(@Body() body: any, @Res() res: Response) {
+    async register(@Body() body: UserCredentialsDto, @Res() res: Response) {
 
         const registerRes = await this.authService.register(body);
 
@@ -26,7 +27,7 @@ export class AuthController {
     }
 
     @Post('login')
-    async login(@Body() body: any, @Res() res: Response) {
+    async login(@Body() body: UserCredentialsDto, @Res() res: Response) {
         const loginRes = await this.authService.login(body);
 
         res.cookie('jwt', loginRes.access_token, {
