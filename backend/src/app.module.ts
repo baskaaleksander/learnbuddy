@@ -4,13 +4,14 @@ import { AppService } from './app.service';
 import { DrizzleModule } from './database/drizzle.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
     isGlobal: true,
     envFilePath: '.env',
   })
-    ,DrizzleModule, AuthModule],
+    ,DrizzleModule, AuthModule, UploadModule],
   controllers: [AppController],
   providers: [AppService],
 })
