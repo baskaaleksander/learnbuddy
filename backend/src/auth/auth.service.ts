@@ -12,6 +12,9 @@ const scrypt = promisify(_scrypt);
 export class AuthService {
     constructor(private jwtService: JwtService, @Inject('DRIZZLE') private drizzle: typeof db) {}
 
+    async me() {
+        
+    }
     async register(user: any) {
 
         const existingUser = await this.drizzle

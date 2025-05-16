@@ -1,7 +1,10 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { UserCredentialsDto } from './dtos/user-credentials.dto';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { PayloadDto } from './dtos/payload.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth') 
 export class AuthController {
@@ -57,4 +60,15 @@ export class AuthController {
             message: 'User logged out successfully',
         })
     }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Get('me')
+    async me(@CurrentUser() user: PayloadDto){
+        return {
+            email: user.email,
+            id: user.id,
+            role: user.role,
+        };
+    }
+    
 }
