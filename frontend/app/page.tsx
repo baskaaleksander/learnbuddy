@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 export default function Home() {
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <h1>hi</h1>
-      <Button variant='secondary' className="">test</Button>
+      <h1 className="">hi</h1>
+      <Button className="">test</Button>
     </div>
   );
 }
