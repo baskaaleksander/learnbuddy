@@ -24,10 +24,10 @@ export default function RootLayout({
         <body
           className={`${inter.variable} antialiased`}
         >
-          <AuthProvider>
-            <Navbar />
-            {children}
-          </AuthProvider>
+            <AuthProvider>
+              <Navbar />
+              {children}
+            </AuthProvider>
         </body>
       </html>
     
