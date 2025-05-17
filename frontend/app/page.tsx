@@ -1,22 +1,12 @@
 "use client";
 
+import Features from "@/components/features";
 import Hero from "@/components/hero";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/auth-provider";
 import { useState } from "react";
 
 export default function Home() {
-  const { user, login, logout } = useAuth();
-  const [email, setEmail] = useState("test@gmail.com");
-  const [password, setPassword] = useState("test123");
-
-  const handleLogin = async () => {
-    try {
-      await login(email, password);
-    } catch (error) {
-      console.error("Login failed:", error);
-    }
-  };
 
   return (
     // <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen p-8 pb-20 gap-8 sm:p-20">
@@ -63,6 +53,8 @@ export default function Home() {
     // </div>
     <div>
       <Hero />
+      <Features />
+      {/* add carousel with screenshots */}
     </div>
   );
 }

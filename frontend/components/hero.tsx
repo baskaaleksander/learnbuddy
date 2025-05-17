@@ -26,7 +26,7 @@ function Hero() {
   }, []);
   
   return (
-    <div className='flex flex-col items-center justify-center w-full py-8 md:py-16 lg:py-24 px-4 md:px-8 lg:px-12'>
+    <div className='flex flex-col items-center justify-center w-full py-4 md:py-12 lg:py-20 px-4 md:px-8 lg:px-12'>
       <div className='flex flex-col items-center justify-center p-4 md:p-6 text-center mt-4 md:mt-8 w-full max-w-5xl'>
         <BadgeWithLink text="Right now 40% off on all plans" link="/pricing" linkText="Check pricing" />
 
