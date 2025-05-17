@@ -33,7 +33,8 @@ export default function Home() {
                 {JSON.stringify(user, null, 2)}
               </pre>
             </div>
-            <Button onClick={logout} className="w-full">Logout</Button>
+            <Button onClick={() => window.location.href = "/user"} className="w-full">Go to User Page</Button>
+            <Button variant="destructive" onClick={logout} className="w-full">Logout</Button>
           </div>
         ) : (
           <div className="space-y-4">

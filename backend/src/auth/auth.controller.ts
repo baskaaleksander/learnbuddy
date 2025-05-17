@@ -35,7 +35,7 @@ export class AuthController {
 
         res.cookie('jwt', loginRes.access_token, {
             httpOnly: true,
-            secure: false,
+            secure: true,
             sameSite: 'none',
             maxAge: 24 * 60 * 60 * 1000,
         })
@@ -52,7 +52,7 @@ export class AuthController {
     async logout(@Res() res: Response) {
         res.clearCookie('jwt', {
             httpOnly: true,
-            secure: false,
+            secure: true,
             sameSite: 'none',
         })
 

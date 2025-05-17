@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             try {
                 const res = await api.get("/auth/me", {
             });
-                setUser(res.data.user);
+                setUser(res.data);
             } catch {
                 setUser(null);
             } finally {

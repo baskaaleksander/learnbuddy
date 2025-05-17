@@ -42,14 +42,14 @@
 }
 
 :root {
-  --radius: 0.3rem;
+  --radius: 0.5rem;
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(240, 10%, 4%);
   --card: hsl(0, 0%, 100%);
   --card-foreground: hsl(240, 10%, 4%);
   --popover: hsl(0, 0%, 100%);
   --popover-foreground: hsl(240, 10%, 4%);
-  --primary: hsl(270, 70%, 45%);
+  --primary: hsl(259, 63%, 59%);
   --primary-foreground: hsl(270, 10%, 97%);
   --secondary: hsl(240, 5%, 96%);
   --secondary-foreground: hsl(240, 6%, 10%);
@@ -60,7 +60,7 @@
   --destructive: hsl(10, 80%, 50%);
   --border: hsl(240, 6%, 90%);
   --input: hsl(240, 6%, 90%);
-  --ring: hsl(270, 70%, 45%);
+  --ring: hsl(259, 63%, 59%);
   --chart-1: hsl(40, 70%, 45%);
   --chart-2: hsl(190, 60%, 40%);
   --chart-3: hsl(220, 60%, 30%);
@@ -73,7 +73,7 @@
   --sidebar-accent: hsl(240, 5%, 96%);
   --sidebar-accent-foreground: hsl(240, 6%, 10%);
   --sidebar-border: hsl(240, 6%, 90%);
-  --sidebar-ring: hsl(270, 70%, 45%);
+  --sidebar-ring: hsl(259, 63%, 59%);
 }
 
 .dark {
