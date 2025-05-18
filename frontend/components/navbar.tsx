@@ -9,21 +9,22 @@ import { DropdownMenu, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from './ui/dropdown-menu';
 import { LucideChevronDown } from 'lucide-react';
 import { Button } from './ui/button';
+import logo from "@/public/logo.svg"
 
 function Navbar() {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const pathname = usePathname();
 
     const navLinks = [
         { name: "Home", path: "/" },
         { name: "Pricing", path: "/pricing" },
-        { name: "Contact", path: "/contact" },
+        { name: "About", path: "/about" },
     ]
   return (
-    <nav className='hidden md:flex items-center justify-between border-b border-gray-200 dark:border-gray-800 w-full bg-background'>
+    <nav className='hidden sm:flex items-center justify-between border-b border-gray-200 dark:border-gray-800 w-full bg-background'>
       <div className='flex items-center w-full max-w-7xl mx-auto px-6 lg:px-8 py-4 h-16'>
         <div className='flex items-center flex-shrink-0'>
-          <Image src="logo.svg" alt="LearnBuddy" width={140} height={40} className="md:w-[140px] lg:w-[180px]" />
+          <Image src={logo} alt="LearnBuddy" width={140} height={40} className="md:w-[140px] lg:w-[180px]" />
         </div>
         
         <div className='ml-6 lg:ml-10 flex-grow'>
@@ -69,7 +70,8 @@ function Navbar() {
                 <DropdownMenuItem>Profile</DropdownMenuItem>
                 <DropdownMenuItem>Billing</DropdownMenuItem>
                 <DropdownMenuItem>Team</DropdownMenuItem>
-                <DropdownMenuItem>Subscription</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="font-semibold text-destructive" onClick={() => logout()} >Logout</DropdownMenuItem>
             </DropdownMenuContent>
             </DropdownMenu>
           ) : (
