@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { UserCredentialsDto } from './dtos/user-credentials.dto';
@@ -69,6 +69,11 @@ export class AuthController {
             id: user.id,
             role: user.role,
         };
+    }
+
+    @Post('verify-email/:emailVerificationToken')
+    async verifyEmail(@Param('emailVerificationToken') emailVerificationToken: string) {
+        return this.authService.verifyEmail(emailVerificationToken);
     }
     
 }

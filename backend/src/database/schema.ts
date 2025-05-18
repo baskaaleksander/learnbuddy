@@ -1,5 +1,6 @@
-import { pgTable, uuid, varchar, text, timestamp, integer, pgEnum, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, timestamp, integer, pgEnum, jsonb, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { generateBase58Uuid } from "src/utils/generateEmailCode";
 
 // Enums
 export const userRoleEnum = pgEnum('user_role', ['user', 'admin']);
@@ -15,6 +16,8 @@ export const users = pgTable('users', {
   email: varchar('email').unique().notNull(),
   passwordHash: text('password_hash').notNull(),
   role: userRoleEnum('role').default('user').notNull(),
+  emailVerified: boolean('email_verified').default(false).notNull(),
+  emailVerificationToken: text('email_verification_token').unique().$defaultFn(() => generateBase58Uuid()),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   stripeCustomerId: text('stripe_customer_id'),

@@ -1,10 +1,11 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes, scrypt as _scrypt } from 'crypto';
 import { eq } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
 import { users } from 'src/database/schema';
 import { promisify } from 'util';
+import { UserCredentialsDto } from './dtos/user-credentials.dto';
 
 const scrypt = promisify(_scrypt);
 
@@ -12,10 +13,7 @@ const scrypt = promisify(_scrypt);
 export class AuthService {
     constructor(private jwtService: JwtService, @Inject('DRIZZLE') private drizzle: typeof db) {}
 
-    async me() {
-        
-    }
-    async register(user: any) {
+    async register(user: UserCredentialsDto) {
 
         const existingUser = await this.drizzle
             .select()
@@ -89,6 +87,33 @@ export class AuthService {
             email: payload.email,
             id: payload.id,
             role: payload.role,
+        };
+    }
+
+    async verifyEmail(emailVerificationToken: string) {
+        const user = await this.drizzle
+            .select()
+            .from(users)
+            .where(eq(users.emailVerificationToken, emailVerificationToken));
+
+        if(user.length === 0) {
+            throw new NotFoundException('Invalid email verification token');
+        }
+
+        if(user[0].emailVerified) {
+            throw new ConflictException('Email already verified');
+        }
+
+        await this.drizzle
+            .update(users)
+            .set({
+                emailVerified: true,
+            })
+            .where(eq(users.id, user[0].id))
+            .returning();
+
+        return {
+            message: 'Email verified successfully',
         };
     }
     
