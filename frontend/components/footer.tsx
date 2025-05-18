@@ -27,9 +27,9 @@ function Footer() {
         <Image src={logo} alt="LearnBuddy" width={140} height={40} className="hidden md:block md:w-[140px] lg:w-[180px]" />
         {footerLinks.map((link, index) => (
           <ul key={index} className='flex flex-col items-center md:items-start'>
-            <li className='font-semibold hover:text-primary'><Link href={link.path}>{link.name}</Link></li>
+            <li className='font-semibold hover:text-primary pb-2'><Link href={link.path}>{link.name}</Link></li>
             {link.subLinks.map((subLink, subIndex) => (
-              <li key={subIndex} className='text-gray-500 dark:text-gray-400 hover:text-primary'><Link href={subLink.path}>{subLink.name}</Link></li>
+              <li key={subIndex} className='text-gray-500 dark:text-gray-400 hover:text-primary pb-1'><Link href={subLink.path}>{subLink.name}</Link></li>
             ))}
           </ul>
         ))}
