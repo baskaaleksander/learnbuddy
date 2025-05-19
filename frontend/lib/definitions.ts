@@ -7,3 +7,10 @@ export interface PricingCardProps {
         isAvailable: boolean;
     }[];
 }
+
+export interface FAQProps {
+  questions: {
+    question: string;
+    answer: string;
+  }[];
+}

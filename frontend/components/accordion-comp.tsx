@@ -1,12 +1,7 @@
 import React from 'react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
+import { FAQProps } from '@/lib/definitions';
 
-interface FAQProps {
-  questions: {
-    question: string;
-    answer: string;
-  }[];
-}
 
 function AccordionComp({ questions } : FAQProps) {
     
