@@ -18,7 +18,8 @@ function Footer() {
     ] },
     { name: "About", path: "/", subLinks: [
       { name: "Who we are?", path: "/" },
-      { name: "Contact", path: "/" }
+      { name: "Contact", path: "/" },
+      { name: "Our mission", path: "/"}
     ] }
   ]
   return (
