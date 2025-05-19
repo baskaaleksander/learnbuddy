@@ -1,9 +1,12 @@
+import FaqPricing from '@/components/faq-pricing'
+import Features from '@/components/features'
 import React from 'react'
 
 function PricingPage() {
   return (
     <div>
-    PricingPage
+        <Features />
+        <FaqPricing />
     </div>
   )
 }
