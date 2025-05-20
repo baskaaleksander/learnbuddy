@@ -1,3 +1,4 @@
+import ContactSection from '@/components/contact-section'
 import DescriptionSection from '@/components/description-section'
 import React from 'react'
 
@@ -9,7 +10,7 @@ function AboutPage() {
             secondaryTitle="Get to know each other"
             description="Hi! I'm a solo developer and currently a student myself. I started this project because I understand firsthand the challenges that come with learning new things. My goal is to create an app that makes learning easier and more accessible for everyone, no matter where you are in your educational journey. By combining my passion for technology and education, I hope to help others achieve their goals and make the process of learning more enjoyable and effective." 
         />
-        {/* add contact form */}
+        <ContactSection />
         <DescriptionSection
             title="Our mission?"
             secondaryTitle="Learn about our mission"
