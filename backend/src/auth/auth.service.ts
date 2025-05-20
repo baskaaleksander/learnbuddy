@@ -6,12 +6,13 @@ import { db } from 'src/database/drizzle.module';
 import { users } from 'src/database/schema';
 import { promisify } from 'util';
 import { UserCredentialsDto } from './dtos/user-credentials.dto';
+import { EmailService } from 'src/email/email.service';
 
 const scrypt = promisify(_scrypt);
 
 @Injectable()
 export class AuthService {
-    constructor(private jwtService: JwtService, @Inject('DRIZZLE') private drizzle: typeof db) {}
+    constructor(private jwtService: JwtService, @Inject('DRIZZLE') private drizzle: typeof db, private emailService: EmailService) {}
 
     async register(user: UserCredentialsDto) {
 
@@ -28,6 +29,7 @@ export class AuthService {
         const hash = await scrypt(user.password, salt, 32) as Buffer;
         const result = salt + '.' + hash.toString('hex');
         let payload
+        let emailVerificationToken
 
         await this.drizzle
             .insert(users)
@@ -42,6 +44,7 @@ export class AuthService {
                     id: res[0].id,
                     role: res[0].role,
                 };
+                emailVerificationToken = res[0].emailVerificationToken;
                 
             }
             )
@@ -50,6 +53,8 @@ export class AuthService {
             }
             );
 
+            await this.emailService.sendEmail(user.email, 'Email Verification', `Please verify your email by clicking on this link: ${process.env.FRONTEND_URL}/verify-email/${emailVerificationToken}`);
+        
         return {
             access_token: this.jwtService.sign(payload, { secret: process.env.JWT_SECRET }),
             email: payload.email,

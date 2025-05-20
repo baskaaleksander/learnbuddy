@@ -4,11 +4,12 @@ import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-        JwtModule.registerAsync({
+      JwtModule.registerAsync({
           imports: [ConfigModule],
           inject: [ConfigService],
           useFactory: async (configService: ConfigService) => ({
@@ -16,6 +17,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             signOptions: { expiresIn: '24h' },
           }),
         }),
+        EmailModule,
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController]
