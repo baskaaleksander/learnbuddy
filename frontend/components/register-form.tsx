@@ -1,3 +1,4 @@
+'use client';
 import { useAuth } from '@/providers/auth-provider';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -7,11 +8,19 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
+import { Checkbox } from './ui/checkbox';
 
 
 const formSchema = z.object({
     email: z.string().email({ message: "Invalid email address" }),
     password: z.string().min(6, { message: "Password must be at least 6 characters long" }),
+    confirmPassword: z.string(),
+    tosAccepted: z.boolean().refine(val => val, {
+        message: "You must accept the Terms of Service",
+    }),
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
 });
 
 function RegisterForm() {
@@ -22,6 +31,8 @@ function RegisterForm() {
         defaultValues: {
         email: "",
         password: "",
+        confirmPassword: "",
+        tosAccepted: false,
         },
     })
 
@@ -36,7 +47,7 @@ function RegisterForm() {
         try {
             await register(data.email, data.password);
         } catch (error) {
-            console.error("Login failed", error);
+            console.error("Registration failed", error);
         }
     }
   return (
@@ -49,7 +60,7 @@ function RegisterForm() {
                     <FormItem className="mb-4">
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                            <Input placeholder='your@email.com' {...field} />
+                            <Input {...field} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -58,19 +69,51 @@ function RegisterForm() {
                 control={form.control}
                 name="password"
                 render= {( { field } ) => (
-                    <FormItem className="">
+                    <FormItem className="mb-4">
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                            <Input type="password" placeholder='••••••' {...field} />
+                            <Input type="password" {...field} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
             )} />
-            <Button type="submit" className='w-full mt-6'>Login</Button>
+            <FormField
+                control={form.control}
+                name="confirmPassword"
+                render= {( { field } ) => (
+                    <FormItem className="mb-4">
+                        <FormLabel>Confirm Password</FormLabel>
+                        <FormControl>
+                            <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+            )} />
+            <FormField
+                    control={form.control}
+                    name="tosAccepted"
+                    render={({ field }) => (
+                        <FormItem className="flex items-center space-x-2 mb-2">
+                            <FormControl>
+                                <Checkbox
+                                    id="tosAccepted"
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    className="mr-2 "
+                                />
+                            </FormControl>
+                            <FormLabel htmlFor="tosAccepted" className="mb-0 cursor-pointer">
+                                I accept the Terms of Service
+                            </FormLabel>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+            <Button type="submit" className='w-full mt-6'>Register</Button>
         </form>
     </Form>
   )
-
 }
 
 export default RegisterForm
