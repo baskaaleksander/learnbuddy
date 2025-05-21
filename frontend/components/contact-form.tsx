@@ -8,14 +8,15 @@ import { Input } from './ui/input'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 import api from '@/utils/axios';
+import { Checkbox } from './ui/checkbox';
 
 const formSchema = z.object({
     name: z.string().min(3, { message: "Name must be at least 3 characters long" }),
     email: z.string().email({ message: "Invalid email address" }),
     message: z.string().min(10, { message: "Message must be at least 10 characters long" }),
-    // tosAccepted: z.boolean().refine(val => val, {
-    //     message: "You must accept the Terms of Service",
-    // }),
+    tosAccepted: z.boolean().refine(val => val, {
+        message: "You must accept the Terms of Service",
+    }),
 })
 
 function ContactForm() {
@@ -25,7 +26,7 @@ function ContactForm() {
             name: "",
             email: "",
             message: "",
-            // tosAccepted: false,
+            tosAccepted: false,
         },
     })
 
@@ -82,6 +83,26 @@ function ContactForm() {
                                 <Textarea className="mb-4" placeholder="Type your message here..." {...field} />
                             </FormControl>
                             <FormMessage className="mb-4" />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="tosAccepted"
+                    render={({ field }) => (
+                        <FormItem className="flex items-center space-x-2 mb-2">
+                            <FormControl>
+                                <Checkbox
+                                    id="tosAccepted"
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    className="mr-2"
+                                />
+                            </FormControl>
+                            <FormLabel htmlFor="tosAccepted" className="mb-0 cursor-pointer">
+                                I accept the Terms of Service
+                            </FormLabel>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
