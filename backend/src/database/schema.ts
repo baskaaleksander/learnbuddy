@@ -23,6 +23,14 @@ export const users = pgTable('users', {
   stripeCustomerId: text('stripe_customer_id'),
 });
 
+export const passwordResets = pgTable('password_resets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  token: text('token').unique().$defaultFn(() => generateBase58Uuid()),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+})
+
 export const materials = pgTable('materials', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id),
@@ -76,6 +84,13 @@ export const usersRelations = relations(users, ({ many }) => ({
   quizResults: many(quizResults),
   flashcardProgress: many(flashcardProgress),
   subscriptions: many(subscriptions),
+}));
+
+export const passwordResetsRelations = relations(passwordResets, ({ one }) => ({
+  user: one(users, {
+    fields: [passwordResets.userId],
+    references: [users.id],
+  }),
 }));
 
 export const materialsRelations = relations(materials, ({ one, many }) => ({

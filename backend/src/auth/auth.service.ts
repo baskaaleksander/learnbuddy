@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { randomBytes, scrypt as _scrypt } from 'crypto';
 import { eq } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
-import { users } from 'src/database/schema';
+import { passwordResets, users } from 'src/database/schema';
 import { promisify } from 'util';
 import { UserCredentialsDto } from './dtos/user-credentials.dto';
 import { EmailService } from 'src/email/email.service';
@@ -28,42 +28,37 @@ export class AuthService {
         const salt = randomBytes(8).toString('hex');
         const hash = await scrypt(user.password, salt, 32) as Buffer;
         const result = salt + '.' + hash.toString('hex');
-        let payload
-        let emailVerificationToken
 
-        await this.drizzle
+        const res = await this.drizzle
             .insert(users)
             .values({
                 email: user.email,
                 passwordHash: result,
             })
             .returning()
-            .then((res) => {
-                payload = {
-                    email: res[0].email,
-                    id: res[0].id,
-                    role: res[0].role,
-                };
-                emailVerificationToken = res[0].emailVerificationToken;
-                
-            }
-            )
             .catch((err) => {
                 throw new Error('Error creating user', err);
             }
-            );
+        );
 
-            await this.emailService.sendEmail(user.email, 'Email Verification', `Please verify your email by clicking on this link: ${process.env.FRONTEND_URL}/verify-email/${emailVerificationToken}`);
+        const payload = {
+            email: res[0].email,
+            id: res[0].id,
+            role: res[0].role,
+        };
+
+
+        await this.emailService.sendEmail(user.email, 'Email Verification', `Please verify your email by clicking on this link: ${process.env.FRONTEND_URL}/verify-email/${res[0].emailVerificationToken}`);
         
         return {
             access_token: this.jwtService.sign(payload, { secret: process.env.JWT_SECRET }),
-            email: payload.email,
-            id: payload.id,
-            role: payload.role,
+            email: res[0].email,
+            id: res[0].id,
+            role: res[0].role,
         };
     }
 
-    async login(user: any) {
+    async login(user: UserCredentialsDto) {
 
         const existingUser = await this.drizzle
             .select()
@@ -119,6 +114,40 @@ export class AuthService {
 
         return {
             message: 'Email verified successfully',
+        };
+    }
+
+    async forgotPassword(email: string) {
+        const user = await this.drizzle
+            .select()
+            .from(users)
+            .where(eq(users.email, email));
+
+        if(user.length === 0) {
+            throw new NotFoundException('User does not exist');
+        }
+
+        const res = await this.drizzle
+            .insert(passwordResets)
+            .values({
+                userId: user[0].id,
+                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            })
+            .returning()
+            .catch((err) => {
+                throw new Error('Error creating password reset token', err);
+            });
+
+        if (!res || res.length === 0) {
+            throw new Error('Failed to create password reset token');
+        }
+
+        const token = res[0].token;
+
+        await this.emailService.sendEmail(email, 'Password Reset', `Please reset your password by clicking on this link: ${process.env.FRONTEND_URL}/reset-password/${token}`);
+
+        return {
+            message: 'Password reset email sent',
         };
     }
     

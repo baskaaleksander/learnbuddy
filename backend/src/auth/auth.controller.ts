@@ -75,5 +75,10 @@ export class AuthController {
     async verifyEmail(@Param('emailVerificationToken') emailVerificationToken: string) {
         return this.authService.verifyEmail(emailVerificationToken);
     }
+
+    @Post('forgot-password')
+    async forgotPassword(@Body('email') email: string) {
+        return this.authService.forgotPassword(email);
+    }
     
 }
