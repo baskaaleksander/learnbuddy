@@ -50,7 +50,7 @@ function LoginForm() {
                     <FormItem className="mb-4">
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                            <Input placeholder='your@email.com' {...field} />
+                            <Input {...field} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -62,7 +62,7 @@ function LoginForm() {
                     <FormItem className="">
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                            <Input type="password" placeholder='••••••' {...field} />
+                            <Input type="password" {...field} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>

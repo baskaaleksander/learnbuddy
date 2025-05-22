@@ -27,6 +27,7 @@ export const passwordResets = pgTable('password_resets', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id),
   token: text('token').unique().$defaultFn(() => generateBase58Uuid()),
+  used: boolean('used').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   expiresAt: timestamp('expires_at').notNull(),
 })

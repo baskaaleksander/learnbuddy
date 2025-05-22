@@ -150,5 +150,67 @@ export class AuthService {
             message: 'Password reset email sent',
         };
     }
+
+    async checkPasswordResetToken(token: string) {
+        const passwordReset = await this.drizzle
+            .select()
+            .from(passwordResets)
+            .where(eq(passwordResets.token, token));
+
+        if(passwordReset.length === 0) {
+            throw new NotFoundException('Invalid password reset token');
+        }
+
+        if(passwordReset[0].expiresAt < new Date()) {
+            throw new ConflictException('Password reset token expired');
+        }
+
+        if(passwordReset[0].used) {
+            throw new ConflictException('Password reset token already used');
+        }
+
+        return {
+            message: 'Password reset token valid',
+        };
+    }
+
+    async resetPassword(token: string, newPassword: string) {
+        const passwordReset = await this.drizzle
+            .select()
+            .from(passwordResets)
+            .where(eq(passwordResets.token, token));
+
+        if(passwordReset.length === 0) {
+            throw new NotFoundException('Invalid password reset token');
+        }
+
+        if(passwordReset[0].expiresAt < new Date()) {
+            throw new ConflictException('Password reset token expired');
+        }
+
+        const salt = randomBytes(8).toString('hex');
+        const hash = await scrypt(newPassword, salt, 32) as Buffer;
+        const result = salt + '.' + hash.toString('hex');
+
+        await this.drizzle
+            .update(users)
+            .set({
+                passwordHash: result,
+            })
+            .where(eq(users.id, passwordReset[0].userId))
+            .returning();
+
+        await this.drizzle
+                .update(passwordResets)
+                .set({
+                    used: true,
+                })
+                .where(eq(passwordResets.token, token))
+                .returning();
+
+        return {
+            message: 'Password reset successfully',
+        };
+    }
     
 }

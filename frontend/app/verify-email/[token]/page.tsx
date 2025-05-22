@@ -1,9 +1,10 @@
 'use client';
 import api from '@/utils/axios';
-import React, { useEffect, useState } from 'react'
+import React, { use, useEffect, useState } from 'react'
 
-function VerifyEmail( { params }: { params: { token: string} }) {
-  const { token } = params;
+function VerifyEmail({ params }: { params: Promise<{ token: string }> }) {
+  const resolvedParams = use(params);
+  const token = resolvedParams.token;
   const [ message, setMessage ] = useState<string | null>("");
 
   useEffect(() => {

@@ -54,7 +54,7 @@ function ContactForm() {
                         <FormItem>
                             <FormLabel>Name</FormLabel>
                             <FormControl>
-                                <Input className="mb-4" placeholder="John Doe" {...field} />
+                                <Input className="mb-4" {...field} />
                             </FormControl>
                             <FormMessage className="mb-4" />
                         </FormItem>
@@ -67,7 +67,7 @@ function ContactForm() {
                         <FormItem>
                             <FormLabel>E-mail</FormLabel>
                             <FormControl>
-                                <Input className="mb-4" placeholder="john.doe@example.com" {...field} />
+                                <Input className="mb-4" {...field} />
                             </FormControl>
                             <FormMessage className="mb-4" />
                         </FormItem>
