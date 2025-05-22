@@ -89,4 +89,8 @@ export class AuthController {
     async checkPasswordResetToken(@Param('token') token: string) {
         return this.authService.checkPasswordResetToken(token);
     }
+    @Post('request-password-reset')
+    async requestPasswordReset(@Body('email') email: string) {
+        return this.authService.requestPasswordReset(email);
+    }
 }

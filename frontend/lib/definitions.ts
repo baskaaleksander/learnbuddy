@@ -14,3 +14,10 @@ export interface FAQProps {
     answer: string;
   }[];
 }
+
+export interface AlertInterface {
+  title: string;
+  description: string;
+  type?: 'default' | 'destructive';
+  icon: React.ReactNode;
+}

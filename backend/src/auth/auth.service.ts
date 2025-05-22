@@ -212,5 +212,40 @@ export class AuthService {
             message: 'Password reset successfully',
         };
     }
+
+    async requestPasswordReset(email: string) {
+        
+        const user = await this.drizzle
+            .select()
+            .from(users)
+            .where(eq(users.email, email));
+
+        if(user.length === 0) {
+            throw new NotFoundException('User does not exist');
+        }
+
+        const res = await this.drizzle
+            .insert(passwordResets)
+            .values({
+                userId: user[0].id,
+                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            })
+            .returning()
+            .catch((err) => {
+                throw new Error('Error creating password reset token', err);
+            });
+
+        if (!res || res.length === 0) {
+            throw new Error('Failed to create password reset token');
+        }
+
+        const token = res[0].token;
+
+        await this.emailService.sendEmail(email, 'Password Reset', `Please reset your password by clicking on this link: ${process.env.FRONTEND_URL}/reset-password/${token}`);
+
+        return {
+            message: 'Password reset email sent',
+        };
+    }
     
 }
