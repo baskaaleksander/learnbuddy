@@ -1,6 +1,5 @@
 import React from 'react'
 import { Alert, AlertDescription, AlertTitle } from './ui/alert'
-import { AlertCircle } from 'lucide-react'
 import { AlertInterface } from '@/lib/definitions'
 
 function AlertBox({ title, description, type, icon } : AlertInterface) {

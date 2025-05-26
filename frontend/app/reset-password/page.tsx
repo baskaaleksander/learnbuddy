@@ -30,10 +30,11 @@ function RequestPasswordResetPage() {
         try {
             setLoading(true);
             setError(null);
-            const response = await api.post('/auth/request-password-reset', {
+            await api.post('/auth/request-password-reset', {
                 email: data.email,
             })
             setSuccess("Password reset link sent to your email.");
+        //find type for that
         } catch (error : any) {
             setError(error.response?.data?.message || "An error occurred while sending the password reset link.");
         } finally {

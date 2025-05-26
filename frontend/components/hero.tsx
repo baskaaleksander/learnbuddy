@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useEffect } from 'react'
 import { Button } from './ui/button'
 import { LucideArrowRight } from 'lucide-react'
@@ -6,7 +7,6 @@ import BadgeWithLink from './ui/badge-with-link'
 function Hero() {
   const fullText = "Make learning smarter than ever!";
   const [displayText, setDisplayText] = useState("");
-  const [typingComplete, setTypingComplete] = useState(false);
   
   useEffect(() => {
     setDisplayText("");
@@ -18,7 +18,6 @@ function Hero() {
         currentIndex++;
       } else {
         clearInterval(typingInterval);
-        setTypingComplete(true);
       }
     }, 100);
     
