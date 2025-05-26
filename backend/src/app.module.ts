@@ -6,13 +6,25 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { UploadModule } from './upload/upload.module';
 import { EmailModule } from './email/email.module';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { MaterialsModule } from './materials/materials.module';
+import { UserModule } from './user/user.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({
-    isGlobal: true,
-    envFilePath: '.env',
-  })
-    ,DrizzleModule, AuthModule, UploadModule, EmailModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      context: (({ req, res }) => ({ req, res })),
+      driver: ApolloDriver,
+      autoSchemaFile: true,
+      debug: true,
+      playground: true,
+    }),
+    DrizzleModule, AuthModule, UploadModule, EmailModule, MaterialsModule, UserModule],
   controllers: [AppController],
   providers: [AppService],
 })
