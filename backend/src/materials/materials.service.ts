@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { db } from 'src/database/drizzle.module';
 import { materials, materialStatusEnum } from 'src/database/schema';
 import { toMaterialGraphQL } from './materials.mapper';
@@ -43,5 +43,26 @@ export class MaterialsService {
         
         return toMaterialGraphQL(newMaterial[0]);
         
+    }
+
+    async deleteMaterial(userId: string, id: string) {
+        const material = await this.drizzle
+            .select()
+            .from(materials)
+            .where(eq(materials.id, id));
+
+        if (material.length === 0){
+            throw new NotFoundException('Material not found');
+        }
+
+        if (material[0].userId !== userId) {
+            throw new UnauthorizedException('You do not have permission to delete this material');
+        }
+
+        await this.drizzle
+            .delete(materials)
+            .where(eq(materials.id, id));
+
+        return { success: true, message: 'Material deleted successfully' };
     }
 }

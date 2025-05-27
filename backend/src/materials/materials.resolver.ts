@@ -27,4 +27,11 @@ export class MaterialsResolver {
     async createMaterial(@CurrentUser() user: PayloadDto, @Args('input') input: CreateMaterialInput) {
         return await this.materialsService.createMaterial(user.id, input);
     }
+
+    @UseGuards(GqlAuthGuard)
+    @Mutation()
+    async deleteMaterial(@CurrentUser() user: PayloadDto, @Args('id') id: string) {
+        return await this.materialsService.deleteMaterial(user.id, id);
+    }
+
 }

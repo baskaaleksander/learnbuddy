@@ -10,6 +10,8 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { MaterialsModule } from './materials/materials.module';
 import { UserModule } from './user/user.module';
+import { OpenAiModule } from './open-ai/open-ai.module';
+import { QuizModule } from './quiz/quiz.module';
 
 @Module({
   imports: [
@@ -24,7 +26,7 @@ import { UserModule } from './user/user.module';
       debug: true,
       playground: true,
     }),
-    DrizzleModule, AuthModule, UploadModule, EmailModule, MaterialsModule, UserModule],
+    DrizzleModule, AuthModule, UploadModule, EmailModule, MaterialsModule, UserModule, OpenAiModule, QuizModule],
   controllers: [AppController],
   providers: [AppService],
 })
