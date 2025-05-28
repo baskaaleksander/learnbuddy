@@ -63,6 +63,6 @@ export class MaterialsService {
             .delete(materials)
             .where(eq(materials.id, id));
 
-        return { success: true, message: 'Material deleted successfully' };
+        return true;
     }
 }

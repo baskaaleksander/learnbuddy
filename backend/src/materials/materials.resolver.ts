@@ -17,7 +17,7 @@ export class MaterialsResolver {
     }
 
     @UseGuards(GqlAuthGuard)
-    @Query(() => MaterialType)
+    @Query(() => [MaterialType])
     async getUserMaterials(@CurrentUser() user: PayloadDto) {
         return await this.materialsService.getUserMaterials(user.id);
     }
@@ -29,9 +29,8 @@ export class MaterialsResolver {
     }
 
     @UseGuards(GqlAuthGuard)
-    @Mutation()
+    @Mutation(() => Boolean)
     async deleteMaterial(@CurrentUser() user: PayloadDto, @Args('id') id: string) {
         return await this.materialsService.deleteMaterial(user.id, id);
     }
-
 }

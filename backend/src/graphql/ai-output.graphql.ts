@@ -1,5 +1,6 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { MaterialType } from 'src/materials/materials.graphql';
+import GraphQLJSON from 'graphql-type-json';
 
 export enum AIOutputEnum {
   SUMMARY = 'summary',
@@ -8,7 +9,7 @@ export enum AIOutputEnum {
 }
 
 registerEnumType(AIOutputEnum, {
-  name: 'AIOutputType',
+  name: 'AIOutputEnum',
   description: 'Types of AI-generated content',
 });
 
@@ -23,7 +24,7 @@ export class AIOutputType {
   @Field(() => AIOutputEnum)
   type: AIOutputEnum;
 
-  @Field(() => JSON)
+  @Field(() => GraphQLJSON)
   content: any;
 
   @Field(() => Date)

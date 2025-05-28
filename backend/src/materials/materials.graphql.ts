@@ -10,8 +10,6 @@ registerEnumType(MaterialStatus, {
     name: 'MaterialStatus',
 });
 
-
-
 @ObjectType()
 export class MaterialType {
 
@@ -24,7 +22,7 @@ export class MaterialType {
     @Field()
     title: string;
 
-    @Field()
+    @Field(() => String)
     content: string;
 
     @Field(() => MaterialStatus)

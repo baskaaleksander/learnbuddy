@@ -12,6 +12,7 @@ import { MaterialsModule } from './materials/materials.module';
 import { UserModule } from './user/user.module';
 import { OpenAiModule } from './open-ai/open-ai.module';
 import { QuizModule } from './quiz/quiz.module';
+import GraphQLJSON from 'graphql-type-json';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { QuizModule } from './quiz/quiz.module';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       context: (({ req, res }) => ({ req, res })),
       driver: ApolloDriver,
+      resolvers: { JSON: GraphQLJSON },
       autoSchemaFile: true,
       debug: true,
       playground: true,
