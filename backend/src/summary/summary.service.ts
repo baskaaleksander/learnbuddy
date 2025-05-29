@@ -2,60 +2,58 @@ import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@n
 import { and, eq } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
 import { aiOutputs, materials } from 'src/database/schema';
-import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
 import { toAIOutputGraphQL } from 'src/mappers/ai-output.mapper';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
 
 @Injectable()
-export class QuizService {
+export class SummaryService {
     constructor(
         @Inject('DRIZZLE') private drizzle: typeof db,
         private readonly openAiService: OpenAiService
-) {}
+    ) {}
 
-    async getQuizesByMaterial(materialId: string, userId: string) {
-
+    async getSummariesByMaterial(materialId: string, userId: string) {
 
         const materialAccess = await this.drizzle
-            .select()
-            .from(materials)
-            .where(
-                and(
-                    eq(materials.id, materialId),
-                    eq(materials.userId, userId)
-                )
-            );
+                    .select()
+                    .from(materials)
+                    .where(
+                        and(
+                            eq(materials.id, materialId),
+                            eq(materials.userId, userId)
+                        )
+                    );
         if (materialAccess.length === 0) {
-            throw new Error('Material not found or access denied');
+            throw new UnauthorizedException('Material not found or access denied');
         }
-
-        const quizes = await this.drizzle
+        
+        const summaries = await this.drizzle
             .select()
             .from(aiOutputs)
-            .where(
-                and(
-                    eq(aiOutputs.materialId, materialId),
-                    eq(aiOutputs.type, 'quiz')
-                )
-            );
-            
-        return quizes.map(quiz => toAIOutputGraphQL(quiz));
+            .where(and(
+                eq(aiOutputs.materialId, materialId),
+                eq(aiOutputs.type, 'summary'),
+            ));
+        
+        if (summaries.length === 0) {
+            throw new NotFoundException('No summaries found for this material');
+        }
 
+        return summaries.map(summary => toAIOutputGraphQL(summary));
     }
 
-    async getQuizById(id: string, userId: string) {
-        const quiz = await this.drizzle
+    async getSummaryById(id: string, userId: string) {
+        const summary = await this.drizzle
             .select()
             .from(aiOutputs)
             .where(
                 and(
-                    eq(aiOutputs.id, id),
+                    eq(aiOutputs.id, id),                
                 )
             );
-        
 
-        if (quiz.length === 0) {
-            throw new NotFoundException('Quiz not found');
+        if (summary.length === 0) {
+            throw new NotFoundException('Summary not found');
         }
 
         const materialAccess = await this.drizzle
@@ -63,19 +61,18 @@ export class QuizService {
             .from(materials)
             .where(
                 and(
-                    eq(materials.id, quiz[0].materialId),
+                    eq(materials.id, summary[0].materialId),
                     eq(materials.userId, userId)
                 )
             );
-
         if (materialAccess.length === 0) {
             throw new UnauthorizedException('Material not found or access denied');
         }
 
-        return toAIOutputGraphQL(quiz[0]);
+        return toAIOutputGraphQL(summary[0]);
     }
 
-    async createQuiz(materialId: string, userId: string){
+    async createSummary(materialId: string, userId: string) {
         const material = await this.drizzle
             .select()
             .from(materials)
@@ -85,7 +82,6 @@ export class QuizService {
                     eq(materials.userId, userId)
                 )
             );
-
         if (material.length === 0) {
             throw new UnauthorizedException('Material not found or access denied');
         }
@@ -97,9 +93,9 @@ export class QuizService {
         // }
 
         const pdfContent = "test";
-        const quiz = await this.openAiService.generateQuiz(pdfContent);
+        const summary = await this.openAiService.generateSummary(pdfContent);
 
-        if (!quiz) {
+        if (!summary) {
             throw new Error('Failed to generate quiz');
         }
 
@@ -107,22 +103,26 @@ export class QuizService {
             .insert(aiOutputs)
             .values({
                 materialId: materialId,
-                type: 'quiz',
-                content: quiz,
+                type: 'summary',
+                content: summary,
                 createdAt: new Date(),
             })
 
         return true;
     }
 
-    async deleteQuiz(id: string, userId: string) {
-        const quiz = await this.drizzle
+    async deleteSummary(id: string, userId: string) {
+        const summary = await this.drizzle
             .select()
             .from(aiOutputs)
-            .where(eq(aiOutputs.id, id));
+            .where(
+                and(
+                    eq(aiOutputs.id, id),
+                )
+            );
 
-        if (quiz.length === 0) {
-            throw new NotFoundException('Quiz not found');
+        if (summary.length === 0) {
+            throw new NotFoundException('Summary not found');
         }
 
         const materialAccess = await this.drizzle
@@ -130,11 +130,10 @@ export class QuizService {
             .from(materials)
             .where(
                 and(
-                    eq(materials.id, quiz[0].materialId),
+                    eq(materials.id, summary[0].materialId),
                     eq(materials.userId, userId)
                 )
             );
-
         if (materialAccess.length === 0) {
             throw new UnauthorizedException('Material not found or access denied');
         }
@@ -145,5 +144,4 @@ export class QuizService {
 
         return true;
     }
-
 }
