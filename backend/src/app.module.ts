@@ -13,6 +13,7 @@ import { UserModule } from './user/user.module';
 import { OpenAiModule } from './open-ai/open-ai.module';
 import { QuizModule } from './quiz/quiz.module';
 import { SummaryModule } from './summary/summary.module';
+import { FlashcardsModule } from './flashcards/flashcards.module';
 import GraphQLJSON from 'graphql-type-json';
 
 @Module({
@@ -29,7 +30,7 @@ import GraphQLJSON from 'graphql-type-json';
       debug: true,
       playground: true,
     }),
-    DrizzleModule, AuthModule, UploadModule, EmailModule, MaterialsModule, UserModule, OpenAiModule, QuizModule, SummaryModule],
+    DrizzleModule, AuthModule, UploadModule, EmailModule, MaterialsModule, UserModule, OpenAiModule, QuizModule, SummaryModule, FlashcardsModule],
   controllers: [AppController],
   providers: [AppService],
 })
