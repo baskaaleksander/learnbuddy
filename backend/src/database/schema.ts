@@ -59,11 +59,18 @@ export const quizResults = pgTable('quiz_results', {
   completedAt: timestamp('completed_at').defaultNow().notNull(),
 });
 
+export const flashcards = pgTable('flashcards', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  aiOutputId: uuid('ai_output_id').notNull().references(() => aiOutputs.id),
+  question: text('question').notNull(),
+  answer: text('answer').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const flashcardProgress = pgTable('flashcard_progress', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id),
-  materialId: uuid('material_id').notNull().references(() => materials.id),
-  flashcardId: text('flashcard_id').notNull(),
+  flashcardId: uuid('flashcard_id').notNull().references(() => flashcards.id),
   status: flashcardStatusEnum('status').notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -122,16 +129,25 @@ export const quizResultsRelations = relations(quizResults, ({ one }) => ({
   }),
 }));
 
+export const flashcardsRelations = relations(flashcards, ({ one, many }) => ({
+  aiOutput: one(aiOutputs, {
+    fields: [flashcards.aiOutputId],
+    references: [aiOutputs.id],
+  }),
+  flashcardProgress: many(flashcardProgress),
+}));
+
 export const flashcardProgressRelations = relations(flashcardProgress, ({ one }) => ({
   user: one(users, {
     fields: [flashcardProgress.userId],
     references: [users.id],
   }),
-  material: one(materials, {
-    fields: [flashcardProgress.materialId],
-    references: [materials.id],
+  flashcard: one(flashcards, {
+    fields: [flashcardProgress.flashcardId],
+    references: [flashcards.id],
   }),
 }));
+
 
 export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
   user: one(users, {

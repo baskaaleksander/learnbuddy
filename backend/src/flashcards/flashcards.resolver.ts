@@ -30,5 +30,5 @@ export class FlashcardsResolver {
     async deleteFlashcard(@Args('id') id: string, @CurrentUser() user: PayloadDto) {
         // Logic to delete a flashcard
         return true; // Placeholder return
-    }
+    } 
 }
