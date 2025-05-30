@@ -27,21 +27,20 @@ export class MaterialsService {
     }
 
     async createMaterial(userId: string, input: CreateMaterialInput) {
-        const newMaterial = await this.drizzle
+        await this.drizzle
             .insert(materials)
             .values({
                 userId: userId,
                 title: input.title,
                 content: input.content,
-                status: 'pending'
+                status: 'processed'
             })
-            .returning()
             .catch((err) => {
                 throw new Error('Error creating material', err);
             }
         );
         
-        return toMaterialGraphQL(newMaterial[0]);
+        return true;
         
     }
 
