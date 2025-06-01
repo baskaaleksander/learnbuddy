@@ -2,33 +2,49 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { PayloadDto } from 'src/auth/dtos/payload.dto';
 import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
 import { AIOutputType } from 'src/graphql/ai-output.graphql';
+import { FlashcardsService } from './flashcards.service';
+import { UseGuards } from '@nestjs/common';
+import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
+import { FlashcardProgressStatus } from './flashcard-progress.graphql';
 
 @Resolver(() => AIOutputType)
 export class FlashcardsResolver {
+    constructor(private readonly flashcardsService: FlashcardsService) {}
+
+    @UseGuards(GqlAuthGuard)
     @Query(() => AIOutputType)
     async getFlashcardById(@Args('id') id: string, @CurrentUser() user: PayloadDto) {
-        // Logic to fetch a flashcard by ID
-        return null; // Placeholder return
+        return this.flashcardsService.getFlashcardById(id, user.id);
     }
 
+    @UseGuards(GqlAuthGuard)
     @Query(() => [AIOutputType])
     async getFlashcardsByMaterial(@Args('materialId') materialId: string, @CurrentUser() user: PayloadDto) {
-        // Logic to fetch flashcards by material ID
-        return []; // Placeholder return
+        return this.flashcardsService.getFlashcardsByMaterial(materialId, user.id);
     }
 
+    @UseGuards(GqlAuthGuard)
     @Mutation(() => Boolean)
     async createFlashcard(
         @Args('materialId') materialId: string,
         @CurrentUser() user: PayloadDto
     ) {
-        // Logic to create a flashcard
-        return true; // Placeholder return
+        return this.flashcardsService.createFlashcards(materialId, user.id);
     }
 
+    @UseGuards(GqlAuthGuard)
     @Mutation(() => Boolean)
     async deleteFlashcard(@Args('id') id: string, @CurrentUser() user: PayloadDto) {
-        // Logic to delete a flashcard
-        return true; // Placeholder return
+        return this.flashcardsService.deleteFlashcards(id, user.id);
     } 
+
+    @UseGuards(GqlAuthGuard)
+    @Mutation(() => Boolean)
+    async updateFlashcardProgress(
+        @Args('id') id: string,
+        @Args('status') status: FlashcardProgressStatus,
+        @CurrentUser() user: PayloadDto
+    ) {
+        return this.flashcardsService.updateFlashcardStatus(id, user.id, status);
+    }
 }
