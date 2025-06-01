@@ -124,6 +124,56 @@ export class FlashcardsService {
     }
 
     async deleteFlashcards(id: string, userId: string) {
+        const materialAccess = await this.drizzle
+            .select()
+            .from(materials)
+            .where(
+                and
+                (
+                    eq(materials.id, id), 
+                    eq(materials.userId, userId)
+                )
+            );
+        
+        if (materialAccess.length === 0) {
+            throw new UnauthorizedException('Material not found or access denied');
+        }
+
+        const aiOutput = await this.drizzle
+            .select()
+            .from(aiOutputs)
+            .where(
+                and
+                (
+                    eq(aiOutputs.id, id),
+                    eq(aiOutputs.type, 'flashcards')
+                )
+            );
+
+        if (aiOutput.length === 0) {
+            throw new NotFoundException('No flashcards found for this material');
+        }
+
+        const flashcardsToDelete = await this.drizzle
+            .select()
+            .from(flashcards)
+            .where(eq(flashcards.aiOutputId, aiOutput[0].id));
+
+        if (flashcardsToDelete.length === 0) {
+            throw new NotFoundException('No flashcards found for this AI output');
+        }
+
+        await this.drizzle
+            .delete(flashcards)
+            .where(eq(flashcards.aiOutputId, aiOutput[0].id));
+        await this.drizzle
+            .delete(aiOutputs)
+            .where(eq(aiOutputs.id, aiOutput[0].id));
+        await this.drizzle
+            .delete(flashcardProgress)
+            .where(eq(flashcardProgress.flashcardId, flashcardsToDelete[0].id));
+
+        return true;
     }
 
     async updateFlashcardStatus(id: string, userId: string, status: FlashcardProgressStatus){

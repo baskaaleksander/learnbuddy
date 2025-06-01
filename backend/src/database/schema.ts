@@ -54,6 +54,7 @@ export const quizResults = pgTable('quiz_results', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id),
   materialId: uuid('material_id').notNull().references(() => materials.id),
+  aiOutputId: uuid('ai_output_id').notNull().references(() => aiOutputs.id),
   score: integer('score').notNull(),
   totalQuestions: integer('total_questions').notNull(),
   completedAt: timestamp('completed_at').defaultNow().notNull(),
@@ -127,6 +128,10 @@ export const quizResultsRelations = relations(quizResults, ({ one }) => ({
     fields: [quizResults.materialId],
     references: [materials.id],
   }),
+  aiOutputs: one(aiOutputs, {
+    fields: [quizResults.aiOutputId],
+    references: [aiOutputs.id],
+  })
 }));
 
 export const flashcardsRelations = relations(flashcards, ({ one, many }) => ({

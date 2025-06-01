@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
-import { aiOutputs, materials } from 'src/database/schema';
+import { aiOutputs, materials, quizResults } from 'src/database/schema';
 import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
 import { toAIOutputGraphQL } from 'src/mappers/ai-output.mapper';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
@@ -144,6 +144,48 @@ export class QuizService {
             .where(eq(aiOutputs.id, id));
 
         return true;
+    }
+
+    async submitQuiz(materialId: string, aiOutputId: string, userId: string, score: number){
+        const materialAccess = await this.drizzle
+            .select()
+            .from(materials)
+            .where(
+                and(
+                    eq(materials.id, materialId),
+                    eq(materials.userId, userId)
+                )
+            );
+        if (materialAccess.length === 0) {
+            throw new UnauthorizedException('Material not found or access denied');
+        }
+
+        const quiz = await this.drizzle
+            .select()
+            .from(aiOutputs)
+            .where(
+                and(
+                    eq(aiOutputs.id, aiOutputId),
+                    eq(aiOutputs.materialId, materialId),
+                    eq(aiOutputs.type, 'quiz')
+                )
+            );
+
+        if (quiz.length === 0) {
+            throw new NotFoundException('Quiz not found');
+        }
+
+        await this.drizzle
+            .insert(quizResults)
+            .values({
+                userId: userId,
+                materialId: materialId,
+                aiOutputId: aiOutputId,
+                score: score,
+                totalQuestions: quiz[0].content.flashcards.length,
+            })
+
+            return true;
     }
 
 }
