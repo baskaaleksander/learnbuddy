@@ -3,7 +3,6 @@ import React from 'react'
 import logo from "@/public/logo.svg"
 import Image from 'next/image'
 function Footer() {
-  // add privacy policy and terms of service links
   const footerLinks = [
     { name: "Home", path: "/", subLinks: [
       { name: "Features", path: "/" },
@@ -39,10 +38,15 @@ function Footer() {
         <div className="w-full my-6">
           <span className="block h-px bg-gray-200 dark:bg-gray-700 w-full"></span>
         </div>
-        <div>
+        <div className='flex flex-col items-center md:items-start justify-between md:flex-row'>
           <p className='text-center text-sm text-gray-500 dark:text-gray-400'>
             &copy; {new Date().getFullYear()} LearnBuddy. All rights reserved.
           </p>
+          <div className='flex items-center space-x-4 mt-2 md:mt-0 text-center'>
+            <Link href="/privacy-policy" className='text-sm text-gray-500 dark:text-gray-400 hover:text-primary px-2'>Privacy Policy</Link>
+            <Link href="/terms-of-service" className='text-sm text-gray-500 dark:text-gray-400 hover:text-primary px-2'>Terms of Service</Link>
+            <Link href="/cookie-policy" className='text-sm text-gray-500 dark:text-gray-400 hover:text-primary px-2'>Cookie Policy</Link>
+          </div>
         </div>
     </footer>
   )

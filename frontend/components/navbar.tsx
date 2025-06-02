@@ -16,6 +16,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 function Navbar() {
     const { user, logout } = useAuth();
     const pathname = usePathname();
+    const hideNavbar = pathname.startsWith('/dashboard')
 
     const navLinks = [
         { name: "Home", path: "/" },
@@ -23,10 +24,12 @@ function Navbar() {
         { name: "About", path: "/about" },
     ]
   return (
-    <>
-      <DesktopNavbar user={user} logout={logout} navLinks={navLinks} pathname={pathname} />
-      <MobileNavbar user={user} logout={logout} navLinks={navLinks} pathname={pathname} />
-    </>
+    !hideNavbar ? (
+      <>
+        <DesktopNavbar user={user} logout={logout} navLinks={navLinks} pathname={pathname} />
+        <MobileNavbar user={user} logout={logout} navLinks={navLinks} pathname={pathname} />
+      </>
+    ) : null
   )
 }
 
