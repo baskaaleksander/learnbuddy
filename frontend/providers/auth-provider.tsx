@@ -10,7 +10,7 @@ interface AuthContextType {
     register: (email: string, password: string) => Promise<void>;
 }
 
-interface UserData {
+export interface UserData {
     email: string;
     id: string;
     role: string;
