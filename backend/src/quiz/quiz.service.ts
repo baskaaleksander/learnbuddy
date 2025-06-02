@@ -5,6 +5,8 @@ import { aiOutputs, materials, quizResults } from 'src/database/schema';
 import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
 import { toAIOutputGraphQL } from 'src/mappers/ai-output.mapper';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
+import { toQuizResultGraphQl } from './quiz-result.mapper';
+import { QuizResponse } from 'src/utils/types';
 
 @Injectable()
 export class QuizService {
@@ -169,7 +171,7 @@ export class QuizService {
                     eq(aiOutputs.materialId, materialId),
                     eq(aiOutputs.type, 'quiz')
                 )
-            );
+            ) as QuizResponse[];
 
         if (quiz.length === 0) {
             throw new NotFoundException('Quiz not found');
@@ -186,6 +188,25 @@ export class QuizService {
             })
 
             return true;
+    }
+
+    async getQuizResults(quizId: string, userId: string) {
+
+        const results = await this.drizzle
+            .select()
+            .from(quizResults)
+            .where(
+                and(
+                    eq(quizResults.aiOutputId, quizId),
+                    eq(quizResults.userId, userId)
+                )
+            );
+
+        if (results.length === 0) {
+            throw new NotFoundException('Quiz results not found');
+        }
+
+        return results.map(result => toQuizResultGraphQl(result))
     }
 
 }

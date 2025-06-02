@@ -5,6 +5,8 @@ import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
 import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
 import { AIOutputType } from 'src/graphql/ai-output.graphql';
 import { QuizService } from './quiz.service';
+import { SubmitQuizInput } from './dtos/submit-quiz.input';
+import { QuizResultType } from './quiz-result.graphql';
 
 @Resolver(() => AIOutputType)
 export class QuizResolver {
@@ -46,5 +48,23 @@ export class QuizResolver {
         @Args('id') id: string
     ) {
         return this.quizService.deleteQuiz(id, user.id);
+    }
+
+    @UseGuards(GqlAuthGuard)
+    @Mutation(() => Boolean)
+    async submitQuiz(
+        @CurrentUser() user: PayloadDto, 
+        @Args('input') input: SubmitQuizInput
+    ) {
+        return this.quizService.submitQuiz(input.materialId, input.aiOutputId, user.id, input.score);
+    }
+
+    @UseGuards(GqlAuthGuard)
+    @Query(() => [QuizResultType])
+    async getQuizResults(
+        @CurrentUser() user: PayloadDto, 
+        @Args('quizId') quizId: string
+    ) {
+        return this.quizService.getQuizResults(quizId, user.id);
     }
 }
