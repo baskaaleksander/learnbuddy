@@ -5,8 +5,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
-import { ChevronLeftIcon, ChevronRightIcon, XIcon } from 'lucide-react';
+import { ChevronLeftIcon, ChevronRightIcon, LogOut, XIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useAuth } from '@/providers/auth-provider';
+import Image from 'next/image';
+import defaultAvatar from "@/public/avatar.svg" 
+
 
 interface SidebarProps {
   paths: Array<{
@@ -25,6 +29,7 @@ interface SidebarProps {
 function Sidebar({ paths, isOpen, toggle, isMobile = false }: SidebarProps) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -40,15 +45,16 @@ function Sidebar({ paths, isOpen, toggle, isMobile = false }: SidebarProps) {
     };
   }, [isOpen, isMobile, mounted]);
 
+  // Fix desktop sidebar to properly hide on mobile
   if (!isMobile) {
     return (
       <div
         className={cn(
-          'min-h-screen h-full border-r border-gray-200 dark:border-gray-800 bg-background transition-all duration-300 ease-in-out hidden md:block',
+          'min-h-screen h-full border-r border-gray-200 dark:border-gray-800 bg-background transition-all duration-300 ease-in-out hidden md:flex md:flex-col',
           isOpen ? 'w-64' : 'w-16'
         )}
       >
-        <div>
+        <div className="sticky top-0 z-10">
           <div className="h-16 flex items-center justify-end px-4 border-b border-gray-200 dark:border-gray-800">
             <Button 
               variant="ghost" 
@@ -61,7 +67,40 @@ function Sidebar({ paths, isOpen, toggle, isMobile = false }: SidebarProps) {
           </div>
         </div>
         
-        <SidebarContent paths={paths} isOpen={isOpen} pathname={pathname} />
+        <div className="flex-1 overflow-y-auto">
+          <SidebarContent paths={paths} isOpen={isOpen} pathname={pathname} />
+        </div>
+        
+        {user && (
+          <div className="mt-auto border-t border-gray-200 dark:border-gray-800 p-4">
+            <div className={cn(
+              "flex items-center", 
+              isOpen ? "justify-between" : "justify-center"
+            )}>
+              <div className="flex items-center space-x-3">
+                <Image
+                    src={defaultAvatar}
+                    alt="User Avatar"
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                    />
+                {isOpen && <p className="text-sm font-medium truncate max-w-[140px]">{user.email}</p>}
+              </div>
+              
+              {isOpen && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={logout} 
+                  className="h-8 px-2"
+                >
+                  <LogOut size={18} />
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -102,6 +141,31 @@ function Sidebar({ paths, isOpen, toggle, isMobile = false }: SidebarProps) {
                 animate={true} 
               />
             </div>
+                    {user && (
+          <div className="mt-auto border-t border-gray-200 dark:border-gray-800 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Image
+                    src={defaultAvatar}
+                    alt="User Avatar"
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                    />
+                <p className="text-sm font-medium truncate max-w-[140px]">{user.email}</p>
+              </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={logout} 
+                  className="h-8 px-2"
+                >
+                  <LogOut size={18} />
+                </Button>
+
+            </div>
+          </div>
+        )}
           </motion.div>
         </motion.div>
       )}
