@@ -20,7 +20,7 @@ export class MaterialsService {
         const userMaterials = await this.drizzle.select().from(materials).where(eq(materials.userId, userId));
 
         if (userMaterials.length === 0) {
-            throw new Error('No materials found for this user');
+            return [];
         }
 
         return userMaterials.map(material => (toMaterialGraphQL(material)));
