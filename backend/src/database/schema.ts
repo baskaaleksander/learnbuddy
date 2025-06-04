@@ -35,7 +35,8 @@ export const passwordResets = pgTable('password_resets', {
 export const materials = pgTable('materials', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id),
-  title: text('title').notNull(),
+  title: text('title').default(''),
+  description: text('description'),
   content: text('content').notNull(),
   status: materialStatusEnum('status').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -109,7 +110,6 @@ export const materialsRelations = relations(materials, ({ one, many }) => ({
   }),
   aiOutputs: many(aiOutputs),
   quizResults: many(quizResults),
-  flashcardProgress: many(flashcardProgress),
 }));
 
 export const aiOutputsRelations = relations(aiOutputs, ({ one }) => ({

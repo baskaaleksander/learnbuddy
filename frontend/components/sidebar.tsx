@@ -10,6 +10,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '@/providers/auth-provider';
 import Image from 'next/image';
 import defaultAvatar from "@/public/avatar.svg" 
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 
 interface SidebarProps {
@@ -228,7 +229,14 @@ function SidebarContent({
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                     )}
                   >
-                    <div className={cn("text-lg", !isOpen && "mx-auto")}>{link.icon}</div>
+                    <Tooltip>
+                        <TooltipTrigger>                    
+                            <div className={cn("text-lg", !isOpen && "mx-auto")}>{link.icon}</div>
+                        </TooltipTrigger>
+                        <TooltipContent className={isOpen ? "hidden" : "block"} side="right">
+                            {link.name}
+                        </TooltipContent>
+                    </Tooltip>
                     {isOpen && <span className="ml-3">{link.name}</span>}
                   </Link>
                 );

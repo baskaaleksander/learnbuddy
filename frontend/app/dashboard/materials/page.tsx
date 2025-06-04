@@ -21,6 +21,7 @@ function MaterialsPage() {
                         id
                         title
                         status
+                        createdAt
                     }
                 }
             `);

@@ -8,7 +8,8 @@ export function toMaterialGraphQL(material: MaterialDb) : MaterialType {
     return {
         id: material.id,
         userId: material.userId,
-        title: material.title,
+        title: material.title || '',
+        description: material.description || '',
         content: material.content,
         status: material.status as MaterialStatus,
         createdAt: material.createdAt,

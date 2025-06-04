@@ -22,6 +22,9 @@ export class MaterialType {
     @Field()
     title: string;
 
+    @Field()
+    description: string;
+
     @Field(() => String)
     content: string;
 

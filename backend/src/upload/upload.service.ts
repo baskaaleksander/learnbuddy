@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuid } from 'uuid';
+import { db } from 'src/database/drizzle.module';
+import { materials } from 'src/database/schema';
 
 @Injectable()
 export class UploadService {
@@ -9,7 +11,9 @@ export class UploadService {
     private bucket: string;
     private region: string;
 
-    constructor(private configService: ConfigService) {
+    constructor(
+        private configService: ConfigService,
+        @Inject('DRIZZLE') private drizzle: typeof db) {
         this.region = this.configService.get('AWS_REGION') || '';
         this.bucket = this.configService.get('AWS_S3_BUCKET_NAME') || '';
 
@@ -22,7 +26,7 @@ export class UploadService {
         });
     }
 
-    async uploadFile(file: Express.Multer.File): Promise<any> {
+    async uploadFile(file: Express.Multer.File, userId: string): Promise<any> {
         const fileKey = `${uuid()}-${file.originalname}`;
 
         const command = new PutObjectCommand({
@@ -34,10 +38,24 @@ export class UploadService {
 
         await this.s3Client.send(command);
 
+        const material = await this.drizzle
+            .insert(materials)
+            .values({
+                userId: userId,
+                content: `https://${this.bucket}.s3.${this.region}.amazonaws.com/${fileKey}`,
+                status: 'pending'
+            })
+            .returning()
+            .catch((err) => {
+                throw new Error('Error creating material', err);
+            }
+        );
+
         return {
-            message: 'File uploaded successfully',
+            message: 'Material uploaded successfully',
             filename: fileKey,
             url: `https://${this.bucket}.s3.${this.region}.amazonaws.com/${fileKey}`,
+            materialId: material[0].id
         };
     }
 }

@@ -10,6 +10,10 @@ export class CreateMaterialInput {
 
     @Field()
     @IsString()
-    content: string;
+    description: string;
+
+    @Field()
+    @IsString()
+    id: string;
 
 }
