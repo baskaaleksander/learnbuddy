@@ -1,12 +1,18 @@
 'use client';
+import ErrorComponent from '@/components/error-component';
+import LoadingScreen from '@/components/loading-screen';
+import MaterialCard from '@/components/material-card';
 import { fetchGraphQL } from '@/utils/gql-axios';
 import React, { useEffect, useState } from 'react'
 
 function MaterialsPage() {
 
     const [materials, setMaterials] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     useEffect(() => {
         try {
+            setLoading(true);
             const fetchMaterials = async () => {
                 const materialsResponse = await fetchGraphQL(`
                 query GetUserMaterials {
@@ -18,24 +24,33 @@ function MaterialsPage() {
                 }
             `);
                 setMaterials(materialsResponse.getUserMaterials);
-                console.log('Materials fetched:', materialsResponse.getUserMaterials);
             };
             fetchMaterials();
         } catch (error) {
-            console.error('Failed to fetch materials:', error);
+            setError("Failed to fetch materials. Please try again later.");
+        } finally {
+            setLoading(false);
         }
     }, []);
+
+    if (error) {
+        return <ErrorComponent message={error} />;
+    }
+
+    if (loading) {
+        return <LoadingScreen />
+    }
   return (
-    <div>
+    <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4'>
         {materials.length > 0 ? (
-            <ul>
-                {materials.map((material: any) => (
-                    <li key={material.id}>
-                        <h3>{material.title}</h3>
-                        <p>Status: {material.status}</p>
-                    </li>
-                ))}
-            </ul>
+            materials.map((material: any) => (
+                <MaterialCard
+                    key={material.id}
+                    title={material.title}
+                    status={material.status}
+                    id={material.id}
+                />
+            ))
         ) : (
             <p>No materials found.</p>
         )}

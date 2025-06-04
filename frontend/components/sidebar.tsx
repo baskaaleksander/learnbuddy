@@ -54,7 +54,7 @@ function Sidebar({ paths, isOpen, toggle, isMobile = false }: SidebarProps) {
           isOpen ? 'w-64' : 'w-16'
         )}
       >
-        <div className="sticky top-0 z-10">
+        <div className="">
           <div className="h-16 flex items-center justify-end px-4 border-b border-gray-200 dark:border-gray-800">
             <Button 
               variant="ghost" 
