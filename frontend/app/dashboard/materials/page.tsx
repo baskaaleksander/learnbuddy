@@ -2,6 +2,7 @@
 import ErrorComponent from '@/components/error-component';
 import LoadingScreen from '@/components/loading-screen';
 import MaterialCard from '@/components/material-card';
+import UploadCard from '@/components/upload-card';
 import { fetchGraphQL } from '@/utils/gql-axios';
 import React, { useEffect, useState } from 'react'
 
@@ -42,6 +43,7 @@ function MaterialsPage() {
     }
   return (
     <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4'>
+        <UploadCard />
         {materials.length > 0 ? (
             materials.map((material: any) => (
                 <MaterialCard
