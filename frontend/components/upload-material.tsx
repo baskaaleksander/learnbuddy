@@ -90,8 +90,6 @@ function UploadMaterial() {
         keywords: 'pdf, document',
       },
       content: [
-        { text: title, style: 'header' },
-        { text: '\n' },
         { text: text }
       ],
       styles: {
@@ -252,7 +250,7 @@ function UploadMaterial() {
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Uploading...
                     </>
-                  ) : "Upload Material"}
+                  ) : "Continue"}
                 </Button>
               </div>
             </form>

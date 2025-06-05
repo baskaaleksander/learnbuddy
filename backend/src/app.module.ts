@@ -15,6 +15,7 @@ import { QuizModule } from './quiz/quiz.module';
 import { SummaryModule } from './summary/summary.module';
 import { FlashcardsModule } from './flashcards/flashcards.module';
 import GraphQLJSON from 'graphql-type-json';
+import * as depthLimit from 'graphql-depth-limit';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import GraphQLJSON from 'graphql-type-json';
       autoSchemaFile: true,
       debug: true,
       playground: true,
+      validationRules: [depthLimit(5)],
     }),
     DrizzleModule, AuthModule, UploadModule, EmailModule, MaterialsModule, UserModule, OpenAiModule, QuizModule, SummaryModule, FlashcardsModule],
   controllers: [AppController],

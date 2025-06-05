@@ -64,7 +64,7 @@ export class MaterialsService {
             .from(materials)
             .where(eq(materials.id, input.id))
         
-        if (material.length > 0) {
+        if (material.length === 0) {
             throw new NotFoundException('Material with this ID doesnt exist');
         }
 
