@@ -26,6 +26,23 @@ export class MaterialsService {
         return userMaterials.map(material => (toMaterialGraphQL(material)));
     }
 
+    async getMaterialById(id: string, userId: string) {
+        const material = await this.drizzle
+            .select()
+            .from(materials)
+            .where(eq(materials.id, id));
+
+        if (material.length === 0) {
+            throw new NotFoundException('Material not found');
+        }
+
+        if (material[0].userId !== userId) {
+            throw new UnauthorizedException('You do not have permission to access this material');
+        }
+
+        return toMaterialGraphQL(material[0]);
+    }
+
     async createMaterial(userId: string, input: CreateMaterialInput) {
         // await this.drizzle
         //     .insert(materials)

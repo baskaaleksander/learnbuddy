@@ -23,6 +23,12 @@ export class MaterialsResolver {
     }
 
     @UseGuards(GqlAuthGuard)
+    @Query(() => MaterialType, { nullable: true })
+    async getMaterialById(@Args('id') id: string, @CurrentUser() user: PayloadDto) {
+        return await this.materialsService.getMaterialById(id, user.id);
+    }
+
+    @UseGuards(GqlAuthGuard)
     @Mutation(() => MaterialType)
     async createMaterial(@CurrentUser() user: PayloadDto, @Args('input') input: CreateMaterialInput) {
         return await this.materialsService.createMaterial(user.id, input);

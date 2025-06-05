@@ -41,9 +41,9 @@ function MaterialCard({
   };
   
   return (
-    <Link href={`/dashboard/materials/${id}`} onClick={handleCardClick}>
+    <Link href={status == 'PENDING' ? `/dashboard/materials/upload/${id}` : `/dashboard/materials/${id}`} onClick={handleCardClick}>
       <Card className={cn(
-        'flex flex-col shadow-sm hover:shadow-md transition-all hover:border-primary/50 border-gray-200 dark:border-gray-800 cursor-pointer', 
+        'flex h-full flex-col shadow-sm hover:shadow-md transition-all hover:border-primary/50 border-gray-200 dark:border-gray-800 cursor-pointer', 
         className
       )}>
         <CardHeader className="pb-2 flex flex-row items-start justify-between">

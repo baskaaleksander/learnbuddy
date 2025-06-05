@@ -41,6 +41,7 @@ export class UploadService {
         const material = await this.drizzle
             .insert(materials)
             .values({
+                title: file.originalname,
                 userId: userId,
                 content: `https://${this.bucket}.s3.${this.region}.amazonaws.com/${fileKey}`,
                 status: 'pending'
