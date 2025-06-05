@@ -34,7 +34,10 @@ function SecondStepUpload({ id }: { id: string }) {
       setLoading(true);
       const response = await fetchGraphQL(`
         mutation CreateMaterial {
-        createMaterial(input: { title: "${data.title}", id: "${id}", description: "${data.description}") {
+        createMaterial(input: { title: "${data.title}", id: "${id}", description: "${data.description}"}) {
+          id
+          title
+          description
         }
       }
   `)

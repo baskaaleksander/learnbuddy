@@ -83,9 +83,11 @@ export class MaterialsService {
                 description: input.description,
                 status: 'processed',
             })
-            .where(eq(materials.id, input.id));
+            .where(eq(materials.id, input.id))
+            .returning();
 
-        return true;
+        return toMaterialGraphQL(material[0]);
+
         
     }
 

@@ -19,6 +19,7 @@ interface MaterialCardProps {
   title: string;
   status: string;
   id: string;
+  description?: string;
   className?: string;
   onDelete?: () => void;
   onEdit?: () => void;
@@ -29,6 +30,7 @@ function MaterialCard({
   status, 
   id, 
   className,
+  description,
   onDelete,
   onEdit
 }: MaterialCardProps) {
@@ -51,7 +53,10 @@ function MaterialCard({
             <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
               <File size={20} />
             </div>
+          <div className="flex flex-col flex-1">
             <h3 className="font-medium text-base line-clamp-2">{title}</h3>
+            <p className='text-sm md:text-base text-gray-400'>{description}</p>
+          </div>
           </div>
           
           <DropdownMenu>
@@ -84,7 +89,8 @@ function MaterialCard({
           </DropdownMenu>
         </CardHeader>
         
-        <CardContent className="py-2 mt-auto">
+        <CardContent className="py-2 mt-auto flex items-center justify-between">
+
           <Badge variant={
             statusLower === "processed" ? "outline" :
             statusLower === "in-progress" ? "secondary" :
@@ -93,6 +99,13 @@ function MaterialCard({
           }>
             {status}
           </Badge>
+          <span className="text-xs text-gray-500">
+            {new Date().toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            })}
+          </span>
         </CardContent>
       </Card>
     </Link>
