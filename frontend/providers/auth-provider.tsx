@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 interface AuthContextType {
     user: UserData | null;
     loading: boolean;
+    error: string | null;
     login: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     register: (email: string, password: string) => Promise<void>;
@@ -21,27 +22,41 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const getErrorMessage = (error: any): string => {
+        if (error.response?.data?.message) {
+            return error.response.data.message;
+        }
+        if (error.message) {
+            return error.message;
+        }
+        if (typeof error === 'string') {
+            return error;
+        }
+        return 'An unexpected error occurred';
+    };
 
     useEffect(() => {
         const checkAuth = async () => {
-
+            setError(null);
             setLoading(true);
             try {
-                const res = await api.get("/auth/me", {
-            });
+                const res = await api.get("/auth/me");
                 setUser(res.data);
             } catch {
                 setUser(null);
             } finally {
                 setLoading(false);
             }
-            };
+        };
 
-            checkAuth();
+        checkAuth();
     }, []);
 
     const login = async (email: string, password: string) => {
         setLoading(true);
+        setError(null);
         try {
             const user = await api.post("/auth/login", {
                 email,
@@ -53,7 +68,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 role: user.data.role,
             });
         } catch (error) {
-            console.error("Login failed", error);
+            setError(getErrorMessage(error));
         } finally {
             setLoading(false);
         }
@@ -61,11 +76,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const logout = async () => {
         setLoading(true);
+        setError(null);
         try {
             await api.post("/auth/logout");
             setUser(null);
         } catch (error) {
-            console.error("Logout failed", error);
+            setError(getErrorMessage(error));
         } finally {
             setLoading(false);
         }
@@ -73,6 +89,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const register = async (email: string, password: string) => {
         setLoading(true);
+        setError(null);
         try {
             const user = await api.post("/auth/register", {
                 email,
@@ -84,24 +101,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 role: user.data.role,
             });
         } catch (error) {
-            console.error("Register failed", error);
+            setError(getErrorMessage(error));
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout, register }}>
+        <AuthContext.Provider value={{ user, loading, error, login, logout, register }}>
             {children}
         </AuthContext.Provider>
     );
-    
 }
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
 };

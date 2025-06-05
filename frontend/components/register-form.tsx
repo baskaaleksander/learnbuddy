@@ -2,13 +2,15 @@
 import { useAuth } from '@/providers/auth-provider';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react'
-import { useForm } from 'react-hook-form';
+import React, { use, useEffect, useState } from 'react'
+import { set, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 
 const formSchema = z.object({
@@ -24,7 +26,7 @@ const formSchema = z.object({
 });
 
 function RegisterForm() {
-    const { register, user, loading: authLoading } = useAuth();
+    const { register, user, loading: authLoading, error } = useAuth();
     const router = useRouter();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -43,16 +45,20 @@ function RegisterForm() {
     }, [user, authLoading]);
 
 
-    const handleLogin = async (data: z.infer<typeof formSchema>) => {
-        try {
-            await register(data.email, data.password);
-        } catch (error) {
-            console.error("Registration failed", error);
-        }
+    const handleRegister = async (data: z.infer<typeof formSchema>) => {
+        await register(data.email, data.password);
     }
   return (
+    <div className='w-full max-w-md mx-auto text-start pt-24'>
+    {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
     <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleLogin)} className='w-full max-w-md mx-auto text-start pt-24'>
+        <form onSubmit={form.handleSubmit(handleRegister)}>
             <FormField
                 control={form.control}
                 name="email"
@@ -113,6 +119,7 @@ function RegisterForm() {
             <Button type="submit" className='w-full mt-6'>Register</Button>
         </form>
     </Form>
+        </div>
   )
 }
 

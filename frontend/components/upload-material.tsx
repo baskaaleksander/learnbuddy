@@ -18,7 +18,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, FileUp, Upload, Check, Loader2 } from 'lucide-react';
+import { AlertCircle, FileUp, Upload, Check, Loader2, Dot } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import api from '@/utils/axios';
 import { useAuth } from '@/providers/auth-provider';
@@ -141,7 +141,6 @@ function UploadMaterial() {
       }, 3000);
       
     } catch (error) {
-      console.error('Upload error:', error);
       setErrorMessage(error instanceof Error ? error.message : 'An unknown error occurred');
     } finally {
       setUploading(false);
@@ -150,7 +149,11 @@ function UploadMaterial() {
 
   return (
     <div className="container max-w-3xl py-8">
-      
+      <div className='flex items-center justify-center mb-2'>
+        <Dot className="h-8 w-8 text-primary mr-2" />
+        <Dot className="h-8 w-8 text-gray-400" />
+      </div>
+
       {errorMessage && (
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4" />

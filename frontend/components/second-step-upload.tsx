@@ -7,7 +7,7 @@ import { fetchGraphQL } from '@/utils/gql-axios';
 import { Form, FormField } from './ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { AlertCircle, Check, Loader2 } from 'lucide-react';
+import { AlertCircle, Check, Dot, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Input } from './ui/input';
 
@@ -50,7 +50,10 @@ function SecondStepUpload({ id }: { id: string }) {
   }
   return (
     <div className="container max-w-3xl py-8">
-      
+      <div className='flex items-center justify-center mb-2'>
+        <Dot className="h-8 w-8 text-gray-400 mr-2" />
+        <Dot className="h-8 w-8 text-primary" />
+      </div>
       {errorMessage && (
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4" />
@@ -71,7 +74,7 @@ function SecondStepUpload({ id }: { id: string }) {
         <CardHeader>
           <CardTitle>Upload Material</CardTitle>
           <CardDescription>
-            Upload a PDF file or paste text to create a new learning material.
+            Finish uploading your material by providing a title and description.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -83,7 +86,7 @@ function SecondStepUpload({ id }: { id: string }) {
                 render={({ field }) => (
                   <Input
                     {...field}
-                    placeholder="Material Title"
+                    placeholder="Title"
                     className="w-full"
                   />
                 )}
@@ -94,7 +97,7 @@ function SecondStepUpload({ id }: { id: string }) {
                 render={({ field }) => (
                   <Input
                     {...field}
-                    placeholder="Material Description"
+                    placeholder="Description"
                     className="w-full"
                   />
                 )}

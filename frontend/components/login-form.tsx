@@ -9,6 +9,8 @@ import { Button } from './ui/button';
 import { useAuth } from '@/providers/auth-provider';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const formSchema = z.object({
     email: z.string().email({ message: "Invalid email address" }),
@@ -16,7 +18,7 @@ const formSchema = z.object({
 });
 
 function LoginForm() {
-    const { login, user, loading: authLoading } = useAuth();
+    const { login, user, loading: authLoading, error } = useAuth();
     const router = useRouter();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -41,36 +43,46 @@ function LoginForm() {
         }
     }
   return (
-    <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleLogin)} className='w-full max-w-md mx-auto text-start pt-24'>
-            <FormField
-                control={form.control}
-                name="email"
-                render= {( { field } ) => (
-                    <FormItem className="mb-4">
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                            <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-            )} />
-            <FormField
-                control={form.control}
-                name="password"
-                render= {( { field } ) => (
-                    <FormItem className="">
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                            <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-            )} />
-            <Link href='/reset-password' className='block mt-2 text-sm text-gray-500 hover:underline'>Forgot your password?</Link>
-            <Button type="submit" className='w-full mt-6'>Login</Button>
-        </form>
-    </Form>
+    <div className='w-full max-w-md mx-auto text-start pt-24'>
+        {error && (
+            <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+            </Alert>
+        )}
+
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleLogin)}>
+                <FormField
+                    control={form.control}
+                    name="email"
+                    render= {( { field } ) => (
+                        <FormItem className="mb-4">
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                )} />
+                <FormField
+                    control={form.control}
+                    name="password"
+                    render= {( { field } ) => (
+                        <FormItem className="">
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                                <Input type="password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                )} />
+                <Link href='/reset-password' className='block mt-2 text-sm text-gray-500 hover:underline'>Forgot your password?</Link>
+                <Button type="submit" className='w-full mt-6'>Login</Button>
+            </form>
+        </Form>
+    </div>
   )
 }
 
