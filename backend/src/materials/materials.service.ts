@@ -76,7 +76,7 @@ export class MaterialsService {
             throw new ConflictException('Material is already processed or failed, try uploading a new one');
         }
 
-        await this.drizzle
+        const updatedMaterial = await this.drizzle
             .update(materials)
             .set({
                 title: input.title,
@@ -86,7 +86,7 @@ export class MaterialsService {
             .where(eq(materials.id, input.id))
             .returning();
 
-        return toMaterialGraphQL(material[0]);
+        return toMaterialGraphQL(updatedMaterial[0]);
 
         
     }

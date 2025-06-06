@@ -10,6 +10,7 @@ import { Button } from './ui/button';
 import { AlertCircle, Check, Dot, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Input } from './ui/input';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -20,6 +21,7 @@ function SecondStepUpload({ id }: { id: string }) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,6 +46,10 @@ function SecondStepUpload({ id }: { id: string }) {
         if(response.createMaterial) {
           setUploadSuccess(true);
           setLoading(false);
+          setTimeout(() => {
+            router.push('/dashboard/materials');
+          }, 2000)
+
         }
     } catch (error) {
         setLoading(false);
