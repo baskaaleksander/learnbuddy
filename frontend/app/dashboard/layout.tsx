@@ -3,10 +3,14 @@ import { useState, useEffect } from "react";
 import Sidebar from "@/components/sidebar";
 import { HomeIcon, BookIcon, SettingsIcon, MessageCircleQuestion, Zap, BookText, DollarSign, MenuIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/providers/auth-provider";
+import { useRouter } from "next/navigation";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter(); 
 
   const sidebarPaths = [
     {
@@ -27,7 +31,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       ],
     },
   ];
+  
+  useEffect(() => {
+    if (!user && !authLoading) {
+      router.push('/login');
+    }
+  }, [user, authLoading, router]);
 
+  
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
