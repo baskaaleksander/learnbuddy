@@ -28,11 +28,15 @@ function MaterialQuiz({id, className} : {id: string, className?: string}) {
                             totalAttempts
                             averagePercentage
                             bestScore
+                            latestResult {
+                                score
+                                completedAt
+                            }
                         }
                     }
                 `);
                 if (quizResponse.getQuizzesByMaterial) {
-                    setQuizzes(quizResponse.getQuizzesByMaterial[0]);
+                    setQuizzes(quizResponse.getQuizzesByMaterial);
                 }
             } catch (error) {
                 console.error('Error fetching quiz data:', error);
@@ -127,11 +131,11 @@ function MaterialQuiz({id, className} : {id: string, className?: string}) {
                                         {quizzes.averagePercentage.toFixed(0)}%
                                     </Badge>
                                 </div>
-                                <div className="text-xs text-muted-foreground">Success Rate</div>
+                                <div className="text-xs text-muted-foreground">Avg percentage rate</div>
                             </div>
                         </div>
 
-                        <div className="mb-4 p-3 border rounded-lg">
+                        <div className="mb-4 p-3 border border-gray-200 rounded-lg">
                             <div className="flex items-center justify-between mb-2">
                                 <h4 className="text-sm font-medium">Latest attempt</h4>
                                 <span className="text-xs text-muted-foreground">

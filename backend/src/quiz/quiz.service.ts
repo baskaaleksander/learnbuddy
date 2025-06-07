@@ -15,7 +15,6 @@ export class QuizService {
         private readonly openAiService: OpenAiService
 ) {}
 
-// change the logic to 1 quiz at the time
     async getQuizesByMaterial(materialId: string, userId: string) {
         const materialAccess = await this.drizzle
             .select()
@@ -30,7 +29,7 @@ export class QuizService {
             throw new Error('Material not found or access denied');
         }
 
-        const quizes = await this.drizzle
+        const quiz = await this.drizzle
             .select()
             .from(aiOutputs)
             .where(
@@ -38,11 +37,15 @@ export class QuizService {
                     eq(aiOutputs.materialId, materialId),
                     eq(aiOutputs.type, 'quiz')
                 )
-            );
+            )
+            .limit(1);
 
-        const averageScores = await this.drizzle
+        if (quiz.length === 0) {
+            return null;
+        }
+
+        const averageScore = await this.drizzle
             .select({
-                aiOutputId: quizResults.aiOutputId,
                 averageScore: sql<number>`AVG(${quizResults.score})::numeric`,
                 totalAttempts: sql<number>`COUNT(*)::integer`,
                 bestScore: sql<number>`MAX(${quizResults.score})::integer`,
@@ -51,53 +54,38 @@ export class QuizService {
             .from(quizResults)
             .where(
                 and(
-                    eq(quizResults.materialId, materialId),
+                    eq(quizResults.aiOutputId, quiz[0].id),
                     eq(quizResults.userId, userId)
                 )
             )
-            .groupBy(quizResults.aiOutputId, quizResults.totalQuestions);
+            .groupBy(quizResults.totalQuestions);
 
         const latestQuizResult = await this.drizzle
             .select()
             .from(quizResults)
             .where(
                 and(
-                    eq(quizResults.materialId, materialId),
+                    eq(quizResults.aiOutputId, quiz[0].id),
                     eq(quizResults.userId, userId)
                 )
             )
             .orderBy(desc(quizResults.completedAt))
             .limit(1);
 
-        const scoresMap = new Map(
-            averageScores.map(score => [
-                score.aiOutputId,
-                {
-                    averageScore: parseFloat(score.averageScore.toString()),
-                    totalAttempts: score.totalAttempts,
-                    totalQuestions: score.totalQuestions,
-                    bestScore: score.bestScore,
-                    averagePercentage: (parseFloat(score.averageScore.toString()) / score.totalQuestions) * 100
-                }
-            ])
-        );
-
-        return quizes.map(quiz => {
-            const quizGraphQL = toAIOutputGraphQL(quiz);
-            const averageData = scoresMap.get(quiz.id);
-            
-            return {
-                ...quizGraphQL,
-                averageScore: averageData?.averageScore || 0,
-                totalAttempts: averageData?.totalAttempts || 0,
-                averagePercentage: averageData?.averagePercentage || 0,
-                bestScore: averageData?.bestScore || 0,
-                latestAttempt: {
-                    score: latestQuizResult.length > 0 ? latestQuizResult[0].score : 0,
-                    completedAt: latestQuizResult.length > 0 ? latestQuizResult[0].completedAt : null
-                }
-            };
-        });
+        const quizGraphQL = toAIOutputGraphQL(quiz[0]);
+        const avgData = averageScore.length > 0 ? averageScore[0] : null;
+        
+        return {
+            ...quizGraphQL,
+            averageScore: avgData ? parseFloat(avgData.averageScore.toString()) : 0,
+            totalAttempts: avgData ? avgData.totalAttempts : 0,
+            averagePercentage: avgData ? (parseFloat(avgData.averageScore.toString()) / avgData.totalQuestions) * 100 : 0,
+            bestScore: avgData ? avgData.bestScore : 0,
+            latestResult: latestQuizResult.length > 0 ? {
+                score: latestQuizResult[0].score,
+                completedAt: latestQuizResult[0].completedAt
+            } : null
+        };
     }
 
     async getQuizById(id: string, userId: string) {
