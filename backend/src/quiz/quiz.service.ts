@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
 import { aiOutputs, materials, quizResults } from 'src/database/schema';
 import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
@@ -15,9 +15,8 @@ export class QuizService {
         private readonly openAiService: OpenAiService
 ) {}
 
+// change the logic to 1 quiz at the time
     async getQuizesByMaterial(materialId: string, userId: string) {
-
-
         const materialAccess = await this.drizzle
             .select()
             .from(materials)
@@ -40,9 +39,65 @@ export class QuizService {
                     eq(aiOutputs.type, 'quiz')
                 )
             );
-            
-        return quizes.map(quiz => toAIOutputGraphQL(quiz));
 
+        const averageScores = await this.drizzle
+            .select({
+                aiOutputId: quizResults.aiOutputId,
+                averageScore: sql<number>`AVG(${quizResults.score})::numeric`,
+                totalAttempts: sql<number>`COUNT(*)::integer`,
+                bestScore: sql<number>`MAX(${quizResults.score})::integer`,
+                totalQuestions: quizResults.totalQuestions
+            })
+            .from(quizResults)
+            .where(
+                and(
+                    eq(quizResults.materialId, materialId),
+                    eq(quizResults.userId, userId)
+                )
+            )
+            .groupBy(quizResults.aiOutputId, quizResults.totalQuestions);
+
+        const latestQuizResult = await this.drizzle
+            .select()
+            .from(quizResults)
+            .where(
+                and(
+                    eq(quizResults.materialId, materialId),
+                    eq(quizResults.userId, userId)
+                )
+            )
+            .orderBy(desc(quizResults.completedAt))
+            .limit(1);
+
+        const scoresMap = new Map(
+            averageScores.map(score => [
+                score.aiOutputId,
+                {
+                    averageScore: parseFloat(score.averageScore.toString()),
+                    totalAttempts: score.totalAttempts,
+                    totalQuestions: score.totalQuestions,
+                    bestScore: score.bestScore,
+                    averagePercentage: (parseFloat(score.averageScore.toString()) / score.totalQuestions) * 100
+                }
+            ])
+        );
+
+        return quizes.map(quiz => {
+            const quizGraphQL = toAIOutputGraphQL(quiz);
+            const averageData = scoresMap.get(quiz.id);
+            
+            return {
+                ...quizGraphQL,
+                averageScore: averageData?.averageScore || 0,
+                totalAttempts: averageData?.totalAttempts || 0,
+                averagePercentage: averageData?.averagePercentage || 0,
+                bestScore: averageData?.bestScore || 0,
+                latestAttempt: {
+                    score: latestQuizResult.length > 0 ? latestQuizResult[0].score : 0,
+                    completedAt: latestQuizResult.length > 0 ? latestQuizResult[0].completedAt : null
+                }
+            };
+        });
     }
 
     async getQuizById(id: string, userId: string) {
@@ -178,13 +233,13 @@ export class QuizService {
         }
 
         await this.drizzle
-            .insert(quizResults)
+            .insert(quizResults) 
             .values({
                 userId: userId,
                 materialId: materialId,
                 aiOutputId: aiOutputId,
                 score: score,
-                totalQuestions: quiz[0].content.flashcards.length,
+                totalQuestions: quiz[0].content.length,
             })
 
             return true;

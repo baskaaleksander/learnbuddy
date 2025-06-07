@@ -1,12 +1,191 @@
-import React from 'react'
+'use client';
 
-function MaterialQuiz({id} : {id: string}) {
-  return (
-    <div className='w-full h-full flex items-center justify-center'>
-        MaterialQuiz
-        {id}
-    </div>
-  )
+import { fetchGraphQL } from '@/utils/gql-axios';
+import React, { useEffect, useState } from 'react'
+import { Card, CardContent, CardHeader } from './ui/card';
+import { cn } from '@/lib/utils';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Trash2, RefreshCw, Play, Trophy, Target, Clock } from 'lucide-react';
+import Link from 'next/link';
+
+function MaterialQuiz({id, className} : {id: string, className?: string}) {
+    const [quizzes, setQuizzes] = useState<any>();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    
+    useEffect(() => {
+        const fetchQuizData = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const quizResponse = await fetchGraphQL(`
+                    query GetQuizzesByMaterial {
+                        getQuizzesByMaterial(materialId: "${id}") {
+                            id
+                            createdAt
+                            averageScore
+                            totalAttempts
+                            averagePercentage
+                            bestScore
+                        }
+                    }
+                `);
+                if (quizResponse.getQuizzesByMaterial) {
+                    setQuizzes(quizResponse.getQuizzesByMaterial[0]);
+                }
+            } catch (error) {
+                console.error('Error fetching quiz data:', error);
+                setError("Failed to fetch quizzes. Please try again later.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchQuizData();
+    }, [id]);
+
+    const handleDeleteQuiz = async () => {
+        // Add delete logic here
+        console.log('Delete quiz');
+    };
+
+    const handleRegenerateQuiz = async () => {
+        // Add regenerate logic here
+        console.log('Regenerate quiz');
+    };
+
+
+    return (
+        <Card className={cn(
+            'flex h-full flex-col shadow-sm border-gray-200 dark:border-gray-800', 
+            className
+        )}>
+            <CardHeader className='flex flex-row items-center justify-between'>
+                <h2 className='text-lg font-semibold'>Quiz</h2>
+            </CardHeader>
+            
+            <CardContent className="flex-1 flex flex-col">
+                {loading ? (
+                    <div className="flex items-center justify-center flex-1">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
+                    </div>
+                ) : error ? (
+                    <div className="flex items-center justify-center flex-1">
+                        <p className="text-sm text-destructive text-center">{error}</p>
+                    </div>
+                ) : !quizzes ? (
+                    <div className='flex-1 flex flex-col items-center justify-center text-center'>
+                        <div className="mb-4">
+                            <Target className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                            <p className='text-muted-foreground text-sm'>
+                                No quizzes available for this material.
+                            </p>
+                        </div>
+                        <Button variant='outline' size="sm">
+                            Generate Quiz
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="flex-1 flex flex-col">
+                        {/* Stats Section */}
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                            <div className="text-center p-3 bg-muted/50 rounded-lg">
+                                <div className="flex items-center justify-center mb-1">
+                                    <Trophy className="h-4 w-4 text-yellow-500 mr-1" />
+                                </div>
+                                <div className="text-lg font-semibold">{quizzes.bestScore}</div>
+                                <div className="text-xs text-muted-foreground">Best Score</div>
+                            </div>
+                            
+                            <div className="text-center p-3 bg-muted/50 rounded-lg">
+                                <div className="flex items-center justify-center mb-1">
+                                    <Target className="h-4 w-4 text-blue-500 mr-1" />
+                                </div>
+                                <div className="text-lg font-semibold">{quizzes.averageScore.toFixed(1)}</div>
+                                <div className="text-xs text-muted-foreground">Avg Score</div>
+                            </div>
+                            
+                            <div className="text-center p-3 bg-muted/50 rounded-lg">
+                                <div className="flex items-center justify-center mb-1">
+                                    <Clock className="h-4 w-4 text-green-500 mr-1" />
+                                </div>
+                                <div className="text-lg font-semibold">{quizzes.totalAttempts}</div>
+                                <div className="text-xs text-muted-foreground">Total Attempts</div>
+                            </div>
+                            
+                            <div className="text-center p-3 bg-muted/50 rounded-lg">
+                                <div className="flex items-center justify-center mb-1">
+                                    <Badge 
+                                        variant={
+                                            quizzes.averagePercentage >= 80 ? "default" : 
+                                            quizzes.averagePercentage >= 60 ? "secondary" : "destructive"
+                                        }
+                                        className="text-xs"
+                                    >
+                                        {quizzes.averagePercentage.toFixed(0)}%
+                                    </Badge>
+                                </div>
+                                <div className="text-xs text-muted-foreground">Success Rate</div>
+                            </div>
+                        </div>
+
+                        <div className="mb-4 p-3 border rounded-lg">
+                            <div className="flex items-center justify-between mb-2">
+                                <h4 className="text-sm font-medium">Latest attempt</h4>
+                                <span className="text-xs text-muted-foreground">
+                                    {new Date(quizzes?.latestResult?.completedAt).toLocaleDateString()}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Badge 
+                                    variant={
+                                        quizzes?.averageScore >= 8 ? "default" : 
+                                        quizzes?.averageScore >= 6 ? "secondary" : "destructive"
+                                    }
+                                    className="text-xs"
+                                >
+                                    {quizzes?.latestResult?.score.toFixed(1)}/10
+                                </Badge>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="mt-auto space-y-2">
+                            <Button asChild className="w-full" size="sm">
+                                <Link href={`/dashboard/quizzes/${quizzes[0]?.id}`}>
+                                    <Play className="h-4 w-4 mr-2" />
+                                    Take Quiz
+                                </Link>
+                            </Button>
+                            
+                            <div className="grid grid-cols-2 gap-2">
+                                <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={handleRegenerateQuiz}
+                                >
+                                    <RefreshCw className="h-4 w-4 mr-1" />
+                                    Regenerate
+                                </Button>
+                                
+                                <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={handleDeleteQuiz}
+                                    className="text-destructive hover:bg-destructive/10"
+                                >
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    Delete
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
 }
 
-export default MaterialQuiz
+export default MaterialQuiz;

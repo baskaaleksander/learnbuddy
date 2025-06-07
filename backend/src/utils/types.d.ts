@@ -1,15 +1,18 @@
 interface Quiz {
     pytanie: string;
-    odpowiedz: string;
+    odpowiedzi: Array<{
+        "A": string;
+        "B": string;
+        "C": string;
+    }>;
+    poprawna_odpowiedz: string;
 }
 
 export interface QuizResponse {
     id: string;
     materialId: string;
     type: string;
-    content: {
-        "flashcards": Quiz[]
-    }
+    content: Quiz[];
     createdAt: Date;
     errorMessage?: string | null;
 }

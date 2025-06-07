@@ -7,6 +7,7 @@ import { AIOutputType } from 'src/graphql/ai-output.graphql';
 import { QuizService } from './quiz.service';
 import { SubmitQuizInput } from './dtos/submit-quiz.input';
 import { QuizResultType } from './quiz-result.graphql';
+import { QuizOutputType } from './quiz.graphql';
 
 @Resolver(() => AIOutputType)
 export class QuizResolver {
@@ -24,7 +25,7 @@ export class QuizResolver {
     }
 
     @UseGuards(GqlAuthGuard)
-    @Query(() => [AIOutputType])
+    @Query(() => [QuizOutputType])
     async getQuizzesByMaterial(
         @CurrentUser() user: PayloadDto,
         @Args('materialId') materialId: string

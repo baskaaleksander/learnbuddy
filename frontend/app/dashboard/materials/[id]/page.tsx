@@ -31,7 +31,6 @@ function MaterialPage({params} : {params: Promise<{id: string}>}) {
                             title
                             content
                             description
-                            status
                             createdAt
                         }
                     }
@@ -105,9 +104,14 @@ function MaterialPage({params} : {params: Promise<{id: string}>}) {
             </div>
             
             <div className="space-y-8">
-                <MaterialQuiz id={id}/>
-                <MaterialFlashcards id={id}/>
-                <MaterialSummary id={id} />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <MaterialQuiz id={id}/>
+                    <MaterialFlashcards id={id}/>
+                </div>
+                
+                <div className="w-full">
+                    <MaterialSummary id={id} />
+                </div>
             </div>
         </div>
     );

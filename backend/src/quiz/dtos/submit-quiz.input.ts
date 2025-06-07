@@ -11,10 +11,6 @@ export class SubmitQuizInput {
     @IsString()
     aiOutputId: string;
 
-    @Field()
-    @IsString()
-    userId: string;
-
     @Field(() => Int)
     @IsInt()
     score: number;
