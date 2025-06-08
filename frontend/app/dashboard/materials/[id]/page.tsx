@@ -89,14 +89,14 @@ function MaterialPage({params} : {params: Promise<{id: string}>}) {
 
     return (
         <div className="p-6 space-y-6">
-            <div className="border-b border-gray-200 pb-4 flex items-center justify-between">
+            <div className="border-b border-gray-200 pb-4 flex flex-col md:flex-row md:items-center md:justify-between">
                 <div className="flex flex-col">
                 <h1 className="text-3xl font-bold">{material.title}</h1>
                 {material.description && (
                     <p className="text-muted-foreground mt-2">{material.description}</p>
                 )}
                 </div>
-                <div className='flex self-end gap-2'>
+                <div className='flex self-center mt-2 md:self-end gap-2'>
                     <Button variant='default'><Link href={material.content}>Download material</Link></Button>
                     <Button variant='outline'>Edit</Button>
                     <Button variant='destructive'>Delete</Button>

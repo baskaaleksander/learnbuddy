@@ -28,3 +28,19 @@ export class FlashcardProgressType {
     updatedAt: Date;
 
 }
+
+@ObjectType()
+export class FlashcardStats {
+
+    @Field()
+    total: number;
+
+    @Field()
+    known: number;
+
+    @Field()
+    review: number;
+
+    @Field()
+    lastUpdated: Date;
+}

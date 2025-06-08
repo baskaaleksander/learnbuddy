@@ -51,6 +51,56 @@ export class FlashcardsService {
         return flashcardsArr.map(flashcard => toFlashcardGraphQL(flashcard));
     }
 
+    async getFlashcardProgressByMaterial(materialId: string, userId: string) {
+        const materialAccess = await this.drizzle
+            .select()
+            .from(materials)
+            .where(
+                and(
+                    eq(materials.id, materialId),
+                    eq(materials.userId, userId)
+                )
+            );
+
+        if (materialAccess.length === 0) {
+            throw new UnauthorizedException('Material not found or access denied');
+        }
+
+        const aiOutput = await this.drizzle
+            .select()
+            .from(aiOutputs)
+            .where(
+                and(
+                    eq(aiOutputs.materialId, materialId),
+                    eq(aiOutputs.type, 'flashcards')
+                )
+            );
+            
+        if (aiOutput.length === 0) {
+            return [];
+        }
+
+        const flashcardsArr = await this.drizzle
+            .select()
+            .from(flashcards)
+            .innerJoin(
+                flashcardProgress,
+                eq(flashcards.id, flashcardProgress.flashcardId)
+            )
+            .where(
+                and(
+                    eq(flashcards.aiOutputId, aiOutput[0].id),
+                    eq(flashcardProgress.userId, userId)
+                )
+            );
+
+        
+        return flashcardsArr.map(flashcard => ({
+            ...toFlashcardGraphQL(flashcard.flashcards),
+            status: flashcard.flashcard_progress.status,
+        }));
+    }
+
     async createFlashcards(materialId: string, userId: string) {
         const materialAccess = await this.drizzle
             .select()
@@ -202,5 +252,60 @@ export class FlashcardsService {
             );
 
         return true;
+    }
+
+    async getFlashcardStats(materialId: string, userId: string) {
+        const materialAccess = await this.drizzle
+            .select()
+            .from(materials)
+            .where(
+                and(
+                    eq(materials.id, materialId),
+                    eq(materials.userId, userId)
+                )
+            );
+
+        if (materialAccess.length === 0) {
+            throw new UnauthorizedException('Material not found or access denied');
+        }
+
+        const aiOutput = await this.drizzle
+            .select()
+            .from(aiOutputs)
+            .where(
+                and(
+                    eq(aiOutputs.materialId, materialId),
+                    eq(aiOutputs.type, 'flashcards')
+                )
+            );
+
+        if (aiOutput.length === 0) {
+            return {
+                total: 0,
+                known: 0,
+                review: 0,
+                lastUpdated: new Date(),
+            };
+        }
+
+        const flashcardsArr = await this.drizzle
+            .select()
+            .from(flashcards)
+            .innerJoin(
+                flashcardProgress,
+                eq(flashcards.id, flashcardProgress.flashcardId)
+            )
+            .where(eq(flashcards.aiOutputId, aiOutput[0].id));
+
+        const total = flashcardsArr.length;
+        const known = flashcardsArr.filter(f => f.flashcard_progress.status === FlashcardProgressStatus.known).length;
+        const review = flashcardsArr.filter(f => f.flashcard_progress.status === FlashcardProgressStatus.review).length;
+
+        return {
+            total,
+            known,
+            review,
+            lastUpdated: new Date(),
+        };
     }
 }
