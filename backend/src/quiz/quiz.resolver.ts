@@ -25,7 +25,7 @@ export class QuizResolver {
     }
 
     @UseGuards(GqlAuthGuard)
-    @Query(() => QuizOutputType)
+    @Query(() => QuizOutputType, { nullable: true })
     async getQuizzesByMaterial(
         @CurrentUser() user: PayloadDto,
         @Args('materialId') materialId: string
@@ -61,7 +61,7 @@ export class QuizResolver {
     }
 
     @UseGuards(GqlAuthGuard)
-    @Query(() => [QuizResultType])
+    @Query(() => [QuizResultType], { nullable: true })
     async getQuizResults(
         @CurrentUser() user: PayloadDto, 
         @Args('quizId') quizId: string

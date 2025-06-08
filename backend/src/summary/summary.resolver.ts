@@ -11,13 +11,13 @@ export class SummaryResolver {
     constructor(private readonly summaryService: SummaryService) {}
 
     @UseGuards(GqlAuthGuard)
-    @Query(() => [AIOutputType])
-    async getSummariesByMaterial(@Args('materialId') materialId: string, @CurrentUser() user: PayloadDto) {
-        return this.summaryService.getSummariesByMaterial(materialId, user.id);
+    @Query(() => AIOutputType, { nullable: true })
+    async getSummaryByMaterial(@Args('materialId') materialId: string, @CurrentUser() user: PayloadDto) {
+        return this.summaryService.getSummaryByMaterial(materialId, user.id);
     }
 
     @UseGuards(GqlAuthGuard)
-    @Query(() => AIOutputType)
+    @Query(() => AIOutputType, { nullable: true })
     async getSummaryById(@Args('id') id: string, @CurrentUser() user: PayloadDto) {
         return this.summaryService.getSummaryById(id, user.id);
     }

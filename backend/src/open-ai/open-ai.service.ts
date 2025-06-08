@@ -58,32 +58,49 @@ export class OpenAiService {
     generateSummary(pdfContent: string) {
       // Mock data for summary generation
       return {
-              "tytul": "Streszczenie: Idea pracy dyplomowej",
-              "cele_rozdzialu": [
-                "Zrozumienie korzyści płynących z napisania pracy dyplomowej.",
-                "Zwiększenie motywacji wewnętrznej do realizacji tego zadania."
-              ],
-              "powody_pisania_pracy": [
-                "Zwieńczenie wielu lat edukacji i okazja do praktycznego wykorzystania wiedzy.",
-                "Wymóg formalny zgodny z ustawą „Prawo o szkolnictwie wyższym i nauce”.",
-                "Potrzeba wykazania samodzielności i dojrzałości akademickiej."
-              ],
-              "definicja_pracy_dyplomowej": {
-                "opis": "Samodzielne opracowanie zagadnienia naukowego, technicznego, artystycznego lub praktycznego.",
-                "cel": "Wykazanie umiejętności analizy, wyciągania wniosków i zastosowania wiedzy zgodnie z kierunkiem studiów."
-              },
-              "korzysci_z_pisania_pracy": [
-                "Rozwój umiejętności zarządzania projektami i czasem.",
-                "Udoskonalenie kompetencji technicznych i koncepcyjnych.",
-                "Poprawa komunikacji i współpracy zespołowej.",
-                "Lepsza samoocena i motywacja.",
-                "Przygotowanie do przyszłych wyzwań zawodowych.",
-                "Specjalizacja w wybranej dziedzinie."
-              ],
-              "rekomendowane_podejscie": [
-                "Nie traktuj pracy wyłącznie jako obowiązku.",
-                "Nadaj projektowi osobisty sens.",
-                "Dzięki odpowiedniemu nastawieniu pisanie pracy może być rozwijającą przygodą."
+              "title": "Streszczenie: Idea pracy dyplomowej",
+              "chapters": [
+                {
+                  "name": "Cele rozdziału",
+                  "bullet_points": [
+                    "Zrozumienie korzyści płynących z napisania pracy dyplomowej.",
+                    "Zwiększenie motywacji wewnętrznej do realizacji tego zadania."
+                  ]
+                },
+                {
+                  "name": "Powody pisania pracy",
+                  "bullet_points": [
+                    "Zwieńczenie wielu lat edukacji i okazja do praktycznego wykorzystania wiedzy.",
+                    "Wymóg formalny zgodny z ustawą „Prawo o szkolnictwie wyższym i nauce”.",
+                    "Potrzeba wykazania samodzielności i dojrzałości akademickiej."
+                  ]
+                },
+                {
+                  "name": "Definicja pracy dyplomowej",
+                  "bullet_points": [
+                    "Opis: Samodzielne opracowanie zagadnienia naukowego, technicznego, artystycznego lub praktycznego.",
+                    "Cel: Wykazanie umiejętności analizy, wyciągania wniosków i zastosowania wiedzy zgodnie z kierunkiem studiów."
+                  ]
+                },
+                {
+                  "name": "Korzyści z pisania pracy",
+                  "bullet_points": [
+                    "Rozwój umiejętności zarządzania projektami i czasem.",
+                    "Udoskonalenie kompetencji technicznych i koncepcyjnych.",
+                    "Poprawa komunikacji i współpracy zespołowej.",
+                    "Lepsza samoocena i motywacja.",
+                    "Przygotowanie do przyszłych wyzwań zawodowych.",
+                    "Specjalizacja w wybranej dziedzinie."
+                  ]
+                },
+                {
+                  "name": "Rekomendowane podejście",
+                  "bullet_points": [
+                    "Nie traktuj pracy wyłącznie jako obowiązku.",
+                    "Nadaj projektowi osobisty sens.",
+                    "Dzięki odpowiedniemu nastawieniu pisanie pracy może być rozwijającą przygodą."
+                  ]
+                }
               ]
             }
     }

@@ -28,11 +28,10 @@ function MaterialFlashcards({id, className} : {id: string, className?: string}) 
                   }                
                 `);
                 const knowledgePercentage = response.getFlashcardStatsByMaterial?.known / response.getFlashcardStatsByMaterial?.total * 100 || 0;
-                if (response.getFlashcardStatsByMaterial) {
+                if (response.getFlashcardStatsByMaterial.total !== 0) {
                     setFlashcardsStats({...response.getFlashcardStatsByMaterial, knowledgePercentage});
                 }
             } catch (error) {
-                console.error('Error fetching quiz data:', error);
                 setError("Failed to fetch quizzes. Please try again later.");
             } finally {
                 setLoading(false);

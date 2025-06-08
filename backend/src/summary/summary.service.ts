@@ -12,7 +12,7 @@ export class SummaryService {
         private readonly openAiService: OpenAiService
     ) {}
 
-    async getSummariesByMaterial(materialId: string, userId: string) {
+    async getSummaryByMaterial(materialId: string, userId: string) {
 
         const materialAccess = await this.drizzle
                     .select()
@@ -39,7 +39,7 @@ export class SummaryService {
             throw new NotFoundException('No summaries found for this material');
         }
 
-        return summaries.map(summary => toAIOutputGraphQL(summary));
+        return toAIOutputGraphQL(summaries[0]);
     }
 
     async getSummaryById(id: string, userId: string) {
