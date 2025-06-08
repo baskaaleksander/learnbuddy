@@ -59,7 +59,6 @@ function MaterialQuiz({id, className} : {id: string, className?: string}) {
         console.log('Regenerate quiz');
     };
 
-
     return (
         <Card className={cn(
             'flex h-full flex-col shadow-sm border-gray-200 dark:border-gray-800', 
@@ -94,44 +93,50 @@ function MaterialQuiz({id, className} : {id: string, className?: string}) {
                 ) : (
                     <div className="flex-1 flex flex-col">
                         {/* Stats Section */}
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div className="text-center p-3 bg-muted/50 rounded-lg">
-                                <div className="flex items-center justify-center mb-1">
-                                    <Trophy className="h-4 w-4 text-yellow-500 mr-1" />
+                        <div className="space-y-4 mb-6">
+                            {/* Top Row - Main Stats */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="text-center p-3 bg-muted/50 rounded-lg">
+                                    <div className="flex items-center justify-center mb-2">
+                                        <Trophy className="h-4 w-4 text-yellow-500" />
+                                    </div>
+                                    <div className="text-xl font-bold">{quizzes.bestScore}</div>
+                                    <div className="text-xs text-muted-foreground">Best Score</div>
                                 </div>
-                                <div className="text-lg font-semibold">{quizzes.bestScore}</div>
-                                <div className="text-xs text-muted-foreground">Best Score</div>
+                                
+                                <div className="text-center p-3 bg-muted/50 rounded-lg">
+                                    <div className="flex items-center justify-center mb-2">
+                                        <Target className="h-4 w-4 text-blue-500" />
+                                    </div>
+                                    <div className="text-xl font-bold">{quizzes.averageScore.toFixed(1)}</div>
+                                    <div className="text-xs text-muted-foreground">Avg Score</div>
+                                </div>
                             </div>
                             
-                            <div className="text-center p-3 bg-muted/50 rounded-lg">
-                                <div className="flex items-center justify-center mb-1">
-                                    <Target className="h-4 w-4 text-blue-500 mr-1" />
+                            {/* Bottom Row - Secondary Stats */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="text-center p-3 bg-muted/50 rounded-lg">
+                                    <div className="flex items-center justify-center mb-2">
+                                        <Clock className="h-4 w-4 text-green-500" />
+                                    </div>
+                                    <div className="text-lg font-semibold">{quizzes.totalAttempts}</div>
+                                    <div className="text-xs text-muted-foreground">Total Attempts</div>
                                 </div>
-                                <div className="text-lg font-semibold">{quizzes.averageScore.toFixed(1)}</div>
-                                <div className="text-xs text-muted-foreground">Avg Score</div>
-                            </div>
-                            
-                            <div className="text-center p-3 bg-muted/50 rounded-lg">
-                                <div className="flex items-center justify-center mb-1">
-                                    <Clock className="h-4 w-4 text-green-500 mr-1" />
+                                
+                                <div className="text-center p-3 bg-muted/50 rounded-lg flex flex-col items-center justify-center">
+                                    <div className="flex flex-col items-center justify-center mb-2">
+                                        <Badge 
+                                            variant={
+                                                quizzes.averagePercentage >= 80 ? "default" : 
+                                                quizzes.averagePercentage >= 60 ? "secondary" : "destructive"
+                                            }
+                                            className="text-xs px-2 py-1"
+                                        >
+                                            {quizzes.averagePercentage.toFixed(0)}%
+                                        </Badge>
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">Average percentage rate</div>
                                 </div>
-                                <div className="text-lg font-semibold">{quizzes.totalAttempts}</div>
-                                <div className="text-xs text-muted-foreground">Total Attempts</div>
-                            </div>
-                            
-                            <div className="text-center p-3 bg-muted/50 rounded-lg">
-                                <div className="flex items-center justify-center mb-1">
-                                    <Badge 
-                                        variant={
-                                            quizzes.averagePercentage >= 80 ? "default" : 
-                                            quizzes.averagePercentage >= 60 ? "secondary" : "destructive"
-                                        }
-                                        className="text-xs"
-                                    >
-                                        {quizzes.averagePercentage.toFixed(0)}%
-                                    </Badge>
-                                </div>
-                                <div className="text-xs text-muted-foreground">Avg percentage rate</div>
                             </div>
                         </div>
 
@@ -155,10 +160,9 @@ function MaterialQuiz({id, className} : {id: string, className?: string}) {
                             </div>
                         </div>
 
-                        {/* Action Buttons */}
                         <div className="mt-auto space-y-2">
                             <Button asChild className="w-full" size="sm">
-                                <Link href={`/dashboard/quizzes/${quizzes[0]?.id}`}>
+                                <Link href={`/dashboard/quizzes/${quizzes?.id}`}>
                                     <Play className="h-4 w-4 mr-2" />
                                     Take Quiz
                                 </Link>

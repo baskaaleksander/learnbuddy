@@ -90,8 +90,7 @@ export class OpenAiService {
 
     generateFlashcards(pdfContent: string) {
       // Mock data for flashcard generation
-      return {
-              "flashcards": [
+      return [
                 {
                   "pytanie": "Jakie są główne cele rozdziału dotyczącego idei pracy dyplomowej?",
                   "odpowiedz": "Zrozumienie korzyści płynących z napisania pracy dyplomowej oraz zwiększenie motywacji wewnętrznej."
@@ -121,6 +120,5 @@ export class OpenAiService {
                   "odpowiedz": "Lepszą motywację, większe zaangażowanie i rozwój osobisty oraz zawodowy."
                 }
               ]
-            }
     }
 }

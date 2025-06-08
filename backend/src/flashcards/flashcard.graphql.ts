@@ -1,4 +1,5 @@
 import { Field, ObjectType } from "@nestjs/graphql";
+import { FlashcardProgressType } from "./flashcard-progress.graphql";
 
 @ObjectType()
 export class FlashcardType {
@@ -15,6 +16,6 @@ export class FlashcardType {
     @Field()
     answer: string;
 
-    @Field()
+    @Field(() => Date)
     createdAt: Date;
 }

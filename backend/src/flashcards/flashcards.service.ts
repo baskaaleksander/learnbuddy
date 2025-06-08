@@ -75,13 +75,13 @@ export class FlashcardsService {
             .values({
                 materialId: materialId,
                 type: 'flashcards',
-                content: flashcards,
+                content: { flashcards: generatedFlashcards },
                 createdAt: new Date(),
             })
             .returning();
         
         const dbFlashcards = await Promise.all(
-            generatedFlashcards.flashcards.map(async (flashcard) => {
+            generatedFlashcards.map(async (flashcard) => {
                 const inserted = await this.drizzle
                     .insert(flashcards)
                     .values({

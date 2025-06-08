@@ -6,6 +6,7 @@ import { FlashcardsService } from './flashcards.service';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
 import { FlashcardProgressStatus } from './flashcard-progress.graphql';
+import { FlashcardType } from './flashcard.graphql';
 
 @Resolver(() => AIOutputType)
 export class FlashcardsResolver {
@@ -18,7 +19,7 @@ export class FlashcardsResolver {
     }
 
     @UseGuards(GqlAuthGuard)
-    @Query(() => [AIOutputType])
+    @Query(() => [FlashcardType])
     async getFlashcardsByMaterial(@Args('materialId') materialId: string, @CurrentUser() user: PayloadDto) {
         return this.flashcardsService.getFlashcardsByMaterial(materialId, user.id);
     }

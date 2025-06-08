@@ -7,7 +7,7 @@ export enum FlashcardProgressStatus {
 
 registerEnumType(FlashcardProgressStatus, {
     name: 'FlashcardProgressStatus',
-});
+}); 
 
 ObjectType()
 export class FlashcardProgressType {
