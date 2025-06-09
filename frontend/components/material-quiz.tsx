@@ -144,11 +144,11 @@ function MaterialQuiz({id, className} : {id: string, className?: string}) {
                             <div className="flex items-center justify-between mb-2">
                                 <h4 className="text-sm font-medium">Latest attempt</h4>
                                 <span className="text-xs text-muted-foreground">
-                                    {new Date(quizzes?.latestResult?.completedAt).toLocaleDateString()}
+                                    {quizzes.latestResult && new Date(quizzes?.latestResult?.completedAt).toLocaleDateString()}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Badge 
+                                {quizzes.latestResult ? <Badge 
                                     variant={
                                         quizzes?.averageScore >= 8 ? "default" : 
                                         quizzes?.averageScore >= 6 ? "secondary" : "destructive"
@@ -156,7 +156,7 @@ function MaterialQuiz({id, className} : {id: string, className?: string}) {
                                     className="text-xs"
                                 >
                                     {quizzes?.latestResult?.score.toFixed(1)}/10
-                                </Badge>
+                                </Badge> : <p className='text-xs text-gray-500'>Take your first try now!</p>}
                             </div>
                         </div>
 

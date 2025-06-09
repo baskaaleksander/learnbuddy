@@ -4,6 +4,7 @@ import { db } from 'src/database/drizzle.module';
 import { aiOutputs, materials, quizResults } from 'src/database/schema';
 import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
 import { toAIOutputGraphQL } from 'src/mappers/ai-output.mapper';
+import { toMaterialGraphQL } from 'src/materials/materials.mapper';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
 import { toQuizResultGraphQl } from './quiz-result.mapper';
 import { QuizResponse } from 'src/utils/types';
@@ -84,9 +85,39 @@ export class QuizService {
             latestResult: latestQuizResult.length > 0 ? {
                 score: latestQuizResult[0].score,
                 completedAt: latestQuizResult[0].completedAt
-            } : null
+            } : null,
+            material: toMaterialGraphQL(materialAccess[0])
         };
     }
+
+    async getQuizesByUser(userId: string) {
+       
+        const quizzes = await this.drizzle
+            .select()
+            .from(aiOutputs)
+            .innerJoin(
+                materials,
+                eq(aiOutputs.materialId, materials.id)
+            )
+            .where(
+                and(
+                    eq(aiOutputs.type, 'quiz'),
+                    eq(materials.userId, userId)
+                )
+            )
+            .orderBy(desc(aiOutputs.createdAt));
+
+        if (quizzes.length === 0) {
+            return null;
+        }
+
+        return quizzes.map(quiz => ({
+            ...toAIOutputGraphQL(quiz.ai_outputs),
+            material: toMaterialGraphQL(quiz.materials)
+        }));
+    }
+            
+
 
     async getQuizById(id: string, userId: string) {
         const quiz = await this.drizzle

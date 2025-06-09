@@ -68,4 +68,12 @@ export class QuizResolver {
     ) {
         return this.quizService.getQuizResults(quizId, user.id);
     }
+
+    @UseGuards(GqlAuthGuard)
+    @Query(() => [AIOutputType], { nullable: true })
+    async getQuizesByUser(
+        @CurrentUser() user: PayloadDto,
+    ){
+        return this.quizService.getQuizesByUser(user.id);
+    }
 }
