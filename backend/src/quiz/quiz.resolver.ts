@@ -70,7 +70,7 @@ export class QuizResolver {
     }
 
     @UseGuards(GqlAuthGuard)
-    @Query(() => [AIOutputType], { nullable: true })
+    @Query(() => [QuizOutputType], { nullable: true })
     async getQuizesByUser(
         @CurrentUser() user: PayloadDto,
     ){

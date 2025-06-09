@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ID, InterfaceType, registerEnumType } from '@nestjs/graphql';
 import { MaterialType } from 'src/materials/materials.graphql';
 import GraphQLJSON from 'graphql-type-json';
 
@@ -13,8 +13,8 @@ registerEnumType(AIOutputEnum, {
   description: 'Types of AI-generated content',
 });
 
-@ObjectType()
-export class AIOutputType {
+@InterfaceType()
+export abstract class AIOutputType {
   @Field(() => ID)
   id: string;
 

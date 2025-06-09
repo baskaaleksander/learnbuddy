@@ -90,6 +90,7 @@ export class QuizService {
         };
     }
 
+    // add limit and offset for pagination
     async getQuizesByUser(userId: string) {
        
         const quizzes = await this.drizzle
@@ -111,10 +112,50 @@ export class QuizService {
             return null;
         }
 
-        return quizzes.map(quiz => ({
-            ...toAIOutputGraphQL(quiz.ai_outputs),
-            material: toMaterialGraphQL(quiz.materials)
-        }));
+        const quizzesWithStats = quizzes.map(async (quiz) => {
+            const averageScore = await this.drizzle
+                .select({
+                    averageScore: sql<number>`AVG(${quizResults.score})::numeric`,
+                    totalAttempts: sql<number>`COUNT(*)::integer`,
+                    bestScore: sql<number>`MAX(${quizResults.score})::integer`,
+                    totalQuestions: quizResults.totalQuestions
+                })
+                .from(quizResults)
+                .where(
+                    and(
+                        eq(quizResults.aiOutputId, quiz.id),
+                        eq(quizResults.userId, userId)
+                    )
+                )
+                .groupBy(quizResults.totalQuestions);
+
+            const latestQuizResult = await this.drizzle
+                .select()
+                .from(quizResults)
+                .where(
+                    and(
+                        eq(quizResults.aiOutputId, quiz.id),
+                        eq(quizResults.userId, userId)
+                    )
+                )
+                .orderBy(desc(quizResults.completedAt))
+                .limit(1);
+
+            return {
+                ...toAIOutputGraphQL(quiz.ai_outputs),
+                averageScore: averageScore.length > 0 ? parseFloat(averageScore[0].averageScore.toString()) : 0,
+                totalAttempts: averageScore.length > 0 ? averageScore[0].totalAttempts : 0,
+                averagePercentage: averageScore.length > 0 ? (parseFloat(averageScore[0].averageScore.toString()) / averageScore[0].totalQuestions) * 100 : 0,
+                bestScore: averageScore.length > 0 ? averageScore[0].bestScore : 0,
+                latestResult: latestQuizResult.length > 0 ? {
+                    score: latestQuizResult[0].score,
+                    completedAt: latestQuizResult[0].completedAt
+                } : null,
+                material: toMaterialGraphQL(quiz.materials)
+            };
+        })
+
+        return quizzesWithStats.length > 0 ? await Promise.all(quizzesWithStats) : null;
     }
             
 
