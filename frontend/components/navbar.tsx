@@ -93,7 +93,7 @@ function DesktopNavbar({ user, logout, navLinks, pathname } : { user: UserData |
                   </div>
                 </DropdownMenuTrigger>
               <DropdownMenuContent>
-                  <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
+                  <DropdownMenuLabel>{user.firstName}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>Dashboard</DropdownMenuItem>
                   <DropdownMenuItem>Billing</DropdownMenuItem>

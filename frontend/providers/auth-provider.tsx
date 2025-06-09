@@ -8,19 +8,20 @@ interface AuthContextType {
     error: string | null;
     login: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
-    register: (email: string, password: string) => Promise<void>;
+    register: (email: string, password: string, firstName: string) => Promise<void>;
 }
 
 export interface UserData {
     email: string;
     id: string;
     role: string;
+    firstName: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [user, setUser] = useState<any | null>(null);
+    const [user, setUser] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -66,6 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 email: user.data.email,
                 id: user.data.id,
                 role: user.data.role,
+                firstName: user.data.firstName,
             });
         } catch (error) {
             setError(getErrorMessage(error));
@@ -87,18 +89,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
-    const register = async (email: string, password: string) => {
+    const register = async (email: string, password: string, firstName: string) => {
         setLoading(true);
         setError(null);
         try {
             const user = await api.post("/auth/register", {
                 email,
                 password,
+                firstName
             });
             setUser({
                 email: user.data.email,
                 id: user.data.id,
                 role: user.data.role,
+                firstName: user.data.firstName,
             });
         } catch (error) {
             setError(getErrorMessage(error));

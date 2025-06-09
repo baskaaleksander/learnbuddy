@@ -14,6 +14,7 @@ import { AlertCircle } from 'lucide-react';
 
 
 const formSchema = z.object({
+    firstName: z.string().min(1, { message: "First name is required" }),
     email: z.string().email({ message: "Invalid email address" }),
     password: z.string().min(6, { message: "Password must be at least 6 characters long" }),
     confirmPassword: z.string(),
@@ -31,10 +32,11 @@ function RegisterForm() {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-        email: "",
-        password: "",
-        confirmPassword: "",
-        tosAccepted: false,
+            firstName: "",
+            email: "",
+            password: "",
+            confirmPassword: "",
+            tosAccepted: false,
         },
     })
 
@@ -46,7 +48,7 @@ function RegisterForm() {
 
 
     const handleRegister = async (data: z.infer<typeof formSchema>) => {
-        await register(data.email, data.password);
+        await register(data.email, data.password, data.firstName);
     }
   return (
     <div className='w-full max-w-md mx-auto text-start pt-24'>
@@ -59,6 +61,18 @@ function RegisterForm() {
       )}
     <Form {...form}>
         <form onSubmit={form.handleSubmit(handleRegister)}>
+            <FormField
+                control={form.control}
+                name="firstName"
+                render= {( { field } ) => (
+                    <FormItem className="mb-4">
+                        <FormLabel>First name</FormLabel>
+                        <FormControl>
+                            <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+            )} />
             <FormField
                 control={form.control}
                 name="email"

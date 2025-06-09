@@ -7,6 +7,7 @@ import { passwordResets, users } from 'src/database/schema';
 import { promisify } from 'util';
 import { UserCredentialsDto } from './dtos/user-credentials.dto';
 import { EmailService } from 'src/email/email.service';
+import { UserRegisterDto } from './dtos/user-register.dto';
 
 const scrypt = promisify(_scrypt);
 
@@ -14,7 +15,7 @@ const scrypt = promisify(_scrypt);
 export class AuthService {
     constructor(private jwtService: JwtService, @Inject('DRIZZLE') private drizzle: typeof db, private emailService: EmailService) {}
 
-    async register(user: UserCredentialsDto) {
+    async register(user: UserRegisterDto) {
 
         const existingUser = await this.drizzle
             .select()
@@ -34,6 +35,7 @@ export class AuthService {
             .values({
                 email: user.email,
                 passwordHash: result,
+                firstName: user.firstName,
             })
             .returning()
             .catch((err) => {
@@ -45,6 +47,7 @@ export class AuthService {
             email: res[0].email,
             id: res[0].id,
             role: res[0].role,
+            firstName: res[0].firstName,
         };
 
 
@@ -55,6 +58,7 @@ export class AuthService {
             email: res[0].email,
             id: res[0].id,
             role: res[0].role,
+            firstName: res[0].firstName,
         };
     }
 
@@ -80,6 +84,7 @@ export class AuthService {
             email: existingUser[0].email,
             id: existingUser[0].id,
             role: existingUser[0].role,
+            firstName: existingUser[0].firstName,
         };
 
         return {
@@ -87,6 +92,7 @@ export class AuthService {
             email: payload.email,
             id: payload.id,
             role: payload.role,
+            firstName: payload.firstName,
         };
     }
 

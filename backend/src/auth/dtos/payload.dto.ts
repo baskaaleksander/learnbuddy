@@ -7,4 +7,6 @@ export class PayloadDto {
     id: string;
     @IsString()
     role: string;
+    @IsString()
+    firstName: string;
 }

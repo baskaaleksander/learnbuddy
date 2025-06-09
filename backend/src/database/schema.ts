@@ -13,6 +13,7 @@ export const subscriptionStatusEnum = pgEnum('subscription_status', ['active', '
 // Tables
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
+  firstName: text('first_name').notNull(),
   email: varchar('email').unique().notNull(),
   passwordHash: text('password_hash').notNull(),
   role: userRoleEnum('role').default('user').notNull(),

@@ -5,12 +5,14 @@ import { UserCredentialsDto } from './dtos/user-credentials.dto';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { PayloadDto } from './dtos/payload.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { first } from 'rxjs';
+import { UserRegisterDto } from './dtos/user-register.dto';
 
 @Controller('auth') 
 export class AuthController {
     constructor(private authService: AuthService) {}
     @Post('register')
-    async register(@Body() body: UserCredentialsDto, @Res() res: Response) {
+    async register(@Body() body: UserRegisterDto, @Res() res: Response) {
 
         const registerRes = await this.authService.register(body);
 
@@ -26,6 +28,7 @@ export class AuthController {
             email: registerRes.email,
             id: registerRes.id,
             role: registerRes.role,
+            firstName: registerRes.firstName,
         })
     }
 
@@ -45,6 +48,7 @@ export class AuthController {
             email: loginRes.email,
             id: loginRes.id,
             role: loginRes.role,
+            firstName: loginRes.firstName,
         })
     }
 
@@ -68,6 +72,7 @@ export class AuthController {
             email: user.email,
             id: user.id,
             role: user.role,
+            firstName: user.firstName
         };
     }
 
