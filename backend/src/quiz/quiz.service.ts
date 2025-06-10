@@ -90,8 +90,7 @@ export class QuizService {
         };
     }
 
-    // add limit and offset for pagination
-    async getQuizesByUser(userId: string) {
+    async getQuizesByUser(userId: string, page: number = 1, pageSize: number = 10) {
        
         const quizzes = await this.drizzle
             .select()
@@ -106,7 +105,9 @@ export class QuizService {
                     eq(materials.userId, userId)
                 )
             )
-            .orderBy(desc(aiOutputs.createdAt));
+            .orderBy(desc(aiOutputs.createdAt))
+            .limit(pageSize)
+            .offset((page - 1) * pageSize);
 
         if (quizzes.length === 0) {
             return null;
@@ -123,7 +124,7 @@ export class QuizService {
                 .from(quizResults)
                 .where(
                     and(
-                        eq(quizResults.aiOutputId, quiz.id),
+                        eq(quizResults.aiOutputId, quiz.ai_outputs.id),
                         eq(quizResults.userId, userId)
                     )
                 )
@@ -134,7 +135,7 @@ export class QuizService {
                 .from(quizResults)
                 .where(
                     and(
-                        eq(quizResults.aiOutputId, quiz.id),
+                        eq(quizResults.aiOutputId, quiz.ai_outputs.id),
                         eq(quizResults.userId, userId)
                     )
                 )

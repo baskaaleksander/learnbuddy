@@ -73,7 +73,9 @@ export class QuizResolver {
     @Query(() => [QuizOutputType], { nullable: true })
     async getQuizesByUser(
         @CurrentUser() user: PayloadDto,
+        @Args('page', { type: () => Number, nullable: true }) offset?: number,
+        @Args('pageSize', { type: () => Number, nullable: true }) limit?: number
     ){
-        return this.quizService.getQuizesByUser(user.id);
+        return this.quizService.getQuizesByUser(user.id, offset, limit);
     }
 }
