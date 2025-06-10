@@ -79,7 +79,7 @@ function MaterialFlashcards({id, className} : {id: string, className?: string}) 
                             </p>
                         </div>
                         <Button variant='outline' size="sm">
-                            Generate Quiz
+                            Generate flashcards
                         </Button>
                     </div>
                 ) : (

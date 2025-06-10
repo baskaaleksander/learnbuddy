@@ -1,5 +1,5 @@
 import React from 'react'
-import { File, MoreVertical } from 'lucide-react';
+import { Calendar, File, MoreVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
   Card, 
@@ -99,7 +99,9 @@ function MaterialCard({
           }>
             {status}
           </Badge>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-500 flex items-center gap-1">
+            <Calendar className="h-3 w-3" />
+            Created
             {new Date().toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'short',

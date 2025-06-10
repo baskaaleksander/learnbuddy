@@ -87,7 +87,7 @@ function MaterialQuiz({id, className} : {id: string, className?: string}) {
                             </p>
                         </div>
                         <Button variant='outline' size="sm">
-                            Generate Quiz
+                            Generate quiz
                         </Button>
                     </div>
                 ) : (

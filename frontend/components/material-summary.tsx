@@ -87,7 +87,7 @@ function MaterialSummary({id, className} : {id: string, className?: string}) {
               </p>
             </div>
             <Button variant='outline' size="sm">
-              Generate Summary
+              Generate summary
             </Button>
           </div>
         ) : (

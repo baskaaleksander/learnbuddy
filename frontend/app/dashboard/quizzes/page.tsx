@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { fetchGraphQL } from '@/utils/gql-axios';
 import { ArrowUpDown, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react'
+import ErrorComponent from '@/components/error-component';
+import LoadingScreen from '@/components/loading-screen';
 
 function QuizzesPage() {
     const [loading, setLoading] = useState(false);
@@ -104,6 +106,13 @@ function QuizzesPage() {
         }
     };
     
+    if (error) {
+        return <ErrorComponent message={error} />;
+    }
+
+    if (loading) {
+        return <LoadingScreen />
+    }
     return (
         <div className="p-4 space-y-6">
             <div>
@@ -113,9 +122,9 @@ function QuizzesPage() {
                 </p>
             </div>
             
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                    <div className="relative flex-1 max-w-md">
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                             type="text"
@@ -126,10 +135,10 @@ function QuizzesPage() {
                         />
                     </div>
                     
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
                         <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
                         <Select value={sortBy} onValueChange={setSortBy}>
-                            <SelectTrigger className="w-[160px]">
+                            <SelectTrigger className="w-full sm:w-[160px]">
                                 <SelectValue placeholder="Sort by" />
                             </SelectTrigger>
                             <SelectContent>
@@ -144,15 +153,16 @@ function QuizzesPage() {
                     </div>
                 </div>
 
-                {/* Pagination Controls */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center gap-2">
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={handlePreviousPage}
                         disabled={page <= 1}
+                        className="flex items-center gap-1"
                     >
                         <ChevronLeft className="h-4 w-4" />
+                        <span className="hidden sm:inline">Previous</span>
                     </Button>
                     
                     <span className="text-sm text-muted-foreground px-2">
@@ -164,7 +174,9 @@ function QuizzesPage() {
                         size="sm"
                         onClick={handleNextPage}
                         disabled={page >= totalPages}
+                        className="flex items-center gap-1"
                     >
+                        <span className="hidden sm:inline">Next</span>
                         <ChevronRight className="h-4 w-4" />
                     </Button>
                 </div>
@@ -179,7 +191,7 @@ function QuizzesPage() {
                         />
                     })
                 ) : (
-                    <p>no quizzes found</p>
+                    <p>No quizzes found</p>
                 )}
             </div>
         </div>
