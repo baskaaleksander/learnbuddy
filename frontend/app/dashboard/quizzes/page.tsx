@@ -28,28 +28,32 @@ function QuizzesPage() {
                 const quizzesResponse = await fetchGraphQL(`
                     query GetQuizesByUser {
                         getQuizesByUser(page: ${page}, pageSize: ${pageSize}) {
-                            id
-                            createdAt
-                            averageScore
-                            totalAttempts
-                            averagePercentage
-                            bestScore
-                            createdAt
-                            latestResult {
-                                score
-                                completedAt
-                            }
-                            material {
+                            data {
                                 id
-                                title
                                 createdAt
+                                averageScore
+                                totalAttempts
+                                averagePercentage
+                                bestScore
+                                createdAt
+                                latestResult {
+                                    score
+                                    completedAt
+                                }
+                                material {
+                                    id
+                                    title
+                                    createdAt
+                                }
                             }
+                            totalPages
                         }
                     }
                 `);
                 
-                if (quizzesResponse.getQuizesByUser) {
-                    setQuizzes(quizzesResponse.getQuizesByUser);
+                if (quizzesResponse.getQuizesByUser.data) {
+                    setQuizzes(quizzesResponse.getQuizesByUser.data);
+                    setTotalPages(quizzesResponse.getQuizesByUser.totalPages);
                 } else {
                     setError("Quizzes not found");
                 }
@@ -105,7 +109,12 @@ function QuizzesPage() {
             setPage(page + 1);
         }
     };
-    
+
+    const handlePageSizeChange = (size: number) => {
+        setPageSize(size);
+        setPage(1);
+    }
+
     if (error) {
         return <ErrorComponent message={error} />;
     }
@@ -148,6 +157,21 @@ function QuizzesPage() {
                                 <SelectItem value="title-desc">Title Z-A</SelectItem>
                                 <SelectItem value="status-asc">Status A-Z</SelectItem>
                                 <SelectItem value="status-desc">Status Z-A</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className='flex items-center gap-2 w-full sm:w-auto'>
+                        <span className="text-sm text-muted-foreground mr-2">Page Size:</span>
+                        <Select value={pageSize.toString()} onValueChange={(value) => handlePageSizeChange(parseInt(value))}>
+                            <SelectTrigger className="w-full sm:w-[100px]">
+                                <SelectValue placeholder="Page Size" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="5">5</SelectItem>
+                                <SelectItem value="10">10</SelectItem>
+                                <SelectItem value="20">20</SelectItem>
+                                <SelectItem value="50">50</SelectItem>
+                                <SelectItem value="100">100</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

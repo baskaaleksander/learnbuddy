@@ -91,7 +91,35 @@ export class QuizService {
     }
 
     async getQuizesByUser(userId: string, page: number = 1, pageSize: number = 10) {
-       
+        const totalCountResult = await this.drizzle
+            .select({ count: sql<number>`count(*)` })
+            .from(aiOutputs)
+            .innerJoin(
+                materials,
+                eq(aiOutputs.materialId, materials.id)
+            )
+            .where(
+                and(
+                    eq(aiOutputs.type, 'quiz'),
+                    eq(materials.userId, userId)
+                )
+            );
+
+        const totalItems = totalCountResult[0]?.count || 0;
+        const totalPages = Math.ceil(totalItems / pageSize);
+
+        if (totalItems === 0) {
+            return {
+                data: [],
+                totalItems: 0,
+                totalPages: 0,
+                currentPage: page,
+                pageSize,
+                hasNextPage: false,
+                hasPreviousPage: false
+            };
+        }
+
         const quizzes = await this.drizzle
             .select()
             .from(aiOutputs)
@@ -108,10 +136,6 @@ export class QuizService {
             .orderBy(desc(aiOutputs.createdAt))
             .limit(pageSize)
             .offset((page - 1) * pageSize);
-
-        if (quizzes.length === 0) {
-            return null;
-        }
 
         const quizzesWithStats = quizzes.map(async (quiz) => {
             const averageScore = await this.drizzle
@@ -152,11 +176,21 @@ export class QuizService {
                     score: latestQuizResult[0].score,
                     completedAt: latestQuizResult[0].completedAt
                 } : null,
-                material: toMaterialGraphQL(quiz.materials)
+                material: toMaterialGraphQL(quiz.materials),
             };
-        })
+        });
 
-        return quizzesWithStats.length > 0 ? await Promise.all(quizzesWithStats) : null;
+        const data = await Promise.all(quizzesWithStats);
+
+        return {
+            data,
+            totalItems,
+            totalPages,
+            currentPage: page,
+            pageSize,
+            hasNextPage: page < totalPages,
+            hasPreviousPage: page > 1
+        };
     }
             
 
