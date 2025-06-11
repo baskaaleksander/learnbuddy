@@ -1,4 +1,5 @@
 import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
+import { PaginatedResponse } from "src/graphql/pagination.graphql";
 
 export enum MaterialStatus {
     PENDING = 'pending',
@@ -33,4 +34,12 @@ export class MaterialType {
 
     @Field()
     createdAt: Date;
+}
+
+@ObjectType()
+export class PaginatedMaterialsResponse extends PaginatedResponse {
+
+    @Field(() => [MaterialType])
+    data: MaterialType[];
+    
 }

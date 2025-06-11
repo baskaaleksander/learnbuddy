@@ -46,7 +46,6 @@ function Sidebar({ paths, isOpen, toggle, isMobile = false }: SidebarProps) {
     };
   }, [isOpen, isMobile, mounted]);
 
-  // Fix desktop sidebar to properly hide on mobile
   if (!isMobile) {
     return (
       <div
@@ -139,10 +138,11 @@ function Sidebar({ paths, isOpen, toggle, isMobile = false }: SidebarProps) {
                 paths={paths} 
                 isOpen={true} 
                 pathname={pathname} 
-                animate={true} 
+                animate={true}
+                toggle={toggle} 
               />
             </div>
-                    {user && (
+          {user && (
           <div className="mt-auto border-t border-gray-200 dark:border-gray-800 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -178,12 +178,14 @@ function SidebarContent({
   paths, 
   isOpen, 
   pathname,
-  animate = false 
+  animate = false,
+  toggle 
 }: { 
   paths: SidebarProps['paths'], 
   isOpen: boolean, 
   pathname: string,
-  animate?: boolean 
+  animate?: boolean,
+  toggle?: () => void 
 }) {
   return (
     <div className="px-3 py-4">
@@ -228,6 +230,7 @@ function SidebarContent({
                         ? 'bg-primary/10 text-primary font-medium' 
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                     )}
+                    onClick={toggle}
                   >
                     <Tooltip>
                         <TooltipTrigger>                    

@@ -8,6 +8,7 @@ import { QuizService } from './quiz.service';
 import { SubmitQuizInput } from './dtos/submit-quiz.input';
 import { QuizResultType } from './quiz-result.graphql';
 import { QuizOutputType, PaginatedQuizResponse } from './quiz.graphql';
+import { PaginatedResponse } from 'src/graphql/pagination.graphql';
 
 @Resolver(() => AIOutputType)
 export class QuizResolver {

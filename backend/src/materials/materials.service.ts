@@ -2,7 +2,7 @@ import { ConflictException, Inject, Injectable, NotFoundException, UnauthorizedE
 import { db } from 'src/database/drizzle.module';
 import { materials, materialStatusEnum } from 'src/database/schema';
 import { toMaterialGraphQL } from './materials.mapper';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { CreateMaterialInput } from './dtos/create-material.input';
 
 @Injectable()
@@ -16,14 +16,36 @@ export class MaterialsService {
         return allMaterials.map(material => (toMaterialGraphQL(material)));
     }
 
-    async getUserMaterials(userId: string) {
-        const userMaterials = await this.drizzle.select().from(materials).where(eq(materials.userId, userId));
+    async getUserMaterials(userId: string, page: number = 1, limit: number = 10) {
+        
+        const totalCountResult = await this.drizzle
+            .select({ count: sql<number>`COUNT(*)` })
+            .from(materials)
+            .where(eq(materials.userId, userId));
+
+        const totalCount = totalCountResult[0]?.count || 0;
+        const totalPages = Math.ceil(totalCount / limit);
+
+        const userMaterials = await this.drizzle
+            .select()
+            .from(materials)
+            .where(eq(materials.userId, userId))
+            .limit(limit)
+            .offset((page - 1) * limit);
 
         if (userMaterials.length === 0) {
             return [];
         }
 
-        return userMaterials.map(material => (toMaterialGraphQL(material)));
+        return {
+            data: userMaterials.map(material => (toMaterialGraphQL(material))),
+            totalCount,
+            totalPages,
+            currentPage: page,
+            pageSize: limit,
+            hasNextPage: page < totalPages,
+            hasPreviousPage: page > 1,
+        };
     }
 
     async getMaterialById(id: string, userId: string) {

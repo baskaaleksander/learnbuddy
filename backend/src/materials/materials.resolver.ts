@@ -1,5 +1,5 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { MaterialType } from './materials.graphql';
+import { MaterialType, PaginatedMaterialsResponse } from './materials.graphql';
 import { MaterialsService } from './materials.service';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
@@ -17,9 +17,13 @@ export class MaterialsResolver {
     }
 
     @UseGuards(GqlAuthGuard)
-    @Query(() => [MaterialType])
-    async getUserMaterials(@CurrentUser() user: PayloadDto) {
-        return await this.materialsService.getUserMaterials(user.id);
+    @Query(() => PaginatedMaterialsResponse)
+    async getUserMaterials(
+        @CurrentUser() user: PayloadDto,
+        @Args('page') page : number,
+        @Args('pageSize') pageSize: number
+    ) {
+        return await this.materialsService.getUserMaterials(user.id, page, pageSize);
     }
 
     @UseGuards(GqlAuthGuard)

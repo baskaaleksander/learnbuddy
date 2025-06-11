@@ -13,7 +13,8 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Filter, ArrowUpDown, Search } from 'lucide-react';
+import { Filter, ArrowUpDown, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 function MaterialsPage() {
     const [materials, setMaterials] = useState([]);
@@ -22,6 +23,9 @@ function MaterialsPage() {
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [sortBy, setSortBy] = useState<string>('newest');
     const [searchQuery, setSearchQuery] = useState<string>('');
+    const [totalPages, setTotalPages] = useState<number>(1);
+    const [page, setPage] = useState<number>(1);
+    const [pageSize, setPageSize] = useState<number>(10);
 
     useEffect(() => {
         try {
@@ -29,16 +33,20 @@ function MaterialsPage() {
             const fetchMaterials = async () => {
                 const materialsResponse = await fetchGraphQL(`
                 query GetUserMaterials {
-                    getUserMaterials {
-                        id
-                        title
-                        status
-                        description
-                        createdAt
+                    getUserMaterials(page: ${page}, pageSize: ${pageSize}) {
+                        data {
+                            id
+                            title
+                            status
+                            description
+                            createdAt
+                        }
+                        totalPages
                     }
                 }
             `);
-                setMaterials(materialsResponse.getUserMaterials);
+                setMaterials(materialsResponse.getUserMaterials.data);
+                setTotalPages(materialsResponse.getUserMaterials.totalPages || 1);
             };
             fetchMaterials();
         } catch (error) {
@@ -104,6 +112,23 @@ function MaterialsPage() {
         return <LoadingScreen />
     }
 
+    const handlePreviousPage = () => {
+        if (page > 1) {
+            setPage(page - 1);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (page < totalPages) {
+            setPage(page + 1);
+        }
+    };
+
+    const handlePageSizeChange = (size: number) => {
+        setPageSize(size);
+        setPage(1);
+    }
+
     return (
         <div className="p-4 space-y-6">
             {/* Header */}
@@ -115,26 +140,25 @@ function MaterialsPage() {
             </div>
 
             {/* Search and Controls */}
-            <div className="flex flex-col lg:flex-row gap-4">
-                {/* Search Bar */}
-                <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        type="text"
-                        placeholder="Search materials..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10"
-                    />
-                </div>
-                
-                {/* Filter and Sort Controls */}
-                <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                    {/* Search Bar */}
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="text"
+                            placeholder="Search materials..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10"
+                        />
+                    </div>
+                    
                     {/* Status Filter */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
                         <Filter className="h-4 w-4 text-muted-foreground" />
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="w-[140px]">
+                            <SelectTrigger className="w-full sm:w-[140px]">
                                 <SelectValue placeholder="Filter by status" />
                             </SelectTrigger>
                             <SelectContent>
@@ -149,10 +173,10 @@ function MaterialsPage() {
                     </div>
 
                     {/* Sort Options */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
                         <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
                         <Select value={sortBy} onValueChange={setSortBy}>
-                            <SelectTrigger className="w-[160px]">
+                            <SelectTrigger className="w-full sm:w-[160px]">
                                 <SelectValue placeholder="Sort by" />
                             </SelectTrigger>
                             <SelectContent>
@@ -165,6 +189,52 @@ function MaterialsPage() {
                             </SelectContent>
                         </Select>
                     </div>
+
+                    {/* Page Size */}
+                    <div className='flex items-center gap-2 w-full sm:w-auto'>
+                        <span className="text-sm text-muted-foreground mr-2">Page Size:</span>
+                        <Select value={pageSize.toString()} onValueChange={(value) => handlePageSizeChange(parseInt(value))}>
+                            <SelectTrigger className="w-full sm:w-[100px]">
+                                <SelectValue placeholder="Page Size" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="5">5</SelectItem>
+                                <SelectItem value="10">10</SelectItem>
+                                <SelectItem value="20">20</SelectItem>
+                                <SelectItem value="50">50</SelectItem>
+                                <SelectItem value="100">100</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handlePreviousPage}
+                        disabled={page <= 1}
+                        className="flex items-center gap-1"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                        <span className="hidden sm:inline">Previous</span>
+                    </Button>
+                    
+                    <span className="text-sm text-muted-foreground px-2">
+                        Page {page} of {totalPages}
+                    </span>
+                    
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleNextPage}
+                        disabled={page >= totalPages}
+                        className="flex items-center gap-1"
+                    >
+                        <span className="hidden sm:inline">Next</span>
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
                 </div>
             </div>
 

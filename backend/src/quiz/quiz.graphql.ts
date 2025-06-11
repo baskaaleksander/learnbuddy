@@ -2,6 +2,7 @@ import { Field, ID, Int, ObjectType } from "@nestjs/graphql";
 import GraphQLJSON from "graphql-type-json";
 import { AIOutputEnum, AIOutputType } from "src/graphql/ai-output.graphql";
 import { MaterialType } from "src/materials/materials.graphql";
+import { PaginatedResponse } from "src/graphql/pagination.graphql";
 
 @ObjectType()
 export class QuizLatestResult {
@@ -32,25 +33,9 @@ export class QuizOutputType extends AIOutputType{
 }
 
 @ObjectType()
-export class PaginatedQuizResponse {
+export class PaginatedQuizResponse extends PaginatedResponse {
+  
   @Field(() => [QuizOutputType])
   data: QuizOutputType[];
 
-  @Field(() => Int)
-  totalItems: number;
-
-  @Field(() => Int)
-  totalPages: number;
-
-  @Field(() => Int)
-  currentPage: number;
-
-  @Field(() => Int)
-  pageSize: number;
-
-  @Field()
-  hasNextPage: boolean;
-
-  @Field()
-  hasPreviousPage: boolean;
 }
