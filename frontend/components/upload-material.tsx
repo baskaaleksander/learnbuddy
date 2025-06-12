@@ -137,7 +137,7 @@ function UploadMaterial() {
       
       setTimeout(() => {
         setUploadSuccess(false);
-        router.push(`/materials/upload/${upload.data.materialId}`);
+        router.push(`/dashboard/materials/upload/${upload.data.materialId}`);
       }, 3000);
       
     } catch (error) {

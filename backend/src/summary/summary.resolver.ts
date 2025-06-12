@@ -5,19 +5,20 @@ import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
 import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
 import { PayloadDto } from 'src/auth/dtos/payload.dto';
+import { SummaryType } from './summary.graphql';
 
-@Resolver(() => AIOutputType)
+@Resolver(() => SummaryType)
 export class SummaryResolver {
     constructor(private readonly summaryService: SummaryService) {}
 
     @UseGuards(GqlAuthGuard)
-    @Query(() => AIOutputType, { nullable: true })
+    @Query(() => SummaryType, { nullable: true })
     async getSummaryByMaterial(@Args('materialId') materialId: string, @CurrentUser() user: PayloadDto) {
         return this.summaryService.getSummaryByMaterial(materialId, user.id);
     }
 
     @UseGuards(GqlAuthGuard)
-    @Query(() => AIOutputType, { nullable: true })
+    @Query(() => SummaryType, { nullable: true })
     async getSummaryById(@Args('id') id: string, @CurrentUser() user: PayloadDto) {
         return this.summaryService.getSummaryById(id, user.id);
     }

@@ -3,21 +3,19 @@ import { UseGuards } from '@nestjs/common';
 import { PayloadDto } from 'src/auth/dtos/payload.dto';
 import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
 import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
-import { AIOutputType } from 'src/graphql/ai-output.graphql';
 import { QuizService } from './quiz.service';
 import { SubmitQuizInput } from './dtos/submit-quiz.input';
 import { QuizResultType } from './quiz-result.graphql';
 import { QuizOutputType, PaginatedQuizResponse } from './quiz.graphql';
-import { PaginatedResponse } from 'src/graphql/pagination.graphql';
 
-@Resolver(() => AIOutputType)
+@Resolver(() => QuizOutputType)
 export class QuizResolver {
     constructor(
         private readonly quizService: QuizService,
     ) {}
 
     @UseGuards(GqlAuthGuard)
-    @Query(() => AIOutputType, { nullable: true })
+    @Query(() => QuizOutputType, { nullable: true })
     async getQuizById(
         @CurrentUser() user: PayloadDto, 
         @Args('id') id: string

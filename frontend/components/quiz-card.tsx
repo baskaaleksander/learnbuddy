@@ -52,6 +52,12 @@ function QuizCard({ quizData, className }: { quizData: QuizData, className?: str
     return 'text-red-600';
   };
 
+  const handleMaterialClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    window.location.href = `/dashboard/materials/${quizData.material.id}`;
+  };
+
   return (
     <Link href={`/dashboard/quizzes/${quizData.id}`}>
       <Card className={cn(
@@ -69,7 +75,13 @@ function QuizCard({ quizData, className }: { quizData: QuizData, className?: str
         <CardHeader className="pb-3">
           <div className="space-y-2">
             <Badge variant="secondary" className="text-xs w-fit flex items-center gap-1">
-                <Link href={`/dashboard/materials/${quizData.material.id}`} className='text-xs'><ExternalLink className='inline w-3 h-3'/> {quizData.material.title}</Link>
+              <button 
+                onClick={handleMaterialClick}
+                className="flex items-center gap-1 text-xs hover:underline"
+              >
+                <ExternalLink className='inline w-3 h-3'/> 
+                {quizData.material.title}
+              </button>
             </Badge>
             
             <div className="flex items-center gap-2 text-xs text-muted-foreground">

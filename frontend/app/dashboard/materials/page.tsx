@@ -54,7 +54,7 @@ function MaterialsPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [page, pageSize]);
 
     // Filter, search, and sort materials
     const filteredAndSortedMaterials = useMemo(() => {
