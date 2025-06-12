@@ -9,7 +9,11 @@ import {
   FlashcardProgressStatus,
   FlashcardStats,
 } from './flashcard-progress.graphql';
-import { FlashcardsWithStatsType, FlashcardType } from './flashcard.graphql';
+import {
+  FlashcardsWithStatsType,
+  FlashcardType,
+  PaginatedFlashcardsWithStatsResponse,
+} from './flashcard.graphql';
 import { FlashcardWithProgressType } from './flashcard-with-progress.graphql';
 
 @Resolver(() => AIOutputType)
@@ -26,9 +30,17 @@ export class FlashcardsResolver {
   }
 
   @UseGuards(GqlAuthGuard)
-  @Query(() => [FlashcardsWithStatsType])
-  async getFlashcardsSetsByUser(@CurrentUser() user: PayloadDto) {
-    return this.flashcardsService.getFlashcardsSetsByUser(user.id);
+  @Query(() => PaginatedFlashcardsWithStatsResponse)
+  async getFlashcardsSetsByUser(
+    @CurrentUser() user: PayloadDto,
+    @Args('page') page: number,
+    @Args('pageSize') pageSize: number,
+  ) {
+    return this.flashcardsService.getFlashcardsSetsByUser(
+      user.id,
+      page,
+      pageSize,
+    );
   }
 
   @UseGuards(GqlAuthGuard)

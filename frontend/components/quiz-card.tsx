@@ -4,24 +4,9 @@ import { Badge } from './ui/badge'
 import { cn } from '@/lib/utils'
 import { AlertTriangle, Target, Trophy, Calendar, TrendingUp, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
+import {QuizData} from "@/lib/definitions";
 
-interface QuizData {
-  id: string;
-  createdAt: string;
-  averageScore: number;
-  totalAttempts: number;
-  averagePercentage: number;
-  bestScore: number;
-  latestResult?: {
-    score: number;
-    completedAt: string;
-  };
-  material: {
-    id: string;
-    title: string;
-    createdAt: string;
-  };
-}
+
 
 function QuizCard({ quizData, className }: { quizData: QuizData, className?: string }) {
   const needsAttention = () => {

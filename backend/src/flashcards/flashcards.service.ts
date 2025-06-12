@@ -4,7 +4,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
 import {
   aiOutputs,
@@ -56,20 +56,49 @@ export class FlashcardsService {
     return flashcardsArr.map((flashcard) => toFlashcardGraphQL(flashcard));
   }
 
-  async getFlashcardsSetsByUser(userId: string) {
-    const aiOutput = await this.drizzle
-      .select()
+  async getFlashcardsSetsByUser(
+    userId: string,
+    page: number = 1,
+    pageSize: number = 10,
+  ) {
+    const totalCountResult = await this.drizzle
+      .select({ count: sql<number>`COUNT(*)` })
       .from(aiOutputs)
       .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
       .where(
         and(eq(materials.userId, userId), eq(aiOutputs.type, 'flashcards')),
       );
 
+    const totalItems = totalCountResult[0]?.count || 0;
+    const totalPages = Math.ceil(totalItems / pageSize);
+
+    if (totalItems === 0) {
+      return {
+        data: [],
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: page,
+        pageSize,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      };
+    }
+
+    const aiOutput = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
+      .where(
+        and(eq(materials.userId, userId), eq(aiOutputs.type, 'flashcards')),
+      )
+      .limit(pageSize)
+      .offset((page - 1) * pageSize);
+
     if (aiOutput.length === 0) {
       return [];
     }
 
-    const results = await Promise.all(
+    const data = await Promise.all(
       aiOutput.map(async (output) => {
         const flashcardsArr = await this.drizzle
           .select()
@@ -88,13 +117,12 @@ export class FlashcardsService {
           (f) => f.flashcard_progress.status === FlashcardProgressStatus.review,
         ).length;
 
-        // Create and return properly structured objects
         const outputData = toAIOutputGraphQL(output.ai_outputs);
         const materialData = toMaterialGraphQL(output.materials);
 
         return {
           ...outputData,
-          ...materialData,
+          material: materialData,
           total,
           known,
           review,
@@ -103,7 +131,15 @@ export class FlashcardsService {
       }),
     );
 
-    return results;
+    return {
+      data,
+      totalItems,
+      totalPages,
+      currentPage: page,
+      pageSize,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    };
   }
   async getFlashcardProgressByMaterial(materialId: string, userId: string) {
     const materialAccess = await this.drizzle

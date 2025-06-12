@@ -1,5 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { AIOutputType } from '../graphql/ai-output.graphql';
+import { PaginatedResponse } from '../graphql/pagination.graphql';
 
 @ObjectType()
 export class FlashcardType {
@@ -32,4 +33,10 @@ export class FlashcardsWithStatsType extends AIOutputType {
 
   @Field(() => Date)
   lastUpdated: Date;
+}
+
+@ObjectType()
+export class PaginatedFlashcardsWithStatsResponse extends PaginatedResponse {
+  @Field(() => [FlashcardsWithStatsType])
+  data: FlashcardsWithStatsType[];
 }

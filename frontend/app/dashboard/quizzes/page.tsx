@@ -9,11 +9,12 @@ import { ArrowUpDown, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react'
 import ErrorComponent from '@/components/error-component';
 import LoadingScreen from '@/components/loading-screen';
+import {PaginationProps, QuizData} from "@/lib/definitions";
 
 function QuizzesPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [quizzes, setQuizzes] = useState<any[]>([]);
+    const [quizzes, setQuizzes] = useState<PaginationProps<QuizData>>();
     const [page, setPage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
     const [sortBy, setSortBy] = useState<string>('newest');
@@ -48,12 +49,17 @@ function QuizzesPage() {
                                 }
                             }
                             totalPages
+                            totalItems
+                            currentPage
+                            pageSize
+                            hasNextPage
+                            hasPreviousPage
                         }
                     }
                 `);
                 
                 if (quizzesResponse.getQuizesByUser.data) {
-                    setQuizzes(quizzesResponse.getQuizesByUser.data);
+                    setQuizzes(quizzesResponse.getQuizesByUser);
                     setTotalPages(quizzesResponse.getQuizesByUser.totalPages);
                 } else {
                     setError("Quizzes not found");
@@ -70,12 +76,11 @@ function QuizzesPage() {
     }, [page, pageSize]);
 
     const filteredAndSorted = useMemo(() => {
-        let filtered = quizzes;
+        let filtered = quizzes?.data || [];
 
         if (searchQuery.trim() !== '') {
             filtered = filtered.filter((quiz) =>
-                quiz.material.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (quiz.material.description && quiz.material.description.toLowerCase().includes(searchQuery.toLowerCase()))
+                quiz.material.title.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
         const sorted = [...filtered].sort((a: any, b: any) => {
@@ -183,7 +188,7 @@ function QuizzesPage() {
                         variant="outline"
                         size="sm"
                         onClick={handlePreviousPage}
-                        disabled={page <= 1}
+                        disabled={!quizzes?.hasPreviousPage}
                         className="flex items-center gap-1"
                     >
                         <ChevronLeft className="h-4 w-4" />
@@ -198,7 +203,7 @@ function QuizzesPage() {
                         variant="outline"
                         size="sm"
                         onClick={handleNextPage}
-                        disabled={page >= totalPages}
+                        disabled={!quizzes?.hasNextPage}
                         className="flex items-center gap-1"
                     >
                         <span className="hidden sm:inline">Next</span>
@@ -209,7 +214,7 @@ function QuizzesPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredAndSorted.length > 0 ? (
-                    quizzes.map((quiz) => {
+                    quizzes?.data?.map((quiz) => {
                         return <QuizCard
                             key={quiz.id}
                             quizData={quiz}
