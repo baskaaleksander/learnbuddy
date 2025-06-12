@@ -1,311 +1,360 @@
-import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
-import { aiOutputs, flashcardProgress, flashcards, materials } from 'src/database/schema';
+import {
+  aiOutputs,
+  flashcardProgress,
+  flashcards,
+  materials,
+} from 'src/database/schema';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
 import { toFlashcardGraphQL } from './flashcard.mapper';
 import { FlashcardProgressStatus } from './flashcard-progress.graphql';
-
+import { toAIOutputGraphQL } from '../mappers/ai-output.mapper';
+import { toMaterialGraphQL } from '../materials/materials.mapper';
 
 @Injectable()
 export class FlashcardsService {
-    constructor(
-        @Inject('DRIZZLE') private drizzle: typeof db,
-        private readonly openAiService: OpenAiService
-    ) {}
+  constructor(
+    @Inject('DRIZZLE') private drizzle: typeof db,
+    private readonly openAiService: OpenAiService,
+  ) {}
 
-    async getFlashcardsByMaterial(materialId: string, userId: string) {
-        const materialAccess = await this.drizzle
-            .select()
-            .from(materials)
-            .where(
-                and(
-                    eq(materials.id, materialId),
-                    eq(materials.userId, userId)
-                )
-            );
-        if (materialAccess.length === 0) {
-            throw new UnauthorizedException('Material not found or access denied');
-        }
+  async getFlashcardsByMaterial(materialId: string, userId: string) {
+    const materialAccess = await this.drizzle
+      .select()
+      .from(materials)
+      .where(and(eq(materials.id, materialId), eq(materials.userId, userId)));
+    if (materialAccess.length === 0) {
+      throw new UnauthorizedException('Material not found or access denied');
+    }
 
-        const aiOutput = await this.drizzle
-            .select()
-            .from(aiOutputs)
-            .where(
-                and(
-                    eq(aiOutputs.materialId, materialId),
-                    eq(aiOutputs.type, 'flashcards')
-                )
-            );
+    const aiOutput = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .where(
+        and(
+          eq(aiOutputs.materialId, materialId),
+          eq(aiOutputs.type, 'flashcards'),
+        ),
+      );
 
-        if (aiOutput.length === 0) {
-            throw new NotFoundException('No flashcards found for this material');
-        }
+    if (aiOutput.length === 0) {
+      throw new NotFoundException('No flashcards found for this material');
+    }
 
+    const flashcardsArr = await this.drizzle
+      .select()
+      .from(flashcards)
+      .where(eq(flashcards.aiOutputId, aiOutput[0].id));
+
+    return flashcardsArr.map((flashcard) => toFlashcardGraphQL(flashcard));
+  }
+
+  async getFlashcardsSetsByUser(userId: string) {
+    const aiOutput = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
+      .where(
+        and(eq(materials.userId, userId), eq(aiOutputs.type, 'flashcards')),
+      );
+
+    if (aiOutput.length === 0) {
+      return [];
+    }
+
+    const results = await Promise.all(
+      aiOutput.map(async (output) => {
         const flashcardsArr = await this.drizzle
-            .select()
-            .from(flashcards)
-            .where(eq(flashcards.aiOutputId, aiOutput[0].id));
-
-
-        return flashcardsArr.map(flashcard => toFlashcardGraphQL(flashcard));
-    }
-
-    async getFlashcardProgressByMaterial(materialId: string, userId: string) {
-        const materialAccess = await this.drizzle
-            .select()
-            .from(materials)
-            .where(
-                and(
-                    eq(materials.id, materialId),
-                    eq(materials.userId, userId)
-                )
-            );
-
-        if (materialAccess.length === 0) {
-            throw new UnauthorizedException('Material not found or access denied');
-        }
-
-        const aiOutput = await this.drizzle
-            .select()
-            .from(aiOutputs)
-            .where(
-                and(
-                    eq(aiOutputs.materialId, materialId),
-                    eq(aiOutputs.type, 'flashcards')
-                )
-            );
-            
-        if (aiOutput.length === 0) {
-            return [];
-        }
-
-        const flashcardsArr = await this.drizzle
-            .select()
-            .from(flashcards)
-            .innerJoin(
-                flashcardProgress,
-                eq(flashcards.id, flashcardProgress.flashcardId)
-            )
-            .where(
-                and(
-                    eq(flashcards.aiOutputId, aiOutput[0].id),
-                    eq(flashcardProgress.userId, userId)
-                )
-            );
-
-        
-        return flashcardsArr.map(flashcard => ({
-            ...toFlashcardGraphQL(flashcard.flashcards),
-            status: flashcard.flashcard_progress.status,
-        }));
-    }
-
-    async createFlashcards(materialId: string, userId: string) {
-        const materialAccess = await this.drizzle
-            .select()
-            .from(materials)
-            .where(
-                and(
-                    eq(materials.id, materialId),
-                    eq(materials.userId, userId)
-                )
-            );
-        if (materialAccess.length === 0) {
-            throw new UnauthorizedException('Material not found or access denied');
-        }
-
-        const generatedFlashcards = await this.openAiService.generateFlashcards(materialId);
-        if (!generatedFlashcards) {
-            throw new NotFoundException('No flashcards generated for this material');
-        }
-
-        const aiOutput = await this.drizzle
-            .insert(aiOutputs)
-            .values({
-                materialId: materialId,
-                type: 'flashcards',
-                content: { flashcards: generatedFlashcards },
-                createdAt: new Date(),
-            })
-            .returning();
-        
-        const dbFlashcards = await Promise.all(
-            generatedFlashcards.map(async (flashcard) => {
-                const inserted = await this.drizzle
-                    .insert(flashcards)
-                    .values({
-                        aiOutputId: aiOutput[0].id,
-                        question: flashcard.pytanie,
-                        answer: flashcard.odpowiedz,
-                        createdAt: new Date(),
-                    })
-                    .returning();
-                return inserted[0];
-            })
-        );
-
-        await Promise.all(
-            dbFlashcards.map(async (flashcard) => {
-                await this.drizzle
-                    .insert(flashcardProgress)
-                    .values({
-                        flashcardId: flashcard.id,
-                        userId: userId,
-                        status: FlashcardProgressStatus.review,
-                    });
-            })
-        );
-
-        return true;
-    }
-
-    async getFlashcardById(id: string, userId: string) {
-        const flashcard = await this.drizzle
-            .select()
-            .from(flashcards)
-            .where(eq(flashcards.id, id));
-
-        if (flashcard.length === 0) {
-            throw new NotFoundException('Flashcard not found');
-        }
-
-        return toFlashcardGraphQL(flashcard[0]);
-    }
-
-    async deleteFlashcards(id: string, userId: string) {
-        const materialAccess = await this.drizzle
-            .select()
-            .from(materials)
-            .where(
-                and
-                (
-                    eq(materials.id, id), 
-                    eq(materials.userId, userId)
-                )
-            );
-        
-        if (materialAccess.length === 0) {
-            throw new UnauthorizedException('Material not found or access denied');
-        }
-
-        const aiOutput = await this.drizzle
-            .select()
-            .from(aiOutputs)
-            .where(
-                and
-                (
-                    eq(aiOutputs.id, id),
-                    eq(aiOutputs.type, 'flashcards')
-                )
-            );
-
-        if (aiOutput.length === 0) {
-            throw new NotFoundException('No flashcards found for this material');
-        }
-
-        const flashcardsToDelete = await this.drizzle
-            .select()
-            .from(flashcards)
-            .where(eq(flashcards.aiOutputId, aiOutput[0].id));
-
-        if (flashcardsToDelete.length === 0) {
-            throw new NotFoundException('No flashcards found for this AI output');
-        }
-
-        await this.drizzle
-            .delete(flashcards)
-            .where(eq(flashcards.aiOutputId, aiOutput[0].id));
-        await this.drizzle
-            .delete(aiOutputs)
-            .where(eq(aiOutputs.id, aiOutput[0].id));
-        await this.drizzle
-            .delete(flashcardProgress)
-            .where(eq(flashcardProgress.flashcardId, flashcardsToDelete[0].id));
-
-        return true;
-    }
-
-    async updateFlashcardStatus(id: string, userId: string, status: FlashcardProgressStatus){
-        const flashcardProgressEntry = await this.drizzle
-            .select()
-            .from(flashcardProgress)
-            .where(
-                and(
-                    eq(flashcardProgress.flashcardId, id),
-                    eq(flashcardProgress.userId, userId)
-                )
-            );
-            
-        if (flashcardProgressEntry.length === 0) {
-            throw new NotFoundException('Flashcard progress not found');
-        }
-
-        await this.drizzle
-            .update(flashcardProgress)
-            .set({ status: status })
-            .where(
-                and(
-                    eq(flashcardProgress.flashcardId, id),
-                    eq(flashcardProgress.userId, userId)
-                )
-            );
-
-        return true;
-    }
-
-    async getFlashcardStats(materialId: string, userId: string) {
-        const materialAccess = await this.drizzle
-            .select()
-            .from(materials)
-            .where(
-                and(
-                    eq(materials.id, materialId),
-                    eq(materials.userId, userId)
-                )
-            );
-
-        if (materialAccess.length === 0) {
-            throw new UnauthorizedException('Material not found or access denied');
-        }
-
-        const aiOutput = await this.drizzle
-            .select()
-            .from(aiOutputs)
-            .where(
-                and(
-                    eq(aiOutputs.materialId, materialId),
-                    eq(aiOutputs.type, 'flashcards')
-                )
-            );
-
-        if (aiOutput.length === 0) {
-            return {
-                total: 0,
-                known: 0,
-                review: 0,
-                lastUpdated: new Date(),
-            };
-        }
-
-        const flashcardsArr = await this.drizzle
-            .select()
-            .from(flashcards)
-            .innerJoin(
-                flashcardProgress,
-                eq(flashcards.id, flashcardProgress.flashcardId)
-            )
-            .where(eq(flashcards.aiOutputId, aiOutput[0].id));
+          .select()
+          .from(flashcards)
+          .innerJoin(
+            flashcardProgress,
+            eq(flashcards.id, flashcardProgress.flashcardId),
+          )
+          .where(eq(flashcards.aiOutputId, output.ai_outputs.id));
 
         const total = flashcardsArr.length;
-        const known = flashcardsArr.filter(f => f.flashcard_progress.status === FlashcardProgressStatus.known).length;
-        const review = flashcardsArr.filter(f => f.flashcard_progress.status === FlashcardProgressStatus.review).length;
+        const known = flashcardsArr.filter(
+          (f) => f.flashcard_progress.status === FlashcardProgressStatus.known,
+        ).length;
+        const review = flashcardsArr.filter(
+          (f) => f.flashcard_progress.status === FlashcardProgressStatus.review,
+        ).length;
+
+        // Create and return properly structured objects
+        const outputData = toAIOutputGraphQL(output.ai_outputs);
+        const materialData = toMaterialGraphQL(output.materials);
 
         return {
-            total,
-            known,
-            review,
-            lastUpdated: new Date(),
+          ...outputData,
+          ...materialData,
+          total,
+          known,
+          review,
+          lastUpdated: new Date(),
         };
+      }),
+    );
+
+    return results;
+  }
+  async getFlashcardProgressByMaterial(materialId: string, userId: string) {
+    const materialAccess = await this.drizzle
+      .select()
+      .from(materials)
+      .where(and(eq(materials.id, materialId), eq(materials.userId, userId)));
+
+    if (materialAccess.length === 0) {
+      throw new UnauthorizedException('Material not found or access denied');
     }
+
+    const aiOutput = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .where(
+        and(
+          eq(aiOutputs.materialId, materialId),
+          eq(aiOutputs.type, 'flashcards'),
+        ),
+      );
+
+    if (aiOutput.length === 0) {
+      return [];
+    }
+
+    const flashcardsArr = await this.drizzle
+      .select()
+      .from(flashcards)
+      .innerJoin(
+        flashcardProgress,
+        eq(flashcards.id, flashcardProgress.flashcardId),
+      )
+      .where(
+        and(
+          eq(flashcards.aiOutputId, aiOutput[0].id),
+          eq(flashcardProgress.userId, userId),
+        ),
+      );
+
+    return flashcardsArr.map((flashcard) => ({
+      ...toFlashcardGraphQL(flashcard.flashcards),
+      status: flashcard.flashcard_progress.status,
+    }));
+  }
+
+  async createFlashcards(materialId: string, userId: string) {
+    const materialAccess = await this.drizzle
+      .select()
+      .from(materials)
+      .where(and(eq(materials.id, materialId), eq(materials.userId, userId)));
+    if (materialAccess.length === 0) {
+      throw new UnauthorizedException('Material not found or access denied');
+    }
+
+    const existingAiOutput = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .where(
+        and(
+          eq(aiOutputs.materialId, materialId),
+          eq(aiOutputs.type, 'flashcards'),
+        ),
+      );
+
+    if (existingAiOutput.length > 0) {
+      throw new NotFoundException(
+        'Flashcards already generated for this material',
+      );
+    }
+
+    const generatedFlashcards =
+      this.openAiService.generateFlashcards(materialId);
+    if (!generatedFlashcards) {
+      throw new NotFoundException('No flashcards generated for this material');
+    }
+
+    const aiOutput = await this.drizzle
+      .insert(aiOutputs)
+      .values({
+        materialId: materialId,
+        type: 'flashcards',
+        content: { flashcards: generatedFlashcards },
+        createdAt: new Date(),
+      })
+      .returning();
+
+    const dbFlashcards = await Promise.all(
+      generatedFlashcards.map(async (flashcard) => {
+        const inserted = await this.drizzle
+          .insert(flashcards)
+          .values({
+            aiOutputId: aiOutput[0].id,
+            question: flashcard.pytanie,
+            answer: flashcard.odpowiedz,
+            createdAt: new Date(),
+          })
+          .returning();
+        return inserted[0];
+      }),
+    );
+
+    await Promise.all(
+      dbFlashcards.map(async (flashcard) => {
+        await this.drizzle.insert(flashcardProgress).values({
+          flashcardId: flashcard.id,
+          userId: userId,
+          status: FlashcardProgressStatus.review,
+        });
+      }),
+    );
+
+    return true;
+  }
+
+  async getFlashcardById(id: string, userId: string) {
+    const flashcard = await this.drizzle
+      .select()
+      .from(flashcards)
+      .where(eq(flashcards.id, id));
+
+    if (flashcard.length === 0) {
+      throw new NotFoundException('Flashcard not found');
+    }
+
+    return toFlashcardGraphQL(flashcard[0]);
+  }
+
+  async deleteFlashcards(id: string, userId: string) {
+    const materialAccess = await this.drizzle
+      .select()
+      .from(materials)
+      .where(and(eq(materials.id, id), eq(materials.userId, userId)));
+
+    if (materialAccess.length === 0) {
+      throw new UnauthorizedException('Material not found or access denied');
+    }
+
+    const aiOutput = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .where(and(eq(aiOutputs.id, id), eq(aiOutputs.type, 'flashcards')));
+
+    if (aiOutput.length === 0) {
+      throw new NotFoundException('No flashcards found for this material');
+    }
+
+    const flashcardsToDelete = await this.drizzle
+      .select()
+      .from(flashcards)
+      .where(eq(flashcards.aiOutputId, aiOutput[0].id));
+
+    if (flashcardsToDelete.length === 0) {
+      throw new NotFoundException('No flashcards found for this AI output');
+    }
+
+    await this.drizzle
+      .delete(flashcards)
+      .where(eq(flashcards.aiOutputId, aiOutput[0].id));
+    await this.drizzle
+      .delete(aiOutputs)
+      .where(eq(aiOutputs.id, aiOutput[0].id));
+    await this.drizzle
+      .delete(flashcardProgress)
+      .where(eq(flashcardProgress.flashcardId, flashcardsToDelete[0].id));
+
+    return true;
+  }
+
+  async updateFlashcardStatus(
+    id: string,
+    userId: string,
+    status: FlashcardProgressStatus,
+  ) {
+    const flashcardProgressEntry = await this.drizzle
+      .select()
+      .from(flashcardProgress)
+      .where(
+        and(
+          eq(flashcardProgress.flashcardId, id),
+          eq(flashcardProgress.userId, userId),
+        ),
+      );
+
+    if (flashcardProgressEntry.length === 0) {
+      throw new NotFoundException('Flashcard progress not found');
+    }
+
+    await this.drizzle
+      .update(flashcardProgress)
+      .set({ status: status })
+      .where(
+        and(
+          eq(flashcardProgress.flashcardId, id),
+          eq(flashcardProgress.userId, userId),
+        ),
+      );
+
+    return true;
+  }
+
+  async getFlashcardStats(materialId: string, userId: string) {
+    const materialAccess = await this.drizzle
+      .select()
+      .from(materials)
+      .where(and(eq(materials.id, materialId), eq(materials.userId, userId)));
+
+    if (materialAccess.length === 0) {
+      throw new UnauthorizedException('Material not found or access denied');
+    }
+
+    const aiOutput = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .where(
+        and(
+          eq(aiOutputs.materialId, materialId),
+          eq(aiOutputs.type, 'flashcards'),
+        ),
+      );
+
+    if (aiOutput.length === 0) {
+      return {
+        total: 0,
+        known: 0,
+        review: 0,
+        lastUpdated: new Date(),
+      };
+    }
+
+    const flashcardsArr = await this.drizzle
+      .select()
+      .from(flashcards)
+      .innerJoin(
+        flashcardProgress,
+        eq(flashcards.id, flashcardProgress.flashcardId),
+      )
+      .where(eq(flashcards.aiOutputId, aiOutput[0].id));
+
+    const total = flashcardsArr.length;
+    const known = flashcardsArr.filter(
+      (f) => f.flashcard_progress.status === FlashcardProgressStatus.known,
+    ).length;
+    const review = flashcardsArr.filter(
+      (f) => f.flashcard_progress.status === FlashcardProgressStatus.review,
+    ).length;
+
+    return {
+      total,
+      known,
+      review,
+      lastUpdated: new Date(),
+    };
+  }
 }

@@ -1,4 +1,5 @@
 'use client';
+
 import QuizCard from '@/components/quiz-card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ function QuizzesPage() {
     const [totalPages, setTotalPages] = useState<number>(1);
 
     useEffect(() => {
-        const fetchMaterial = async () => {
+        const fetchQuizzes = async () => {
             try {
                 setLoading(true);
                 setError(null);
@@ -65,7 +66,7 @@ function QuizzesPage() {
             }
         };
 
-        fetchMaterial();
+        fetchQuizzes();
     }, [page, pageSize]);
 
     const filteredAndSorted = useMemo(() => {
@@ -96,7 +97,7 @@ function QuizzesPage() {
             }
         });
         return sorted
-    }, [quizzes, searchQuery, sortBy, page, pageSize]);
+    }, [quizzes, searchQuery, sortBy]);
 
     const handlePreviousPage = () => {
         if (page > 1) {
@@ -206,7 +207,7 @@ function QuizzesPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredAndSorted.length > 0 ? (
                     quizzes.map((quiz) => {
                         return <QuizCard

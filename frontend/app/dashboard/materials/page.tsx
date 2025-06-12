@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 
 function MaterialsPage() {
     const [materials, setMaterials] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [sortBy, setSortBy] = useState<string>('newest');
