@@ -62,3 +62,9 @@ export interface QuizData {
         createdAt: string;
     };
 }
+
+export interface AssetData {
+    title: string;
+    description: string;
+    cost: number;
+}

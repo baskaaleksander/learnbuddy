@@ -1,12 +1,12 @@
 'use client';
 
 import QuizCard from '@/components/quiz-card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { fetchGraphQL } from '@/utils/gql-axios';
-import { ArrowUpDown, Search, ChevronLeft, ChevronRight } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react'
+import {Input} from '@/components/ui/input';
+import {Button} from '@/components/ui/button';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {fetchGraphQL} from '@/utils/gql-axios';
+import {ArrowUpDown, ChevronLeft, ChevronRight, Search} from 'lucide-react';
+import React, {useEffect, useMemo, useState} from 'react'
 import ErrorComponent from '@/components/error-component';
 import LoadingScreen from '@/components/loading-screen';
 import {PaginationProps, QuizData} from "@/lib/definitions";
@@ -83,7 +83,7 @@ function QuizzesPage() {
                 quiz.material.title.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
-        const sorted = [...filtered].sort((a: any, b: any) => {
+        return [...filtered].sort((a: any, b: any) => {
             switch (sortBy) {
                 case 'newest':
                     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -100,9 +100,8 @@ function QuizzesPage() {
                 default:
                     return 0;
             }
-        });
-        return sorted
-    }, [quizzes, searchQuery, sortBy]);
+        })
+    }, [searchQuery, sortBy, quizzes?.data]);
 
     const handlePreviousPage = () => {
         if (page > 1) {
@@ -143,7 +142,7 @@ function QuizzesPage() {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                             type="text"
-                            placeholder="Search quizzes (by material title/description)"
+                            placeholder="Search quizzes (by material title)"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="pl-10"

@@ -7,6 +7,7 @@ import { Button } from './ui/button'
 import { ChevronRight, FileText } from 'lucide-react'
 import Link from 'next/link'
 import { fetchGraphQL } from '@/utils/gql-axios'
+import {GenerateAssetDialog} from "@/components/generate-asset";
 
 interface SummaryData {
   id: string;
@@ -24,6 +25,7 @@ function MaterialSummary({id, className} : {id: string, className?: string}) {
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [generateDialogOpen, setGenerateDialogOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchSummaryData = async () => {
@@ -53,6 +55,16 @@ function MaterialSummary({id, className} : {id: string, className?: string}) {
     
     fetchSummaryData();
   }, [id]);
+
+  const assetData = {
+    title: 'Summary',
+    description: 'Generate a summary for this material',
+    cost: 2
+  }
+
+  const handleGenerateSummary = () => {
+    console.log('Generate Summary');
+  }
 
   return (
     <Card className={cn(
@@ -86,9 +98,12 @@ function MaterialSummary({id, className} : {id: string, className?: string}) {
                 No summary available for this material.
               </p>
             </div>
-            <Button variant='outline' size="sm">
-              Generate summary
-            </Button>
+            <GenerateAssetDialog
+              isOpen={generateDialogOpen}
+              setIsOpenAction={setGenerateDialogOpen}
+              assetData={assetData}
+              onGenerateAction={handleGenerateSummary}
+              />
           </div>
         ) : (
           <div className="flex-1 flex flex-col">

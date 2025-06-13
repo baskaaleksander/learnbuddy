@@ -8,11 +8,14 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Trash2, RefreshCw, Play, Trophy, Target, Clock } from 'lucide-react';
 import Link from 'next/link';
+import {GenerateAssetDialog} from "@/components/generate-asset";
+
 
 function MaterialQuiz({id, className} : {id: string, className?: string}) {
     const [quizzes, setQuizzes] = useState<any>();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [generateDialogOpen, setGenerateDialogOpen] = useState<boolean>(false);
     
     useEffect(() => {
         const fetchQuizData = async () => {
@@ -49,6 +52,12 @@ function MaterialQuiz({id, className} : {id: string, className?: string}) {
         fetchQuizData();
     }, [id]);
 
+    const assetData = {
+        title: 'Quiz',
+        description: 'Generate quiz for this material',
+        cost: 2
+    }
+
     const handleDeleteQuiz = async () => {
         // Add delete logic here
         console.log('Delete quiz');
@@ -58,6 +67,10 @@ function MaterialQuiz({id, className} : {id: string, className?: string}) {
         // Add regenerate logic here
         console.log('Regenerate quiz');
     };
+
+    const handleGenerateQuiz = () => {
+        console.log('Generate quiz');
+    }
 
     return (
         <Card className={cn(
@@ -86,9 +99,15 @@ function MaterialQuiz({id, className} : {id: string, className?: string}) {
                                 No quizzes available for this material.
                             </p>
                         </div>
-                        <Button variant='outline' size="sm">
-                            Generate quiz
-                        </Button>
+                        {/*<Button variant='outline' size="sm">*/}
+                        {/*    Generate quiz*/}
+                        {/*</Button>*/}
+                        <GenerateAssetDialog
+                            isOpen={generateDialogOpen}
+                            setIsOpenAction={setGenerateDialogOpen}
+                            onGenerateAction={handleGenerateQuiz}
+                            assetData={assetData}
+                        />
                     </div>
                 ) : (
                     <div className="flex-1 flex flex-col">
@@ -195,5 +214,7 @@ function MaterialQuiz({id, className} : {id: string, className?: string}) {
         </Card>
     );
 }
+
+
 
 export default MaterialQuiz;

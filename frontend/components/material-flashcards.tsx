@@ -6,11 +6,13 @@ import { Check, Play, ReceiptText, RefreshCw, Target, Trash2, X } from 'lucide-r
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import Link from 'next/link';
+import {GenerateAssetDialog} from "@/components/generate-asset";
 
 function MaterialFlashcards({id, className} : {id: string, className?: string}) {
     const [flashcardsStats, setFlashcardsStats] = useState<any>();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [generateDialogOpen, setGenerateDialogOpen] = useState<boolean>(false);
     
     useEffect(() => {
         const fetchQuizData = async () => {
@@ -41,6 +43,12 @@ function MaterialFlashcards({id, className} : {id: string, className?: string}) 
         fetchQuizData();
     }, [id]);
 
+    const assetData = {
+        title: 'Flashcards',
+        description: 'Generate flashcards for this material',
+        cost: 2
+    }
+
     const handleDeleteFlashcards = async () => {
         // Add delete logic here
         console.log('Delete flashcards');
@@ -49,6 +57,10 @@ function MaterialFlashcards({id, className} : {id: string, className?: string}) 
     const handleRegenerateFlashcards = async () => {
         // Add regenerate logic here
         console.log('Regenerate flashcards');
+    };
+
+    const handleGenerateDialog = () => {
+        console.log('Generate dialog open');
     };
 
     return (
@@ -78,9 +90,15 @@ function MaterialFlashcards({id, className} : {id: string, className?: string}) 
                                 No flashcards available for this material.
                             </p>
                         </div>
-                        <Button variant='outline' size="sm">
-                            Generate flashcards
-                        </Button>
+                        {/*<Button variant='outline' size="sm">*/}
+                        {/*    Generate flashcards*/}
+                        {/*</Button>*/}
+                        <GenerateAssetDialog
+                            isOpen={generateDialogOpen}
+                            setIsOpenAction={setGenerateDialogOpen}
+                            assetData={assetData}
+                            onGenerateAction={handleGenerateDialog}
+                        />
                     </div>
                 ) : (
                     <div className="flex-1 flex flex-col">
