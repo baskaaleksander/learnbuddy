@@ -1,40 +1,55 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { SummaryService } from './summary.service';
-import { AIOutputType } from 'src/graphql/ai-output.graphql';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
 import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
 import { PayloadDto } from 'src/auth/dtos/payload.dto';
-import { SummaryType } from './summary.graphql';
+import { PaginatedSummaryType, SummaryType } from './summary.graphql';
 
 @Resolver(() => SummaryType)
 export class SummaryResolver {
-    constructor(private readonly summaryService: SummaryService) {}
+  constructor(private readonly summaryService: SummaryService) {}
 
-    @UseGuards(GqlAuthGuard)
-    @Query(() => SummaryType, { nullable: true })
-    async getSummaryByMaterial(@Args('materialId') materialId: string, @CurrentUser() user: PayloadDto) {
-        return this.summaryService.getSummaryByMaterial(materialId, user.id);
-    }
+  @UseGuards(GqlAuthGuard)
+  @Query(() => SummaryType, { nullable: true })
+  async getSummaryByMaterial(
+    @Args('materialId') materialId: string,
+    @CurrentUser() user: PayloadDto,
+  ) {
+    return this.summaryService.getSummaryByMaterial(materialId, user.id);
+  }
 
-    @UseGuards(GqlAuthGuard)
-    @Query(() => SummaryType, { nullable: true })
-    async getSummaryById(@Args('id') id: string, @CurrentUser() user: PayloadDto) {
-        return this.summaryService.getSummaryById(id, user.id);
-    }
+  @UseGuards(GqlAuthGuard)
+  @Query(() => SummaryType, { nullable: true })
+  async getSummaryById(
+    @Args('id') id: string,
+    @CurrentUser() user: PayloadDto,
+  ) {
+    return this.summaryService.getSummaryById(id, user.id);
+  }
 
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Boolean)
+  async createSummary(
+    @Args('materialId') materialId: string,
+    @CurrentUser() user: PayloadDto,
+  ) {
+    return this.summaryService.createSummary(materialId, user.id);
+  }
 
-    @UseGuards(GqlAuthGuard)
-    @Mutation(() => Boolean)
-    async createSummary(@Args('materialId') materialId: string, @CurrentUser() user: PayloadDto) {
-        return this.summaryService.createSummary(materialId, user.id);
-    }
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Boolean)
+  async deleteSummary(@Args('id') id: string, @CurrentUser() user: PayloadDto) {
+    return this.summaryService.deleteSummary(id, user.id);
+  }
 
-    @UseGuards(GqlAuthGuard)
-    @Mutation(() => Boolean)
-    async deleteSummary(@Args('id') id: string, @CurrentUser() user: PayloadDto) {
-        return this.summaryService.deleteSummary(id, user.id);
-    }
-
-
+  @UseGuards(GqlAuthGuard)
+  @Query(() => PaginatedSummaryType, { nullable: true })
+  async getSummariesByUser(
+    @CurrentUser() user: PayloadDto,
+    @Args('page', { type: () => Number, nullable: true }) page?: number,
+    @Args('pageSize', { type: () => Number, nullable: true }) pageSize?: number,
+  ) {
+    return this.summaryService.getSummariesByUser(user.id, page, pageSize);
+  }
 }
