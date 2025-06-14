@@ -35,11 +35,13 @@ export class FlashcardsResolver {
     @CurrentUser() user: PayloadDto,
     @Args('page') page: number,
     @Args('pageSize') pageSize: number,
+    @Args('sortBy', { type: () => String, nullable: true }) sortBy?: string,
   ) {
     return this.flashcardsService.getFlashcardsSetsByUser(
       user.id,
       page,
       pageSize,
+      sortBy,
     );
   }
 

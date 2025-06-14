@@ -50,15 +50,24 @@ export class SummaryService {
     userId: string,
     page: number = 1,
     pageSize: number = 10,
+    sortBy: string = 'createdAt-desc',
   ) {
     const summaries = await this.drizzle
       .select()
       .from(aiOutputs)
       .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
       .where(and(eq(materials.userId, userId), eq(aiOutputs.type, 'summary')))
+      .orderBy(
+        sortBy === 'createdAt-desc'
+          ? desc(aiOutputs.createdAt)
+          : sortBy === 'createdAt-asc'
+            ? aiOutputs.createdAt
+            : sortBy === 'title-desc'
+              ? desc(materials.title)
+              : materials.title,
+      )
       .limit(pageSize)
-      .offset((page - 1) * pageSize)
-      .orderBy(desc(materials.createdAt));
+      .offset((page - 1) * pageSize);
 
     const totalCountResult = await this.drizzle
       .select({ count: sql<number>`count(*)` })

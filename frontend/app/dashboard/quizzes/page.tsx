@@ -1,35 +1,34 @@
 'use client';
 
 import QuizCard from '@/components/quiz-card';
-import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {fetchGraphQL} from '@/utils/gql-axios';
-import {ArrowUpDown, ChevronLeft, ChevronRight, Search} from 'lucide-react';
-import React, {useEffect, useMemo, useState} from 'react'
+import {ArrowUpDown, ChevronLeft, ChevronRight} from 'lucide-react';
+import React, {useEffect, useState} from 'react'
 import ErrorComponent from '@/components/error-component';
 import LoadingScreen from '@/components/loading-screen';
 import {PaginationProps, QuizData} from "@/lib/definitions";
 
 function QuizzesPage() {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [quizzes, setQuizzes] = useState<PaginationProps<QuizData>>();
-    const [page, setPage] = useState<number>(1);
-    const [pageSize, setPageSize] = useState<number>(10);
-    const [sortBy, setSortBy] = useState<string>('newest');
-    const [searchQuery, setSearchQuery] = useState<string>('');
-    const [totalPages, setTotalPages] = useState<number>(1);
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const [quizzes, setQuizzes] = useState<PaginationProps<QuizData>>();
+	const [page, setPage] = useState<number>(1);
+	const [pageSize, setPageSize] = useState<number>(10);
+	const [sortBy, setSortBy] = useState<string>('createdAt-desc');
+	const [totalPages, setTotalPages] = useState<number>(1);
 
-    useEffect(() => {
-        const fetchQuizzes = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                
-                const quizzesResponse = await fetchGraphQL(`
+	useEffect(() => {
+		const fetchQuizzes = async () => {
+			try {
+				setLoading(true);
+				setError(null);
+
+
+				const quizzesResponse = await fetchGraphQL(`
                     query GetQuizesByUser {
-                        getQuizesByUser(page: ${page}, pageSize: ${pageSize}) {
+                        getQuizesByUser(page: ${page}, pageSize: ${pageSize}, sortBy: "${sortBy}") {
                             data {
                                 id
                                 createdAt
@@ -57,174 +56,135 @@ function QuizzesPage() {
                         }
                     }
                 `);
-                
-                if (quizzesResponse.getQuizesByUser.data) {
-                    setQuizzes(quizzesResponse.getQuizesByUser);
-                    setTotalPages(quizzesResponse.getQuizesByUser.totalPages);
-                } else {
-                    setError("Quizzes not found");
-                }
-            } catch (error) {
-                console.error("Error fetching material:", error);
-                setError("Failed to fetch material. Please try again later.");
-            } finally {
-                setLoading(false);
-            }
-        };
 
-        fetchQuizzes();
-    }, [page, pageSize]);
+				if (quizzesResponse.getQuizesByUser.data) {
+					setQuizzes(quizzesResponse.getQuizesByUser);
+					setTotalPages(quizzesResponse.getQuizesByUser.totalPages);
+				} else {
+					setError("Quizzes not found");
+				}
+			} catch (error) {
+				console.error("Error fetching material:", error);
+				setError("Failed to fetch material. Please try again later.");
+			} finally {
+				setLoading(false);
+			}
+		};
 
-    const filteredAndSorted = useMemo(() => {
-        let filtered = quizzes?.data || [];
+		fetchQuizzes();
+	}, [page, pageSize, sortBy]);
 
-        if (searchQuery.trim() !== '') {
-            filtered = filtered.filter((quiz) =>
-                quiz.material.title.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
-        return [...filtered].sort((a: any, b: any) => {
-            switch (sortBy) {
-                case 'newest':
-                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-                case 'oldest':
-                    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-                case 'title-asc':
-                    return a.title.localeCompare(b.title);
-                case 'title-desc':
-                    return b.title.localeCompare(a.title);
-                case 'status-asc':
-                    return a.status.localeCompare(b.status);
-                case 'status-desc':
-                    return b.status.localeCompare(a.status);
-                default:
-                    return 0;
-            }
-        })
-    }, [searchQuery, sortBy, quizzes?.data]);
 
-    const handlePreviousPage = () => {
-        if (page > 1) {
-            setPage(page - 1);
-        }
-    };
+	const handlePreviousPage = () => {
+		if (page > 1) {
+			setPage(page - 1);
+		}
+	};
 
-    const handleNextPage = () => {
-        if (page < totalPages) {
-            setPage(page + 1);
-        }
-    };
+	const handleNextPage = () => {
+		if (page < totalPages) {
+			setPage(page + 1);
+		}
+	};
 
-    const handlePageSizeChange = (size: number) => {
-        setPageSize(size);
-        setPage(1);
-    }
+	const handlePageSizeChange = (size: number) => {
+		setPageSize(size);
+		setPage(1);
+	}
 
-    if (error) {
-        return <ErrorComponent message={error} />;
-    }
+	if (error) {
+		return <ErrorComponent message={error}/>;
+	}
 
-    if (loading) {
-        return <LoadingScreen />
-    }
-    return (
-        <div className="p-4 space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold">Quizzes</h1>
-                <p className="text-muted-foreground">
-                    {filteredAndSorted.length} quiz{filteredAndSorted.length !== 1 ? 'zes' : ''} found
-                </p>
-            </div>
-            
-            <div className="flex flex-col gap-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="text"
-                            placeholder="Search quizzes (by material title)"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
-                        />
-                    </div>
-                    
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-                        <Select value={sortBy} onValueChange={setSortBy}>
-                            <SelectTrigger className="w-full sm:w-[160px]">
-                                <SelectValue placeholder="Sort by" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="newest">Newest First</SelectItem>
-                                <SelectItem value="oldest">Oldest First</SelectItem>
-                                <SelectItem value="title-asc">Title A-Z</SelectItem>
-                                <SelectItem value="title-desc">Title Z-A</SelectItem>
-                                <SelectItem value="status-asc">Status A-Z</SelectItem>
-                                <SelectItem value="status-desc">Status Z-A</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className='flex items-center gap-2 w-full sm:w-auto'>
-                        <span className="text-sm text-muted-foreground mr-2">Page Size:</span>
-                        <Select value={pageSize.toString()} onValueChange={(value) => handlePageSizeChange(parseInt(value))}>
-                            <SelectTrigger className="w-full sm:w-[100px]">
-                                <SelectValue placeholder="Page Size" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="5">5</SelectItem>
-                                <SelectItem value="10">10</SelectItem>
-                                <SelectItem value="20">20</SelectItem>
-                                <SelectItem value="50">50</SelectItem>
-                                <SelectItem value="100">100</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
+	if (loading) {
+		return <LoadingScreen/>
+	}
+	return (
+		<div className="p-4 space-y-6">
+			<div>
+				<h1 className="text-2xl font-bold">Quizzes</h1>
+				<p className="text-muted-foreground">
+					{quizzes?.data?.length} quiz{quizzes?.data?.length !== 1 ? 'zes' : ''} found
+				</p>
+			</div>
 
-                <div className="flex items-center justify-center gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handlePreviousPage}
-                        disabled={!quizzes?.hasPreviousPage}
-                        className="flex items-center gap-1"
-                    >
-                        <ChevronLeft className="h-4 w-4" />
-                        <span className="hidden sm:inline">Previous</span>
-                    </Button>
-                    
-                    <span className="text-sm text-muted-foreground px-2">
+			<div className="flex flex-col gap-4">
+				<div className="flex flex-col sm:flex-row gap-4 self-end">
+					<div className="flex items-center gap-2 w-full sm:w-auto">
+						<ArrowUpDown className="h-4 w-4 text-muted-foreground"/>
+						<Select value={sortBy} onValueChange={setSortBy}>
+							<SelectTrigger className="w-full sm:w-[160px]">
+								<SelectValue placeholder="Sort by"/>
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="createdAt-desc">Newest First</SelectItem>
+								<SelectItem value="createdAt-asc">Oldest First</SelectItem>
+								<SelectItem value="title-asc">Title A-Z</SelectItem>
+								<SelectItem value="title-desc">Title Z-A</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+					<div className='flex items-center gap-2 w-full sm:w-auto'>
+						<span className="text-sm text-muted-foreground mr-2">Page Size:</span>
+						<Select value={pageSize.toString()}
+								onValueChange={(value) => handlePageSizeChange(parseInt(value))}>
+							<SelectTrigger className="w-full sm:w-[100px]">
+								<SelectValue placeholder="Page Size"/>
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="5">5</SelectItem>
+								<SelectItem value="10">10</SelectItem>
+								<SelectItem value="20">20</SelectItem>
+								<SelectItem value="50">50</SelectItem>
+								<SelectItem value="100">100</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+				</div>
+
+				<div className="flex items-center justify-center gap-2">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={handlePreviousPage}
+						disabled={!quizzes?.hasPreviousPage}
+						className="flex items-center gap-1"
+					>
+						<ChevronLeft className="h-4 w-4"/>
+						<span className="hidden sm:inline">Previous</span>
+					</Button>
+
+					<span className="text-sm text-muted-foreground px-2">
                         Page {page} of {totalPages}
                     </span>
-                    
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleNextPage}
-                        disabled={!quizzes?.hasNextPage}
-                        className="flex items-center gap-1"
-                    >
-                        <span className="hidden sm:inline">Next</span>
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
-                </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredAndSorted.length > 0 ? (
-                    quizzes?.data?.map((quiz) => {
-                        return <QuizCard
-                            key={quiz.id}
-                            quizData={quiz}
-                        />
-                    })
-                ) : (
-                    <p>No quizzes found</p>
-                )}
-            </div>
-        </div>
-    )
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={handleNextPage}
+						disabled={!quizzes?.hasNextPage}
+						className="flex items-center gap-1"
+					>
+						<span className="hidden sm:inline">Next</span>
+						<ChevronRight className="h-4 w-4"/>
+					</Button>
+				</div>
+			</div>
+
+			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+				{quizzes && quizzes.data.length > 0 ? (
+					quizzes?.data?.map((quiz) => {
+						return <QuizCard
+							key={quiz.id}
+							quizData={quiz}
+						/>
+					})
+				) : (
+					<p>No quizzes found</p>
+				)}
+			</div>
+		</div>
+	)
 }
 
 export default QuizzesPage

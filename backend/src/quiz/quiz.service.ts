@@ -99,6 +99,7 @@ export class QuizService {
     userId: string,
     page: number = 1,
     pageSize: number = 10,
+    sortBy: string = 'createdAt-desc',
   ) {
     const totalCountResult = await this.drizzle
       .select({ count: sql<number>`count(*)` })
@@ -126,7 +127,15 @@ export class QuizService {
       .from(aiOutputs)
       .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
       .where(and(eq(aiOutputs.type, 'quiz'), eq(materials.userId, userId)))
-      .orderBy(desc(aiOutputs.createdAt))
+      .orderBy(
+        sortBy === 'createdAt-desc'
+          ? desc(aiOutputs.createdAt)
+          : sortBy === 'createdAt-asc'
+            ? aiOutputs.createdAt
+            : sortBy === 'title-desc'
+              ? desc(materials.title)
+              : materials.title,
+      )
       .limit(pageSize)
       .offset((page - 1) * pageSize);
 

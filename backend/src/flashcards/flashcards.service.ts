@@ -4,7 +4,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
 import {
   aiOutputs,
@@ -60,6 +60,7 @@ export class FlashcardsService {
     userId: string,
     page: number = 1,
     pageSize: number = 10,
+    sortBy: string = 'createdAt-desc',
   ) {
     const totalCountResult = await this.drizzle
       .select({ count: sql<number>`COUNT(*)` })
@@ -90,6 +91,15 @@ export class FlashcardsService {
       .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
       .where(
         and(eq(materials.userId, userId), eq(aiOutputs.type, 'flashcards')),
+      )
+      .orderBy(
+        sortBy === 'createdAt-desc'
+          ? desc(aiOutputs.createdAt)
+          : sortBy === 'createdAt-asc'
+            ? aiOutputs.createdAt
+            : sortBy === 'title-desc'
+              ? desc(materials.title)
+              : materials.title,
       )
       .limit(pageSize)
       .offset((page - 1) * pageSize);

@@ -49,7 +49,13 @@ export class SummaryResolver {
     @CurrentUser() user: PayloadDto,
     @Args('page', { type: () => Number, nullable: true }) page?: number,
     @Args('pageSize', { type: () => Number, nullable: true }) pageSize?: number,
+    @Args('sortBy', { type: () => String, nullable: true }) sortBy?: string,
   ) {
-    return this.summaryService.getSummariesByUser(user.id, page, pageSize);
+    return this.summaryService.getSummariesByUser(
+      user.id,
+      page,
+      pageSize,
+      sortBy,
+    );
   }
 }
