@@ -6,9 +6,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { db } from 'src/database/drizzle.module';
-import { materials } from 'src/database/schema';
+import { aiOutputs, materials } from 'src/database/schema';
 import { toMaterialGraphQL } from './materials.mapper';
-import { eq, sql } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { CreateMaterialInput } from './dtos/create-material.input';
 
 @Injectable()
@@ -21,29 +21,63 @@ export class MaterialsService {
     return allMaterials.map((material) => toMaterialGraphQL(material));
   }
 
-  async getUserMaterials(userId: string, page: number = 1, limit: number = 10) {
+  async getUserMaterials(
+    userId: string,
+    page: number = 1,
+    limit: number = 10,
+    sortBy: string = 'createdAt-desc',
+    status: 'pending' | 'processed' | 'failed' | 'all' = 'all',
+  ) {
+    const whereCondition =
+      status === 'all'
+        ? eq(materials.userId, userId)
+        : and(eq(materials.userId, userId), eq(materials.status, status));
+
     const totalCountResult = await this.drizzle
       .select({ count: sql<number>`COUNT(*)` })
       .from(materials)
-      .where(eq(materials.userId, userId));
+      .where(whereCondition);
 
-    const totalCount = totalCountResult[0]?.count || 0;
-    const totalPages = Math.ceil(totalCount / limit);
+    const totalItems = totalCountResult[0]?.count || 0;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    if (totalItems === 0) {
+      return {
+        data: [],
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: page,
+        pageSize: limit,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      };
+    }
 
     const userMaterials = await this.drizzle
       .select()
       .from(materials)
-      .where(eq(materials.userId, userId))
+      .where(whereCondition)
+      .orderBy(
+        sortBy === 'createdAt-desc'
+          ? desc(materials.createdAt)
+          : sortBy === 'createdAt-asc'
+            ? materials.createdAt
+            : sortBy === 'title-desc'
+              ? desc(materials.title)
+              : sortBy === 'title-asc'
+                ? materials.title
+                : sortBy === 'status-desc'
+                  ? desc(materials.status)
+                  : sortBy === 'status-asc'
+                    ? materials.status
+                    : desc(materials.createdAt),
+      )
       .limit(limit)
       .offset((page - 1) * limit);
 
-    if (userMaterials.length === 0) {
-      return [];
-    }
-
     return {
       data: userMaterials.map((material) => toMaterialGraphQL(material)),
-      totalCount,
+      totalItems, // Changed from totalCount to totalItems
       totalPages,
       currentPage: page,
       pageSize: limit,

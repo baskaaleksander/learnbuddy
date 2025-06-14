@@ -1,14 +1,44 @@
-import { pgTable, uuid, varchar, text, timestamp, integer, pgEnum, jsonb, boolean } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
-import { generateBase58Uuid } from "src/utils/generateEmailCode";
+import {
+  pgTable,
+  uuid,
+  varchar,
+  text,
+  timestamp,
+  integer,
+  pgEnum,
+  jsonb,
+  boolean,
+} from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+import { generateBase58Uuid } from 'src/utils/generateEmailCode';
 
 // Enums
 export const userRoleEnum = pgEnum('user_role', ['user', 'admin']);
-export const materialStatusEnum = pgEnum('material_status', ['pending', 'processed', 'failed']);
-export const aiOutputTypeEnum = pgEnum('ai_output_type', ['summary', 'flashcards', 'quiz']);
-export const flashcardStatusEnum = pgEnum('flashcard_status', ['known', 'review']);
-export const subscriptionPlanEnum = pgEnum('subscription_plan', ['free', 'pro', 'unlimited']);
-export const subscriptionStatusEnum = pgEnum('subscription_status', ['active', 'canceled', 'trialing', 'past_due']);
+export const materialStatusEnum = pgEnum('material_status', [
+  'pending',
+  'processed',
+  'failed',
+]);
+export const aiOutputTypeEnum = pgEnum('ai_output_type', [
+  'summary',
+  'flashcards',
+  'quiz',
+]);
+export const flashcardStatusEnum = pgEnum('flashcard_status', [
+  'known',
+  'review',
+]);
+export const subscriptionPlanEnum = pgEnum('subscription_plan', [
+  'free',
+  'pro',
+  'unlimited',
+]);
+export const subscriptionStatusEnum = pgEnum('subscription_status', [
+  'active',
+  'canceled',
+  'trialing',
+  'past_due',
+]);
 
 // Tables
 export const users = pgTable('users', {
@@ -18,7 +48,9 @@ export const users = pgTable('users', {
   passwordHash: text('password_hash').notNull(),
   role: userRoleEnum('role').default('user').notNull(),
   emailVerified: boolean('email_verified').default(false).notNull(),
-  emailVerificationToken: text('email_verification_token').unique().$defaultFn(() => generateBase58Uuid()),
+  emailVerificationToken: text('email_verification_token')
+    .unique()
+    .$defaultFn(() => generateBase58Uuid()),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   stripeCustomerId: text('stripe_customer_id'),
@@ -26,16 +58,22 @@ export const users = pgTable('users', {
 
 export const passwordResets = pgTable('password_resets', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id),
-  token: text('token').unique().$defaultFn(() => generateBase58Uuid()),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
+  token: text('token')
+    .unique()
+    .$defaultFn(() => generateBase58Uuid()),
   used: boolean('used').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   expiresAt: timestamp('expires_at').notNull(),
-})
+});
 
 export const materials = pgTable('materials', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
   title: text('title').default(''),
   description: text('description'),
   content: text('content').notNull(),
@@ -45,7 +83,9 @@ export const materials = pgTable('materials', {
 
 export const aiOutputs = pgTable('ai_outputs', {
   id: uuid('id').primaryKey().defaultRandom(),
-  materialId: uuid('material_id').notNull().references(() => materials.id),
+  materialId: uuid('material_id')
+    .notNull()
+    .references(() => materials.id),
   type: aiOutputTypeEnum('type').notNull(),
   content: jsonb('content').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -54,9 +94,15 @@ export const aiOutputs = pgTable('ai_outputs', {
 
 export const quizResults = pgTable('quiz_results', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id),
-  materialId: uuid('material_id').notNull().references(() => materials.id),
-  aiOutputId: uuid('ai_output_id').notNull().references(() => aiOutputs.id),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
+  materialId: uuid('material_id')
+    .notNull()
+    .references(() => materials.id),
+  aiOutputId: uuid('ai_output_id')
+    .notNull()
+    .references(() => aiOutputs.id),
   score: integer('score').notNull(),
   totalQuestions: integer('total_questions').notNull(),
   completedAt: timestamp('completed_at').defaultNow().notNull(),
@@ -64,7 +110,9 @@ export const quizResults = pgTable('quiz_results', {
 
 export const flashcards = pgTable('flashcards', {
   id: uuid('id').primaryKey().defaultRandom(),
-  aiOutputId: uuid('ai_output_id').notNull().references(() => aiOutputs.id),
+  aiOutputId: uuid('ai_output_id')
+    .notNull()
+    .references(() => aiOutputs.id),
   question: text('question').notNull(),
   answer: text('answer').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -72,15 +120,21 @@ export const flashcards = pgTable('flashcards', {
 
 export const flashcardProgress = pgTable('flashcard_progress', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id),
-  flashcardId: uuid('flashcard_id').notNull().references(() => flashcards.id),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
+  flashcardId: uuid('flashcard_id')
+    .notNull()
+    .references(() => flashcards.id),
   status: flashcardStatusEnum('status').notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 export const subscriptions = pgTable('subscriptions', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
   stripeSubscriptionId: text('stripe_subscription_id').notNull(),
   plan: subscriptionPlanEnum('plan').notNull(),
   status: subscriptionStatusEnum('status').notNull(),
@@ -132,7 +186,7 @@ export const quizResultsRelations = relations(quizResults, ({ one }) => ({
   aiOutputs: one(aiOutputs, {
     fields: [quizResults.aiOutputId],
     references: [aiOutputs.id],
-  })
+  }),
 }));
 
 export const flashcardsRelations = relations(flashcards, ({ one, many }) => ({
@@ -143,17 +197,19 @@ export const flashcardsRelations = relations(flashcards, ({ one, many }) => ({
   flashcardProgress: many(flashcardProgress),
 }));
 
-export const flashcardProgressRelations = relations(flashcardProgress, ({ one }) => ({
-  user: one(users, {
-    fields: [flashcardProgress.userId],
-    references: [users.id],
+export const flashcardProgressRelations = relations(
+  flashcardProgress,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [flashcardProgress.userId],
+      references: [users.id],
+    }),
+    flashcard: one(flashcards, {
+      fields: [flashcardProgress.flashcardId],
+      references: [flashcards.id],
+    }),
   }),
-  flashcard: one(flashcards, {
-    fields: [flashcardProgress.flashcardId],
-    references: [flashcards.id],
-  }),
-}));
-
+);
 
 export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
   user: one(users, {

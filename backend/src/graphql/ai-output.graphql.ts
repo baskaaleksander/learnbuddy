@@ -5,7 +5,7 @@ import GraphQLJSON from 'graphql-type-json';
 export enum AIOutputEnum {
   SUMMARY = 'summary',
   FLASHCARDS = 'flashcards',
-  QUIZ = 'quiz'
+  QUIZ = 'quiz',
 }
 
 registerEnumType(AIOutputEnum, {

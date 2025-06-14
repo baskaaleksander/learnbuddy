@@ -75,3 +75,11 @@ export interface SummaryData {
 	chaptersCount: number;
 	bulletPointsCount: number;
 }
+
+export interface MaterialData {
+	id: string;
+	title: string;
+	status: 'PROCESSED' | 'FAILED' | 'PENDING';
+	description: string;
+	createdAt: string;
+}

@@ -71,6 +71,7 @@ export class FlashcardsResolver {
   ) {
     return this.flashcardsService.deleteFlashcards(id, user.id);
   }
+
   @UseGuards(GqlAuthGuard)
   @Mutation(() => Boolean)
   async updateFlashcardProgress(

@@ -5,7 +5,6 @@ import Link from "next/link";
 import {Card, CardContent, CardFooter, CardHeader} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
 import {Album, Calendar, ExternalLink, List} from "lucide-react";
-import {Button} from "@/components/ui/button";
 import {formatDate} from "@/utils/format-date";
 
 function SummaryCard({summaryData, className}: { summaryData: SummaryData, className?: string }) {
@@ -22,11 +21,11 @@ function SummaryCard({summaryData, className}: { summaryData: SummaryData, class
 				className
 			)}>
 				<CardHeader className='pb-3'>
-					<h3 className='text-base font-semibold'>{summaryData.title}</h3>
+					<h3 className='text-base font-semibold text-primary'>{summaryData.title}</h3>
 
 					<div className='space-y-2'>
 						<Badge variant='secondary' className='text-xs w-fit flex items-center gap-1'>
-							<button className='flex items-center gap-1 text-xs hover:underline' onClick={handleMaterialClick}>
+							<button className='flex items-center gap-1 text-xs hover:underline hover:cursor-pointer' onClick={handleMaterialClick}>
 								<ExternalLink className='inline w-3 h-3'/>
 								{summaryData.material.title}
 							</button>

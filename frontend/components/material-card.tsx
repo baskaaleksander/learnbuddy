@@ -17,7 +17,7 @@ import {
 
 interface MaterialCardProps {
   title: string;
-  status: string;
+  status: 'PROCESSED' | 'FAILED' | 'PENDING';
   id: string;
   description?: string;
   className?: string;

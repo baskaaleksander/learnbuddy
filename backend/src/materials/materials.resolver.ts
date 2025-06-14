@@ -22,11 +22,16 @@ export class MaterialsResolver {
     @CurrentUser() user: PayloadDto,
     @Args('page') page: number,
     @Args('pageSize') pageSize: number,
+    @Args('sortBy', { type: () => String, nullable: true }) sortBy?: string,
+    @Args('status', { type: () => String, nullable: true })
+    status?: 'pending' | 'processed' | 'failed' | 'all',
   ) {
     return await this.materialsService.getUserMaterials(
       user.id,
       page,
       pageSize,
+      sortBy,
+      status,
     );
   }
 

@@ -100,66 +100,66 @@ function SummariesPage() {
 			</div>
 
 			<div className="flex flex-col gap-4">
-				<div className="flex flex-col sm:flex-row gap-4 self-end">
-
-					<div className="flex items-center gap-2 w-full sm:w-auto">
-						<ArrowUpDown className="h-4 w-4 text-muted-foreground"/>
-						<Select value={sortBy} onValueChange={setSortBy}>
-							<SelectTrigger className="w-full sm:w-[160px]">
-								<SelectValue placeholder="Sort by"/>
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="createdAt-desc">Newest First</SelectItem>
-								<SelectItem value="createdAt-asc">Oldest First</SelectItem>
-								<SelectItem value="title-asc">Title A-Z</SelectItem>
-								<SelectItem value="title-desc">Title Z-A</SelectItem>
-							</SelectContent>
-						</Select>
+				<div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+					<div className="flex flex-col sm:flex-row gap-4 items-center">
+						<div className="flex items-center gap-2 w-full sm:w-auto">
+							<ArrowUpDown className="h-4 w-4 text-muted-foreground"/>
+							<Select value={sortBy} onValueChange={setSortBy}>
+								<SelectTrigger className="w-full sm:w-[160px]">
+									<SelectValue placeholder="Sort by"/>
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="createdAt-desc">Newest First</SelectItem>
+									<SelectItem value="createdAt-asc">Oldest First</SelectItem>
+									<SelectItem value="title-asc">Title A-Z</SelectItem>
+									<SelectItem value="title-desc">Title Z-A</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+						<div className='flex items-center gap-2 w-full sm:w-auto'>
+							<span className="text-sm text-muted-foreground mr-2">Page Size:</span>
+							<Select value={pageSize.toString()}
+									onValueChange={(value) => handlePageSizeChange(parseInt(value))}>
+								<SelectTrigger className="w-full sm:w-[100px]">
+									<SelectValue placeholder="Page Size"/>
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="5">5</SelectItem>
+									<SelectItem value="10">10</SelectItem>
+									<SelectItem value="20">20</SelectItem>
+									<SelectItem value="50">50</SelectItem>
+									<SelectItem value="100">100</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
 					</div>
-					<div className='flex items-center gap-2 w-full sm:w-auto'>
-						<span className="text-sm text-muted-foreground mr-2">Page Size:</span>
-						<Select value={pageSize.toString()}
-								onValueChange={(value) => handlePageSizeChange(parseInt(value))}>
-							<SelectTrigger className="w-full sm:w-[100px]">
-								<SelectValue placeholder="Page Size"/>
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="5">5</SelectItem>
-								<SelectItem value="10">10</SelectItem>
-								<SelectItem value="20">20</SelectItem>
-								<SelectItem value="50">50</SelectItem>
-								<SelectItem value="100">100</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-				</div>
+					<div className="flex items-center justify-center gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={handlePreviousPage}
+							disabled={!summaries?.hasPreviousPage}
+							className="flex items-center gap-1"
+						>
+							<ChevronLeft className="h-4 w-4"/>
+							<span className="hidden sm:inline">Previous</span>
+						</Button>
 
-				<div className="flex items-center justify-center gap-2">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={handlePreviousPage}
-						disabled={!summaries?.hasPreviousPage}
-						className="flex items-center gap-1"
-					>
-						<ChevronLeft className="h-4 w-4"/>
-						<span className="hidden sm:inline">Previous</span>
-					</Button>
-
-					<span className="text-sm text-muted-foreground px-2">
+						<span className="text-sm text-muted-foreground px-2">
                         Page {page} of {totalPages}
                     </span>
 
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={handleNextPage}
-						disabled={!summaries?.hasNextPage}
-						className="flex items-center gap-1"
-					>
-						<span className="hidden sm:inline">Next</span>
-						<ChevronRight className="h-4 w-4"/>
-					</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={handleNextPage}
+							disabled={!summaries?.hasNextPage}
+							className="flex items-center gap-1"
+						>
+							<span className="hidden sm:inline">Next</span>
+							<ChevronRight className="h-4 w-4"/>
+						</Button>
+					</div>
 				</div>
 			</div>
 
