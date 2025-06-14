@@ -77,12 +77,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @Get('me')
   async me(@CurrentUser() user: PayloadDto) {
-    return {
-      email: user.email,
-      id: user.id,
-      role: user.role,
-      firstName: user.firstName,
-    };
+    return await this.authService.getMe(user.id);
   }
 
   @Post('verify-email/:emailVerificationToken')

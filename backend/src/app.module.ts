@@ -16,6 +16,7 @@ import { SummaryModule } from './summary/summary.module';
 import { FlashcardsModule } from './flashcards/flashcards.module';
 import GraphQLJSON from 'graphql-type-json';
 import * as depthLimit from 'graphql-depth-limit';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import * as depthLimit from 'graphql-depth-limit';
       envFilePath: '.env',
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
-      context: (({ req, res }) => ({ req, res })),
+      context: ({ req, res }) => ({ req, res }),
       driver: ApolloDriver,
       resolvers: { JSON: GraphQLJSON },
       autoSchemaFile: true,
@@ -32,7 +33,18 @@ import * as depthLimit from 'graphql-depth-limit';
       playground: true,
       validationRules: [depthLimit(5)],
     }),
-    DrizzleModule, AuthModule, UploadModule, EmailModule, MaterialsModule, UserModule, OpenAiModule, QuizModule, SummaryModule, FlashcardsModule],
+    DrizzleModule,
+    AuthModule,
+    UploadModule,
+    EmailModule,
+    MaterialsModule,
+    UserModule,
+    OpenAiModule,
+    QuizModule,
+    SummaryModule,
+    FlashcardsModule,
+    RedisModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

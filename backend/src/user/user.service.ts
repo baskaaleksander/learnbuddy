@@ -6,18 +6,33 @@ import { toUserGraphQL } from './user.mapper';
 
 @Injectable()
 export class UserService {
+  constructor(@Inject('DRIZZLE') private drizzle: typeof db) {}
 
-    constructor(@Inject('DRIZZLE') private drizzle: typeof db) {}
+  async getCurrentUser(id: string) {
+    const user = await this.drizzle
+      .select()
+      .from(users)
+      .where(eq(users.id, id));
 
-    async getCurrentUser(id: string) {
-        const user = await this.drizzle.select().from(users).where(eq(users.id, id));
+    return toUserGraphQL(user[0]);
+  }
 
-        return toUserGraphQL(user[0])
+  async getAllUsers() {
+    const usersList = await this.drizzle.select().from(users);
+
+    return usersList.map((user) => toUserGraphQL(user));
+  }
+
+  async getUserById(id: string) {
+    const user = await this.drizzle
+      .select()
+      .from(users)
+      .where(eq(users.id, id));
+
+    if (user.length === 0) {
+      throw new Error('User not found');
     }
 
-    async getAllUsers() {
-        const usersList = await this.drizzle.select().from(users);
-
-        return usersList.map(user => toUserGraphQL(user));
-    }
+    return user[0];
+  }
 }
