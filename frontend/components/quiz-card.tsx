@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { AlertTriangle, Target, Trophy, Calendar, TrendingUp, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import {QuizData} from "@/lib/definitions";
+import {formatDate} from "@/utils/format-date";
 
 
 
@@ -23,13 +24,6 @@ function QuizCard({ quizData, className }: { quizData: QuizData, className?: str
     return lowScore || daysSinceLastAttempt > 7;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
 
   const getScoreColor = (percentage: number) => {
     if (percentage >= 80) return 'text-green-600';

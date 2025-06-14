@@ -1,11 +1,64 @@
 import React from 'react';
 import {SummaryData} from "@/lib/definitions";
+import {cn} from "@/lib/utils";
+import Link from "next/link";
+import {Card, CardContent, CardFooter, CardHeader} from "@/components/ui/card";
+import {Badge} from "@/components/ui/badge";
+import {Album, Calendar, ExternalLink, List} from "lucide-react";
+import {Button} from "@/components/ui/button";
+import {formatDate} from "@/utils/format-date";
 
 function SummaryCard({summaryData, className}: { summaryData: SummaryData, className?: string }) {
+
+	const handleMaterialClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		e.preventDefault();
+		window.location.href = `/dashboard/materials/${summaryData.material.id}`;
+	}
 	return (
-		<div>
-			{summaryData.bulletPointsCount} {summaryData.chaptersCount} {summaryData.title}
-		</div>
+		<Link href={`/dashboard/summaries/${summaryData.id}`}>
+			<Card className={cn(
+				'flex h-full flex-col shadow-sm hover:shadow-md transition-all dark:border-gray-800 cursor-pointer relative',
+				className
+			)}>
+				<CardHeader className='pb-3'>
+					<h3 className='text-base font-semibold'>{summaryData.title}</h3>
+
+					<div className='space-y-2'>
+						<Badge variant='secondary' className='text-xs w-fit flex items-center gap-1'>
+							<button className='flex items-center gap-1 text-xs hover:underline' onClick={handleMaterialClick}>
+								<ExternalLink className='inline w-3 h-3'/>
+								{summaryData.material.title}
+							</button>
+						</Badge>
+					</div>
+				</CardHeader>
+				<CardContent className='flex-1 space-y-4'>
+					<div className="grid grid-cols-2 gap-3">
+						<div className='flex flex-col items-center justify-center p-2 bg-muted/50 rounded-lg'>
+							<div className='flex flex-col items-center justify-center gap-1 mb-1'>
+								<Album className='h-3 w-3' />
+								<span className='text-xs font-medium'>Chapters count</span>
+							</div>
+							<p className='text-lg font-bold'>{summaryData.chaptersCount}</p>
+						</div>
+						<div className='text-center p-2 bg-muted/50 rounded-lg'>
+							<div className='flex flex-col items-center justify-center gap-1 mb-1'>
+								<List className='h-3 w-3' />
+								<span className='text-xs font-medium'>Bullet points count</span>
+							</div>
+							<p className='text-lg font-bold'>{summaryData.bulletPointsCount}</p>
+						</div>
+					</div>
+				</CardContent>
+				<CardFooter>
+					<div className="flex items-center gap-2 text-xs text-muted-foreground">
+						<Calendar className="h-3 w-3" />
+						Created {formatDate(summaryData.createdAt)}
+					</div>
+				</CardFooter>
+			</Card>
+		</Link>
 	);
 }
 
