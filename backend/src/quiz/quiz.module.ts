@@ -2,9 +2,18 @@ import { Module } from '@nestjs/common';
 import { QuizService } from './quiz.service';
 import { QuizResolver } from './quiz.resolver';
 import { OpenAiModule } from 'src/open-ai/open-ai.module';
+import { QueueModule } from '../queue/queue.module';
+import { BullModule } from '@nestjs/bullmq';
+import { QuizProcessor } from './quiz.processor';
 
 @Module({
-  providers: [QuizService, QuizResolver],
-  imports: [OpenAiModule]
+  providers: [QuizService, QuizResolver, QuizProcessor],
+  imports: [
+    OpenAiModule,
+    QueueModule,
+    BullModule.registerQueue({
+      name: 'quizProgress',
+    }),
+  ],
 })
 export class QuizModule {}

@@ -108,6 +108,16 @@ export const quizResults = pgTable('quiz_results', {
   completedAt: timestamp('completed_at').defaultNow().notNull(),
 });
 
+export const quizPartials = pgTable('quiz_partials', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull(),
+  quizId: uuid('quiz_id').notNull(),
+  currentQuestionIndex: integer('current_question_index').notNull(),
+  answers: jsonb('answers').notNull(),
+  lastUpdated: timestamp('last_updated').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const flashcards = pgTable('flashcards', {
   id: uuid('id').primaryKey().defaultRandom(),
   aiOutputId: uuid('ai_output_id')

@@ -75,4 +75,13 @@ export class QuizResolver {
   ) {
     return this.quizService.getQuizesByUser(user.id, offset, limit, sortBy);
   }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Boolean, { nullable: true })
+  async registerQuizProgress(
+    @CurrentUser() user: PayloadDto,
+    @Args('quizId') quizId: string,
+  ) {
+    return this.quizService.saveQuizProgressAsync(user.id, quizId);
+  }
 }

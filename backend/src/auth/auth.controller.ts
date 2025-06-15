@@ -13,7 +13,6 @@ import { UserCredentialsDto } from './dtos/user-credentials.dto';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { PayloadDto } from './dtos/payload.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { first } from 'rxjs';
 import { UserRegisterDto } from './dtos/user-register.dto';
 
 @Controller('auth')
@@ -72,12 +71,10 @@ export class AuthController {
     });
   }
 
-  // TODO: Change the strategy (/auth/me) to use Redis instead of JWT for data relatability
-  // This is not the best way to handle this, but for now it works
   @UseGuards(AuthGuard('jwt'))
   @Get('me')
   async me(@CurrentUser() user: PayloadDto) {
-    return await this.authService.getMe(user.id);
+    return this.authService.getMe(user.id);
   }
 
   @Post('verify-email/:emailVerificationToken')

@@ -14,7 +14,7 @@ import { UserCredentialsDto } from './dtos/user-credentials.dto';
 import { EmailService } from 'src/email/email.service';
 import { UserRegisterDto } from './dtos/user-register.dto';
 import { UserService } from '../user/user.service';
-import { RedisService } from '../../redis/redis.service';
+import { RedisService } from '../redis/redis.service';
 
 const scrypt = promisify(_scrypt);
 
@@ -280,7 +280,7 @@ export class AuthService {
 
   async getMe(userId: string) {
     const key = `auth:me:${userId}`;
-    const cached = this.redisService.get(key);
+    const cached = await this.redisService.get<typeof result>(key);
 
     if (cached) return cached;
 

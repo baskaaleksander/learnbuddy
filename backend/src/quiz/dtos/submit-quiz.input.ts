@@ -1,17 +1,17 @@
-import { Field, InputType, Int } from "@nestjs/graphql";
-import { IsInt, IsString } from "class-validator";
+import { Field, InputType, Int } from '@nestjs/graphql';
+import { IsInt, IsString } from 'class-validator';
 
 @InputType()
 export class SubmitQuizInput {
-    @Field()
-    @IsString()
-    materialId: string;
+  @Field()
+  @IsString()
+  materialId: string;
 
-    @Field()
-    @IsString()
-    aiOutputId: string;
+  @Field()
+  @IsString()
+  aiOutputId: string;
 
-    @Field(() => Int)
-    @IsInt()
-    score: number;
+  @Field(() => Int)
+  @IsInt()
+  score: number;
 }

@@ -13,12 +13,15 @@ import { toMaterialGraphQL } from 'src/materials/materials.mapper';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
 import { toQuizResultGraphQl } from './quiz-result.mapper';
 import { QuizResponse } from 'src/utils/types';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class QuizService {
   constructor(
     @Inject('DRIZZLE') private drizzle: typeof db,
     private readonly openAiService: OpenAiService,
+    @InjectQueue('quizProgress') private quizProgressQueue: Queue,
   ) {}
 
   async getQuizesByMaterial(materialId: string, userId: string) {
@@ -344,5 +347,17 @@ export class QuizService {
     }
 
     return results.map((result) => toQuizResultGraphQl(result));
+  }
+
+  async saveQuizProgressAsync(userId: string, quizId: string) {
+    await this.quizProgressQueue.add('savePartial', { userId, quizId });
+
+    return true;
+  }
+
+  async savePartialToDB(userId: string, quizId: string) {
+    console.log(
+      `Saving partial quiz result for user ${userId} and quiz ${quizId}`,
+    );
   }
 }

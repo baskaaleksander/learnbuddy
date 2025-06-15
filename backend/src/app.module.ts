@@ -16,7 +16,8 @@ import { SummaryModule } from './summary/summary.module';
 import { FlashcardsModule } from './flashcards/flashcards.module';
 import GraphQLJSON from 'graphql-type-json';
 import * as depthLimit from 'graphql-depth-limit';
-import { RedisModule } from '../redis/redis.module';
+import { RedisModule } from './redis/redis.module';
+import { QueueModule } from './queue/queue.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { RedisModule } from '../redis/redis.module';
     SummaryModule,
     FlashcardsModule,
     RedisModule,
+    QueueModule,
   ],
   controllers: [AppController],
   providers: [AppService],
