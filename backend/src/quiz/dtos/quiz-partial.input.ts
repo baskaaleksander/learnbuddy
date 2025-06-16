@@ -7,6 +7,9 @@ class QuestionAndAnswer {
 
   @Field()
   answer: string;
+
+  @Field(() => Boolean)
+  isCorrect: boolean;
 }
 @InputType()
 export class QuizPartialInput {

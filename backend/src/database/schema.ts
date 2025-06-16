@@ -105,6 +105,7 @@ export const quizResults = pgTable('quiz_results', {
     .references(() => aiOutputs.id),
   score: integer('score').notNull(),
   totalQuestions: integer('total_questions').notNull(),
+  answers: jsonb('answers').notNull(),
   completedAt: timestamp('completed_at').defaultNow().notNull(),
 });
 

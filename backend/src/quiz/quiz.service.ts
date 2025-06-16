@@ -6,7 +6,12 @@ import {
 } from '@nestjs/common';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
-import { aiOutputs, materials, quizResults } from 'src/database/schema';
+import {
+  aiOutputs,
+  materials,
+  quizPartials,
+  quizResults,
+} from 'src/database/schema';
 // import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
 import { toAIOutputGraphQL } from 'src/mappers/ai-output.mapper';
 import { toMaterialGraphQL } from 'src/materials/materials.mapper';
@@ -328,13 +333,13 @@ export class QuizService {
       throw new NotFoundException('Quiz not found');
     }
 
-    await this.drizzle.insert(quizResults).values({
-      userId: userId,
-      materialId: materialId,
-      aiOutputId: aiOutputId,
-      score: score,
-      totalQuestions: quiz[0].content.length,
-    });
+    // await this.drizzle.insert(quizResults).values({
+    //   userId: userId,
+    //   materialId: materialId,
+    //   aiOutputId: aiOutputId,
+    //   score: score,
+    //   totalQuestions: quiz[0].content.length,
+    // });
 
     return true;
   }
@@ -382,8 +387,105 @@ export class QuizService {
     quizId: string,
     quizPartialData: QuizPartialInput,
   ) {
-    console.log(
-      `Saving partial quiz result for user ${userId} and quiz ${quizId} with data: ${JSON.stringify(quizPartialData)}`,
+    const quiz = (await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .where(
+        and(eq(aiOutputs.id, quizId), eq(aiOutputs.type, 'quiz')),
+      )) as QuizResponse[];
+
+    if (quiz.length === 0) {
+      throw new NotFoundException('Quiz not found');
+    }
+
+    const materialAccess = await this.drizzle
+      .select()
+      .from(materials)
+      .where(
+        and(eq(materials.id, quiz[0].materialId), eq(materials.userId, userId)),
+      );
+
+    if (materialAccess.length === 0) {
+      throw new UnauthorizedException('Material not found or access denied');
+    }
+
+    const quizLength = quiz[0].content.length;
+    const isQuizComplete =
+      quizPartialData.questionsAndAnswers.length === quizLength;
+
+    const existingPartial = await this.drizzle
+      .select()
+      .from(quizPartials)
+      .where(
+        and(eq(quizPartials.userId, userId), eq(quizPartials.quizId, quizId)),
+      );
+
+    if (
+      existingPartial.length === 0 ||
+      quizPartialData.currentQuestionIndex >=
+        existingPartial[0].currentQuestionIndex + 3
+    ) {
+      this.logger.log(
+        `[QuizPartial] Saving partial for user ${userId} for quiz ${quizId}`,
+      );
+
+      if (existingPartial.length > 0) {
+        await this.drizzle
+          .update(quizPartials)
+          .set({
+            currentQuestionIndex: quizPartialData.currentQuestionIndex,
+            answers: quizPartialData.questionsAndAnswers,
+            lastUpdated: new Date(),
+          })
+          .where(
+            and(
+              eq(quizPartials.userId, userId),
+              eq(quizPartials.quizId, quizId),
+            ),
+          );
+      } else {
+        await this.drizzle.insert(quizPartials).values({
+          userId,
+          quizId,
+          currentQuestionIndex: quizPartialData.currentQuestionIndex,
+          answers: quizPartialData.questionsAndAnswers,
+          lastUpdated: new Date(),
+        });
+      }
+
+      if (isQuizComplete) {
+        this.logger.log(
+          `[QuizSubmission] User ${userId} completed quiz ${quizId}`,
+        );
+        await this.drizzle
+          .delete(quizPartials)
+          .where(
+            and(
+              eq(quizPartials.userId, userId),
+              eq(quizPartials.quizId, quizId),
+            ),
+          );
+        await this.drizzle.insert(quizResults).values({
+          userId,
+          materialId: quiz[0].materialId,
+          aiOutputId: quizId,
+          score: quizPartialData.questionsAndAnswers.reduce(
+            (acc, qa) => acc + (qa.isCorrect ? 1 : 0),
+            0,
+          ),
+          totalQuestions: quizLength,
+          answers: quizPartialData.questionsAndAnswers,
+          completedAt: new Date(),
+        });
+        await this.redis.delete(`quizSession:${userId}:${quizId}`);
+      }
+
+      return true;
+    }
+
+    this.logger.log(
+      `[QuizPartial] User ${userId} reached question ${quizPartialData.currentQuestionIndex}`,
     );
+    return true;
   }
 }
