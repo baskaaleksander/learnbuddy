@@ -18,6 +18,7 @@ import GraphQLJSON from 'graphql-type-json';
 import * as depthLimit from 'graphql-depth-limit';
 import { RedisModule } from './redis/redis.module';
 import { QueueModule } from './queue/queue.module';
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
   imports: [
@@ -33,6 +34,20 @@ import { QueueModule } from './queue/queue.module';
       debug: true,
       playground: true,
       validationRules: [depthLimit(5)],
+    }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: {
+          target: 'pino-pretty', // Use pino-pretty for development
+          options: {
+            colorize: true,
+            translateTime: 'SYS:standard',
+            ignore: 'pid,hostname',
+          },
+        },
+        customSuccessMessage: (req, res) =>
+          `${req.method} ${req.url} ${res.statusCode}`,
+      },
     }),
     DrizzleModule,
     AuthModule,

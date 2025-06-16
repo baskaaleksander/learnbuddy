@@ -5,9 +5,10 @@ import { OpenAiModule } from 'src/open-ai/open-ai.module';
 import { QueueModule } from '../queue/queue.module';
 import { BullModule } from '@nestjs/bullmq';
 import { QuizProcessor } from './quiz.processor';
+import { RedisService } from '../redis/redis.service';
 
 @Module({
-  providers: [QuizService, QuizResolver, QuizProcessor],
+  providers: [QuizService, QuizResolver, QuizProcessor, RedisService],
   imports: [
     OpenAiModule,
     QueueModule,

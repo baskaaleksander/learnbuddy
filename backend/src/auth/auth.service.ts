@@ -15,9 +15,11 @@ import { EmailService } from 'src/email/email.service';
 import { UserRegisterDto } from './dtos/user-register.dto';
 import { UserService } from '../user/user.service';
 import { RedisService } from '../redis/redis.service';
+import { Logger } from 'nestjs-pino';
 
 const scrypt = promisify(_scrypt);
 
+// TODO: Add proper logging
 @Injectable()
 export class AuthService {
   constructor(
@@ -26,6 +28,7 @@ export class AuthService {
     private emailService: EmailService,
     private userService: UserService,
     private redisService: RedisService,
+    private logger: Logger,
   ) {}
 
   async register(user: UserRegisterDto) {
@@ -65,6 +68,11 @@ export class AuthService {
       user.email,
       'Email Verification',
       `Please verify your email by clicking on this link: ${process.env.FRONTEND_URL}/verify-email/${res[0].emailVerificationToken}`,
+    );
+
+    this.logger.log(
+      `User registered: ${user.email}, ID: ${res[0].id}`,
+      'AuthService',
     );
 
     return {

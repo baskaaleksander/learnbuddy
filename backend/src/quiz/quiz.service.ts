@@ -15,6 +15,9 @@ import { toQuizResultGraphQl } from './quiz-result.mapper';
 import { QuizResponse } from 'src/utils/types';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { RedisService } from '../redis/redis.service';
+import { QuizPartialInput } from './dtos/quiz-partial.input';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class QuizService {
@@ -22,6 +25,8 @@ export class QuizService {
     @Inject('DRIZZLE') private drizzle: typeof db,
     private readonly openAiService: OpenAiService,
     @InjectQueue('quizProgress') private quizProgressQueue: Queue,
+    private redis: RedisService,
+    private readonly logger: Logger,
   ) {}
 
   async getQuizesByMaterial(materialId: string, userId: string) {
@@ -349,15 +354,36 @@ export class QuizService {
     return results.map((result) => toQuizResultGraphQl(result));
   }
 
-  async saveQuizProgressAsync(userId: string, quizId: string) {
-    await this.quizProgressQueue.add('savePartial', { userId, quizId });
+  async saveQuizProgressAsync(
+    userId: string,
+    quizId: string,
+    quizPartialData: QuizPartialInput,
+  ) {
+    await this.redis.set(
+      `quizSession:${userId}:${quizId}`,
+      quizPartialData,
+      1800,
+    );
+
+    await this.quizProgressQueue.add(
+      'savePartial',
+      { userId, quizId, quizPartialData },
+      {
+        attempts: 3,
+        jobId: `${userId}-${quizId}`,
+      },
+    );
 
     return true;
   }
 
-  async savePartialToDB(userId: string, quizId: string) {
+  async savePartialToDB(
+    userId: string,
+    quizId: string,
+    quizPartialData: QuizPartialInput,
+  ) {
     console.log(
-      `Saving partial quiz result for user ${userId} and quiz ${quizId}`,
+      `Saving partial quiz result for user ${userId} and quiz ${quizId} with data: ${JSON.stringify(quizPartialData)}`,
     );
   }
 }

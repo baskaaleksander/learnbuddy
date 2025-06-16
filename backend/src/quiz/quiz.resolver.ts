@@ -7,6 +7,7 @@ import { QuizService } from './quiz.service';
 import { SubmitQuizInput } from './dtos/submit-quiz.input';
 import { QuizResultType } from './quiz-result.graphql';
 import { QuizOutputType, PaginatedQuizResponse } from './quiz.graphql';
+import { QuizPartialInput } from './dtos/quiz-partial.input';
 
 @Resolver(() => QuizOutputType)
 export class QuizResolver {
@@ -81,7 +82,12 @@ export class QuizResolver {
   async registerQuizProgress(
     @CurrentUser() user: PayloadDto,
     @Args('quizId') quizId: string,
+    @Args('quizPartialInput') quizPartialData: QuizPartialInput,
   ) {
-    return this.quizService.saveQuizProgressAsync(user.id, quizId);
+    return this.quizService.saveQuizProgressAsync(
+      user.id,
+      quizId,
+      quizPartialData,
+    );
   }
 }
