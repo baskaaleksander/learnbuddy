@@ -83,3 +83,14 @@ export interface MaterialData {
 	description: string;
 	createdAt: string;
 }
+
+export interface QuizQuestion {
+	question: string;
+	answers: {
+		A: string;
+		B: string;
+		C: string;
+	};
+	correct_answer: string;
+}
+

@@ -1,11 +1,11 @@
 interface Quiz {
-  pytanie: string;
-  odpowiedzi: Array<{
+  question: string;
+  answers: Array<{
     A: string;
     B: string;
     C: string;
   }>;
-  poprawna_odpowiedz: string;
+  correct_answer: string;
 }
 
 export interface QuizResponse {
