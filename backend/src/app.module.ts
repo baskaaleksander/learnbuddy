@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DrizzleModule } from './database/drizzle.module';
@@ -38,7 +38,7 @@ import { LoggerModule } from 'nestjs-pino';
     LoggerModule.forRoot({
       pinoHttp: {
         transport: {
-          target: 'pino-pretty', // Use pino-pretty for development
+          target: 'pino-pretty',
           options: {
             colorize: true,
             translateTime: 'SYS:standard',
@@ -65,4 +65,9 @@ import { LoggerModule } from 'nestjs-pino';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  constructor() {}
+
+  configure(consumer: MiddlewareConsumer) {
+  }
+}

@@ -23,29 +23,30 @@ export class QuizProcessor extends WorkerHost implements OnModuleInit {
 
   async process(job: Job<QuizProgressJobData>): Promise<void> {
     const { userId, quizId, quizPartialData } = job.data;
-
     await this.quizService.savePartialToDB(userId, quizId, quizPartialData);
   }
 
   onModuleInit() {
+    if (!this.worker) {
+      this.logger.error('❌ Worker not initialized!');
+      return;
+    }
+
     this.worker.on('completed', (job) => {
       this.logger.log(
-        job.name,
-        `Completed(${job.id}): ${JSON.stringify(job.data)}`,
+        `[Worker] Completed(${job.id}): ${JSON.stringify(job.data)}`,
       );
     });
 
     this.worker.on('active', (job) => {
       this.logger.log(
-        job.name,
-        `Active (${job.id}): ${JSON.stringify(job.data)}`,
+        `[Worker] Active (${job.id}): ${JSON.stringify(job.data)}`,
       );
     });
 
     this.worker.on('failed', (job, err) => {
       this.logger.error(
-        job?.name,
-        `Failed(${job?.id}): ${JSON.stringify(job?.data)} - Error: ${err.message}`,
+        `[Worker] Failed(${job?.id}): ${JSON.stringify(job?.data)} - Error: ${err.message}`,
       );
     });
   }

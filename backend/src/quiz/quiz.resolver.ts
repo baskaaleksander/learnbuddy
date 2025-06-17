@@ -1,4 +1,4 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { PayloadDto } from 'src/auth/dtos/payload.dto';
 import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
@@ -7,7 +7,7 @@ import { QuizService } from './quiz.service';
 import { SubmitQuizInput } from './dtos/submit-quiz.input';
 import { QuizResultType } from './quiz-result.graphql';
 import { QuizOutputType, PaginatedQuizResponse } from './quiz.graphql';
-import { QuizPartialInput } from './dtos/quiz-partial.input';
+import { QuestionAndAnswer, QuizPartialInput } from './dtos/quiz-partial.input';
 
 @Resolver(() => QuizOutputType)
 export class QuizResolver {
@@ -82,12 +82,27 @@ export class QuizResolver {
   async registerQuizProgress(
     @CurrentUser() user: PayloadDto,
     @Args('quizId') quizId: string,
-    @Args('quizPartialInput') quizPartialData: QuizPartialInput,
+    @Args('currentQuestionIndex', { type: () => Int })
+    currentQuestionIndex: number,
+    @Args({ name: 'questionsAndAnswers', type: () => [QuestionAndAnswer] })
+    questionsAndAnswers: QuestionAndAnswer[],
+    @Args('lastUpdated', { type: () => Date }) lastUpdated: Date,
   ) {
+    console.log('[registerQuizProgress] called');
+    console.log('quizId:', quizId);
+    console.log('currentQuestionIndex:', currentQuestionIndex);
+    console.log('questionsAndAnswers:', questionsAndAnswers);
+    console.log('lastUpdated:', lastUpdated);
+
+    const quizPartialInput: QuizPartialInput = {
+      currentQuestionIndex,
+      questionsAndAnswers,
+    };
+
     return this.quizService.saveQuizProgressAsync(
       user.id,
       quizId,
-      quizPartialData,
+      quizPartialInput,
     );
   }
 }

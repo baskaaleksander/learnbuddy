@@ -1,24 +1,22 @@
-import { Field, InputType } from '@nestjs/graphql';
+import { Field, InputType, Int } from '@nestjs/graphql';
 
 @InputType()
-class QuestionAndAnswer {
-  @Field()
+export class QuestionAndAnswer {
+  @Field(() => Int)
   question: number;
 
-  @Field()
+  @Field(() => String)
   answer: string;
 
   @Field(() => Boolean)
   isCorrect: boolean;
 }
+
 @InputType()
 export class QuizPartialInput {
-  @Field(() => Number)
+  @Field(() => Int)
   currentQuestionIndex: number;
 
   @Field(() => [QuestionAndAnswer])
   questionsAndAnswers: QuestionAndAnswer[];
-
-  @Field(() => Date)
-  lastUpdated: Date;
 }

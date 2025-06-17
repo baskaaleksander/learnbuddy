@@ -366,18 +366,22 @@ export class QuizService {
   ) {
     await this.redis.set(
       `quizSession:${userId}:${quizId}`,
-      quizPartialData,
+      JSON.stringify(quizPartialData),
       1800,
     );
 
-    await this.quizProgressQueue.add(
-      'savePartial',
-      { userId, quizId, quizPartialData },
-      {
-        attempts: 3,
-        jobId: `${userId}-${quizId}`,
-      },
-    );
+    try {
+      const job = await this.quizProgressQueue.add(
+        'savePartial',
+        { userId, quizId, quizPartialData },
+        {
+          attempts: 3,
+        },
+      );
+      console.log('Job added:', job.id);
+    } catch (err) {
+      console.error('Error adding job:', err);
+    }
 
     return true;
   }
