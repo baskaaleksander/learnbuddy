@@ -11,10 +11,10 @@ interface Quiz {
 export interface QuizResponse {
   id: string;
   materialId: string;
-  type: string;
+  type: 'quiz';
   content: Quiz[];
   createdAt: Date;
-  errorMessage?: string | null;
+  errorMessage?: string | undefined;
 }
 
 export interface SummaryAiOutputContent {

@@ -105,7 +105,15 @@ export class FlashcardsService {
       .offset((page - 1) * pageSize);
 
     if (aiOutput.length === 0) {
-      return [];
+      return {
+        data: [],
+        totalItems: 0,
+        totalPages: 1,
+        currentPage: page,
+        pageSize,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      };
     }
 
     const data = await Promise.all(

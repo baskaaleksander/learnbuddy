@@ -23,6 +23,7 @@ import { Queue } from 'bullmq';
 import { RedisService } from '../redis/redis.service';
 import { QuizPartialInput } from './dtos/quiz-partial.input';
 import { Logger } from 'nestjs-pino';
+import { toQuizResponseGraphQl } from './quiz-response.mapper';
 
 @Injectable()
 export class QuizService {
@@ -127,7 +128,7 @@ export class QuizService {
       return {
         data: [],
         totalItems: 0,
-        totalPages: 0,
+        totalPages: 1,
         currentPage: page,
         pageSize,
         hasNextPage: false,
@@ -222,15 +223,60 @@ export class QuizService {
 
   //add stats
   async getQuizById(id: string, userId: string) {
-    const quiz = await this.drizzle
+    const quiz = (await this.drizzle
       .select()
       .from(aiOutputs)
-      .where(and(eq(aiOutputs.id, id)));
+      .where(and(eq(aiOutputs.id, id)))) as (Omit<
+      QuizResponse,
+      'errorMessage'
+    > & { errorMessage: string | null })[];
 
     if (quiz.length === 0) {
       throw new NotFoundException('Quiz not found');
     }
+    const content = quiz[0].content.map((item) => ({
+      question: item.question,
+      answers: item.answers,
+    }));
 
+    const existingSession = await this.redis.get(`quizSession:${userId}:${id}`);
+
+    if (existingSession) {
+      const quizPartialData: QuizPartialInput = JSON.parse(
+        existingSession as string,
+      );
+      this.logger.log(
+        `[QuizPartial] Found existing session for user ${userId} for quiz ${id}`,
+      );
+      return {
+        ...toQuizResponseGraphQl({
+          ...quiz[0],
+          content,
+        }),
+        partialData: quizPartialData,
+      };
+    }
+
+    const quizPartial = await this.drizzle
+      .select()
+      .from(quizPartials)
+      .where(and(eq(quizPartials.userId, userId), eq(quizPartials.quizId, id)));
+
+    if (quizPartial.length > 0) {
+      this.logger.log(
+        `[QuizPartial] Found partial data for user ${userId} for quiz ${id}`,
+      );
+      return {
+        ...toQuizResponseGraphQl({
+          ...quiz[0],
+          content,
+        }),
+        partialData: {
+          currentQuestionIndex: quizPartial[0].currentQuestionIndex,
+          questionsAndAnswers: quizPartial[0].answers,
+        },
+      };
+    }
     const materialAccess = await this.drizzle
       .select()
       .from(materials)
@@ -242,7 +288,10 @@ export class QuizService {
       throw new UnauthorizedException('Material not found or access denied');
     }
 
-    return toAIOutputGraphQL(quiz[0]);
+    return toQuizResponseGraphQl({
+      ...quiz[0],
+      content,
+    });
   }
 
   async createQuiz(materialId: string, userId: string) {
@@ -490,6 +539,6 @@ export class QuizService {
     this.logger.log(
       `[QuizPartial] User ${userId} reached question ${quizPartialData.currentQuestionIndex}`,
     );
-    return true;
+    return false;
   }
 }

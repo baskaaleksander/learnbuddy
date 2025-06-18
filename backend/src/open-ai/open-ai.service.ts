@@ -4,54 +4,95 @@ import { Injectable } from '@nestjs/common';
 export class OpenAiService {
   generateQuiz(pdfContent: string) {
     //mock data for quiz generation
+    //     const prompt = `You are a quiz generator.
+    //
+    //       Your task is to read the input text and generate a multiple-choice quiz based only on its content. Follow these rules strictly:
+    //
+    //       Instructions:
+    //       - Create exactly 10 multiple-choice questions.
+    //       - Each question must have exactly 3 answer options.
+    //       - Only one answer can be correct.
+    //       - The correct answer must be copied **verbatim** from the list of options.
+    //       - Do not add information that is not present in the source text.
+    //       - Return the result as a pure JSON array, with no additional explanation or text.
+    //       - The JSON structure must match this format exactly:
+    //
+    //       [
+    //         {
+    //           "question": "Question text here",
+    //           "answers": [
+    //             "Option A",
+    //             "Option B",
+    //             "Option C"
+    //           ],
+    //           "correct_answer": "Option B"
+    //         },
+    //         {
+    //           "question": "Question text here",
+    //           "answers": [
+    //             "Option A",
+    //             "Option B",
+    //             "Option C"
+    //           ],
+    //           "correct_answer": "Option C"
+    //         },
+    //         ...
+    //       ]
+    //
+    //       Text:
+    //       """${pdfContent}"""
+    // `;
     return [
       {
         question:
           'Jakie są główne cele napisania pracy dyplomowej według tekstu?',
-        answers: {
-          A: 'Zaliczenie przedmiotu z historii literatury',
-          B: 'Wykazanie umiejętności zdobytych podczas studiów',
-          C: 'Przygotowanie się do egzaminu maturalnego',
-        },
-        correct_answer: 'B',
+        answers: [
+          'Zaliczenie przedmiotu z historii literatury',
+          'Wykazanie umiejętności zdobytych podczas studiów',
+          'Przygotowanie się do egzaminu maturalnego',
+        ],
+        correct_answer: 'Wykazanie umiejętności zdobytych podczas studiów',
       },
       {
         question: 'Dlaczego warto nadać pracy dyplomowej osobisty sens?',
-        answers: {
-          A: 'Ponieważ uczelnia tego wymaga',
-          B: 'Aby szybciej ją ukończyć',
-          C: 'Ponieważ może to uczynić ją przygodą z wartościowymi wnioskami',
-        },
-        correct_answer: 'C',
+        answers: [
+          'Ponieważ uczelnia tego wymaga',
+          'Aby szybciej ją ukończyć',
+          'Ponieważ może to uczynić ją przygodą z wartościowymi wnioskami',
+        ],
+        correct_answer:
+          'Ponieważ może to uczynić ją przygodą z wartościowymi wnioskami',
       },
       {
         question:
           'Która z poniższych umiejętności NIE została wymieniona jako korzyść z pisania pracy dyplomowej?',
-        answers: {
-          A: 'Zarządzanie złożonymi projektami',
-          B: 'Rozwijanie zdolności aktorskich',
-          C: 'Poprawa samooceny',
-        },
-        correct_answer: 'B',
+        answers: [
+          'Zarządzanie złożonymi projektami',
+          'Rozwijanie zdolności aktorskich',
+          'Poprawa samooceny',
+        ],
+        correct_answer: 'Rozwijanie zdolności aktorskich',
       },
       {
         question:
           "Co według ustawy 'Prawo o szkolnictwie wyższym i nauce' jest warunkiem ukończenia studiów?",
-        answers: {
-          A: 'Udział w co najmniej jednym seminarium zagranicznym',
-          B: 'Złożenie pracy dyplomowej i zdanie egzaminu dyplomowego',
-          C: 'Napisanie artykułu naukowego',
-        },
-        correct_answer: 'B',
+        answers: [
+          'Udział w co najmniej jednym seminarium zagranicznym',
+          'Złożenie pracy dyplomowej i zdanie egzaminu dyplomowego',
+          'Napisanie artykułu naukowego',
+        ],
+        correct_answer:
+          'Złożenie pracy dyplomowej i zdanie egzaminu dyplomowego',
       },
       {
         pytanie: 'Czym jest praca dyplomowa według definicji z tekstu?',
-        answers: {
-          A: 'Zbiorem referatów zaliczeniowych z różnych przedmiotów',
-          B: 'Samodzielnym opracowaniem prezentującym wiedzę i umiejętności studenta',
-          C: 'Projektem grupowym realizowanym przez studentów ostatniego roku',
-        },
-        correct_answer: 'B',
+        answers: [
+          'Zbiorem referatów zaliczeniowych z różnych przedmiotów',
+          'Samodzielnym opracowaniem prezentującym wiedzę i umiejętności studenta',
+          'Projektem grupowym realizowanym przez studentów ostatniego roku',
+        ],
+        correct_answer:
+          'Samodzielnym opracowaniem prezentującym wiedzę i umiejętności studenta',
       },
     ];
   }

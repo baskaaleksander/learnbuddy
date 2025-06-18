@@ -91,7 +91,15 @@ export class SummaryService {
     }
 
     if (summaries.length === 0) {
-      throw new NotFoundException('No summaries found for this user');
+      return {
+        data: [],
+        totalItems: 0,
+        totalPages: 1,
+        currentPage: page,
+        pageSize,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      };
     }
     const data = summaries.map((summary) => {
       const content = summary.ai_outputs.content as SummaryAiOutputContent;
