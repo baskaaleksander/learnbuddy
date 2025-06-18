@@ -1,10 +1,6 @@
 interface Quiz {
   question: string;
-  answers: Array<{
-    A: string;
-    B: string;
-    C: string;
-  }>;
+  answers: Array<string>;
   correct_answer: string;
 }
 

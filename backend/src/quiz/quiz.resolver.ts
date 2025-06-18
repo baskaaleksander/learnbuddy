@@ -6,7 +6,11 @@ import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
 import { QuizService } from './quiz.service';
 import { SubmitQuizInput } from './dtos/submit-quiz.input';
 import { QuizResultType } from './quiz-result.graphql';
-import { QuizOutputType, PaginatedQuizResponse } from './quiz.graphql';
+import {
+  QuizOutputType,
+  PaginatedQuizResponse,
+  QuizWithPartialOutputType,
+} from './quiz.graphql';
 import { QuestionAndAnswer, QuizPartialInput } from './dtos/quiz-partial.input';
 
 @Resolver(() => QuizOutputType)
@@ -14,7 +18,7 @@ export class QuizResolver {
   constructor(private readonly quizService: QuizService) {}
 
   @UseGuards(GqlAuthGuard)
-  @Query(() => QuizOutputType, { nullable: true })
+  @Query(() => QuizWithPartialOutputType, { nullable: true })
   async getQuizById(@CurrentUser() user: PayloadDto, @Args('id') id: string) {
     return this.quizService.getQuizById(id, user.id);
   }
@@ -86,13 +90,11 @@ export class QuizResolver {
     currentQuestionIndex: number,
     @Args({ name: 'questionsAndAnswers', type: () => [QuestionAndAnswer] })
     questionsAndAnswers: QuestionAndAnswer[],
-    @Args('lastUpdated', { type: () => Date }) lastUpdated: Date,
   ) {
     console.log('[registerQuizProgress] called');
     console.log('quizId:', quizId);
     console.log('currentQuestionIndex:', currentQuestionIndex);
     console.log('questionsAndAnswers:', questionsAndAnswers);
-    console.log('lastUpdated:', lastUpdated);
 
     const quizPartialInput: QuizPartialInput = {
       currentQuestionIndex,

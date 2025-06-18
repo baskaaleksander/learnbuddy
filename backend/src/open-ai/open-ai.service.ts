@@ -85,7 +85,7 @@ export class OpenAiService {
           'Złożenie pracy dyplomowej i zdanie egzaminu dyplomowego',
       },
       {
-        pytanie: 'Czym jest praca dyplomowa według definicji z tekstu?',
+        question: 'Czym jest praca dyplomowa według definicji z tekstu?',
         answers: [
           'Zbiorem referatów zaliczeniowych z różnych przedmiotów',
           'Samodzielnym opracowaniem prezentującym wiedzę i umiejętności studenta',

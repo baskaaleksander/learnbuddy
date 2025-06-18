@@ -7,9 +7,6 @@ export class QuestionAndAnswer {
 
   @Field(() => String)
   answer: string;
-
-  @Field(() => Boolean)
-  isCorrect: boolean;
 }
 
 @InputType()

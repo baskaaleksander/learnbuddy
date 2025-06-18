@@ -24,6 +24,7 @@ import { RedisService } from '../redis/redis.service';
 import { QuizPartialInput } from './dtos/quiz-partial.input';
 import { Logger } from 'nestjs-pino';
 import { toQuizResponseGraphQl } from './quiz-response.mapper';
+import { Quiz } from 'src/utils/types';
 
 @Injectable()
 export class QuizService {
@@ -221,20 +222,22 @@ export class QuizService {
     };
   }
 
-  //add stats
   async getQuizById(id: string, userId: string) {
-    const quiz = (await this.drizzle
+    const quizJoined = await this.drizzle
       .select()
       .from(aiOutputs)
-      .where(and(eq(aiOutputs.id, id)))) as (Omit<
-      QuizResponse,
-      'errorMessage'
-    > & { errorMessage: string | null })[];
+      .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
+      .where(and(eq(aiOutputs.id, id), eq(materials.userId, userId)));
 
-    if (quiz.length === 0) {
+    if (quizJoined.length === 0) {
       throw new NotFoundException('Quiz not found');
     }
-    const content = quiz[0].content.map((item) => ({
+
+    const quiz = quizJoined[0].ai_outputs;
+    const material = quizJoined[0].materials;
+
+    const quizContent = quiz.content as Quiz[];
+    const content = quizContent.map((item) => ({
       question: item.question,
       answers: item.answers,
     }));
@@ -250,7 +253,7 @@ export class QuizService {
       );
       return {
         ...toQuizResponseGraphQl({
-          ...quiz[0],
+          ...quiz,
           content,
         }),
         partialData: quizPartialData,
@@ -268,7 +271,7 @@ export class QuizService {
       );
       return {
         ...toQuizResponseGraphQl({
-          ...quiz[0],
+          ...quiz,
           content,
         }),
         partialData: {
@@ -277,21 +280,25 @@ export class QuizService {
         },
       };
     }
+
     const materialAccess = await this.drizzle
       .select()
       .from(materials)
       .where(
-        and(eq(materials.id, quiz[0].materialId), eq(materials.userId, userId)),
+        and(eq(materials.id, quiz.materialId), eq(materials.userId, userId)),
       );
 
     if (materialAccess.length === 0) {
       throw new UnauthorizedException('Material not found or access denied');
     }
 
-    return toQuizResponseGraphQl({
-      ...quiz[0],
-      content,
-    });
+    return {
+      ...toQuizResponseGraphQl({
+        ...quiz,
+        content,
+      }),
+      material: toMaterialGraphQL(material),
+    };
   }
 
   async createQuiz(materialId: string, userId: string) {
@@ -462,6 +469,12 @@ export class QuizService {
       throw new UnauthorizedException('Material not found or access denied');
     }
 
+    const checkedAnswers = quizPartialData.questionsAndAnswers.map((qa) => ({
+      question: qa.question,
+      answer: qa.answer,
+      isCorrect: quiz[0].content[qa.question - 1].correct_answer === qa.answer,
+    }));
+
     const quizLength = quiz[0].content.length;
     const isQuizComplete =
       quizPartialData.questionsAndAnswers.length === quizLength;
@@ -473,66 +486,53 @@ export class QuizService {
         and(eq(quizPartials.userId, userId), eq(quizPartials.quizId, quizId)),
       );
 
-    if (
-      existingPartial.length === 0 ||
-      quizPartialData.currentQuestionIndex >=
-        existingPartial[0].currentQuestionIndex + 3
-    ) {
-      this.logger.log(
-        `[QuizPartial] Saving partial for user ${userId} for quiz ${quizId}`,
-      );
+    this.logger.log(
+      `[QuizPartial] Saving partial for user ${userId} for quiz ${quizId}`,
+    );
 
-      if (existingPartial.length > 0) {
-        await this.drizzle
-          .update(quizPartials)
-          .set({
-            currentQuestionIndex: quizPartialData.currentQuestionIndex,
-            answers: quizPartialData.questionsAndAnswers,
-            lastUpdated: new Date(),
-          })
-          .where(
-            and(
-              eq(quizPartials.userId, userId),
-              eq(quizPartials.quizId, quizId),
-            ),
-          );
-      } else {
-        await this.drizzle.insert(quizPartials).values({
-          userId,
-          quizId,
+    if (existingPartial.length > 0) {
+      await this.drizzle
+        .update(quizPartials)
+        .set({
           currentQuestionIndex: quizPartialData.currentQuestionIndex,
-          answers: quizPartialData.questionsAndAnswers,
+          answers: checkedAnswers,
           lastUpdated: new Date(),
-        });
-      }
-
-      if (isQuizComplete) {
-        this.logger.log(
-          `[QuizSubmission] User ${userId} completed quiz ${quizId}`,
+        })
+        .where(
+          and(eq(quizPartials.userId, userId), eq(quizPartials.quizId, quizId)),
         );
-        await this.drizzle
-          .delete(quizPartials)
-          .where(
-            and(
-              eq(quizPartials.userId, userId),
-              eq(quizPartials.quizId, quizId),
-            ),
-          );
-        await this.drizzle.insert(quizResults).values({
-          userId,
-          materialId: quiz[0].materialId,
-          aiOutputId: quizId,
-          score: quizPartialData.questionsAndAnswers.reduce(
-            (acc, qa) => acc + (qa.isCorrect ? 1 : 0),
-            0,
-          ),
-          totalQuestions: quizLength,
-          answers: quizPartialData.questionsAndAnswers,
-          completedAt: new Date(),
-        });
-        await this.redis.delete(`quizSession:${userId}:${quizId}`);
-      }
+    } else {
+      await this.drizzle.insert(quizPartials).values({
+        userId,
+        quizId,
+        currentQuestionIndex: quizPartialData.currentQuestionIndex,
+        answers: checkedAnswers,
+        lastUpdated: new Date(),
+      });
+    }
 
+    if (isQuizComplete) {
+      this.logger.log(
+        `[QuizSubmission] User ${userId} completed quiz ${quizId}`,
+      );
+      await this.drizzle
+        .delete(quizPartials)
+        .where(
+          and(eq(quizPartials.userId, userId), eq(quizPartials.quizId, quizId)),
+        );
+      await this.drizzle.insert(quizResults).values({
+        userId,
+        materialId: quiz[0].materialId,
+        aiOutputId: quizId,
+        score: checkedAnswers.reduce(
+          (acc, qa) => acc + (qa.isCorrect ? 1 : 0),
+          0,
+        ),
+        totalQuestions: quizLength,
+        answers: checkedAnswers,
+        completedAt: new Date(),
+      });
+      await this.redis.delete(`quizSession:${userId}:${quizId}`);
       return true;
     }
 
