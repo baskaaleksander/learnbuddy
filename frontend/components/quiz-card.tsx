@@ -1,34 +1,46 @@
-import React from 'react'
-import { Card, CardHeader, CardContent } from './ui/card'
-import { Badge } from './ui/badge'
-import { cn } from '@/lib/utils'
-import { AlertTriangle, Target, Trophy, Calendar, TrendingUp, ExternalLink } from 'lucide-react'
-import Link from 'next/link'
-import {QuizData} from "@/lib/definitions";
-import {formatDate} from "@/utils/format-date";
+import React from "react";
+import { Card, CardHeader, CardContent } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { cn } from "@/lib/utils";
+import {
+  AlertTriangle,
+  Target,
+  Trophy,
+  Calendar,
+  TrendingUp,
+  ExternalLink,
+} from "lucide-react";
+import Link from "next/link";
+import { QuizData } from "@/lib/definitions";
+import { formatDate } from "@/utils/format-date";
 
-
-
-function QuizCard({ quizData, className }: { quizData: QuizData, className?: string }) {
+function QuizCard({
+  quizData,
+  className,
+}: {
+  quizData: QuizData;
+  className?: string;
+}) {
   const needsAttention = () => {
     const lowScore = quizData.averagePercentage < 60;
     const noAttempts = quizData.totalAttempts === 0;
-    
+
     if (noAttempts) return true;
-    
-    const lastAttemptDate = quizData.latestResult?.completedAt 
-      ? new Date(quizData.latestResult.completedAt) 
+
+    const lastAttemptDate = quizData.latestResult?.completedAt
+      ? new Date(quizData.latestResult.completedAt)
       : new Date(quizData.createdAt);
-    const daysSinceLastAttempt = Math.floor((Date.now() - lastAttemptDate.getTime()) / (1000 * 60 * 60 * 24));
-    
+    const daysSinceLastAttempt = Math.floor(
+      (Date.now() - lastAttemptDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
     return lowScore || daysSinceLastAttempt > 7;
   };
 
-
   const getScoreColor = (percentage: number) => {
-    if (percentage >= 80) return 'text-green-600';
-    if (percentage >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (percentage >= 80) return "text-green-600";
+    if (percentage >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const handleMaterialClick = (e: React.MouseEvent) => {
@@ -39,30 +51,35 @@ function QuizCard({ quizData, className }: { quizData: QuizData, className?: str
 
   return (
     <Link href={`/dashboard/quizzes/${quizData.id}`}>
-      <Card className={cn(
-        'flex h-full flex-col shadow-sm hover:shadow-md transition-all dark:border-gray-800 cursor-pointer relative',
-        needsAttention() ? 'border-red-500' : 'border-gray-200',
-        needsAttention() ? 'hover:border-red-500' : 'hover:border-primary/50',
-        className
-      )}>
+      <Card
+        className={cn(
+          "flex h-full flex-col shadow-sm hover:shadow-md transition-all dark:border-gray-800 cursor-pointer relative",
+          needsAttention() ? "border-red-500" : "border-gray-200",
+          needsAttention() ? "hover:border-red-500" : "hover:border-primary/50",
+          className
+        )}
+      >
         {needsAttention() && (
           <div className="absolute top-2 right-2 z-10">
             <AlertTriangle className="h-4 w-4 text-red-500" />
           </div>
         )}
-        
+
         <CardHeader className="pb-3">
           <div className="space-y-2">
-            <Badge variant="secondary" className="text-xs w-fit flex items-center gap-1">
-              <button 
+            <Badge
+              variant="secondary"
+              className="text-xs w-fit flex items-center gap-1"
+            >
+              <button
                 onClick={handleMaterialClick}
                 className="flex items-center gap-1 text-xs hover:underline"
               >
-                <ExternalLink className='inline w-3 h-3'/> 
+                <ExternalLink className="inline w-3 h-3" />
                 {quizData.material.title}
               </button>
             </Badge>
-            
+
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Calendar className="h-3 w-3" />
               Created {formatDate(quizData.createdAt)}
@@ -85,8 +102,13 @@ function QuizCard({ quizData, className }: { quizData: QuizData, className?: str
                 <TrendingUp className="h-3 w-3 text-purple-500" />
                 <span className="text-xs font-medium">Average</span>
               </div>
-              <p className={cn("text-lg font-bold", getScoreColor(quizData.averagePercentage))}>
-                {quizData.averagePercentage}%
+              <p
+                className={cn(
+                  "text-lg font-bold",
+                  getScoreColor(quizData.averagePercentage)
+                )}
+              >
+                {quizData.averagePercentage.toFixed(0)}%
               </p>
             </div>
 
@@ -104,12 +126,17 @@ function QuizCard({ quizData, className }: { quizData: QuizData, className?: str
               <div className="flex items-center justify-center gap-1 mb-1">
                 <span className="text-xs font-medium">Latest</span>
               </div>
-              <p className={cn("text-lg font-bold", 
-                quizData.latestResult 
-                  ? getScoreColor(quizData.latestResult.score) 
-                  : "text-muted-foreground"
-              )}>
-                {quizData.latestResult ? `${quizData.latestResult.score}%` : 'N/A'}
+              <p
+                className={cn(
+                  "text-lg font-bold",
+                  quizData.latestResult
+                    ? getScoreColor(quizData.latestResult.score)
+                    : "text-muted-foreground"
+                )}
+              >
+                {quizData.latestResult
+                  ? `${quizData.latestResult.score}%`
+                  : "N/A"}
               </p>
             </div>
           </div>
@@ -127,12 +154,11 @@ function QuizCard({ quizData, className }: { quizData: QuizData, className?: str
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-3 w-3 text-red-500" />
                 <p className="text-xs text-red-600 dark:text-red-400">
-                  {quizData.totalAttempts === 0 
-                    ? "No attempts yet" 
-                    : quizData.averagePercentage < 60 
-                      ? "Low average score" 
-                      : "Needs practice"
-                  }
+                  {quizData.totalAttempts === 0
+                    ? "No attempts yet"
+                    : quizData.averagePercentage < 60
+                    ? "Low average score"
+                    : "Needs practice"}
                 </p>
               </div>
             </div>
@@ -140,7 +166,7 @@ function QuizCard({ quizData, className }: { quizData: QuizData, className?: str
         </CardContent>
       </Card>
     </Link>
-  )
+  );
 }
 
-export default QuizCard
+export default QuizCard;
