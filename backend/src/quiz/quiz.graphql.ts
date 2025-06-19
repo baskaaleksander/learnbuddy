@@ -1,7 +1,5 @@
-import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
-import GraphQLJSON from 'graphql-type-json';
-import { AIOutputEnum, AIOutputType } from 'src/graphql/ai-output.graphql';
-import { MaterialType } from 'src/materials/materials.graphql';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { AIOutputType } from 'src/graphql/ai-output.graphql';
 import { PaginatedResponse } from 'src/graphql/pagination.graphql';
 
 @ObjectType()

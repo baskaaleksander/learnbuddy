@@ -415,6 +415,36 @@ export class QuizService {
     return results.map((result) => toQuizResultGraphQl(result));
   }
 
+  //good concept but need to be fixed
+  async getQuizResultByQuizId(quizId: string, userId: string) {
+    const results = await this.drizzle
+      .select()
+      .from(quizResults)
+      .where(
+        and(eq(quizResults.aiOutputId, quizId), eq(quizResults.userId, userId)),
+      );
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    const result = results[0];
+
+    if (
+      !result.id ||
+      !result.userId ||
+      !result.materialId ||
+      !result.aiOutputId
+    ) {
+      this.logger.error(
+        `Invalid quiz result data for quiz ${quizId} and user ${userId}`,
+      );
+      return null;
+    }
+
+    return toQuizResultGraphQl(result);
+  }
+
   async saveQuizProgressAsync(
     userId: string,
     quizId: string,
@@ -520,25 +550,28 @@ export class QuizService {
         .where(
           and(eq(quizPartials.userId, userId), eq(quizPartials.quizId, quizId)),
         );
-      await this.drizzle.insert(quizResults).values({
-        userId,
-        materialId: quiz[0].materialId,
-        aiOutputId: quizId,
-        score: checkedAnswers.reduce(
-          (acc, qa) => acc + (qa.isCorrect ? 1 : 0),
-          0,
-        ),
-        totalQuestions: quizLength,
-        answers: checkedAnswers,
-        completedAt: new Date(),
-      });
+      const quizResult = await this.drizzle
+        .insert(quizResults)
+        .values({
+          userId,
+          materialId: quiz[0].materialId,
+          aiOutputId: quizId,
+          score: checkedAnswers.reduce(
+            (acc, qa) => acc + (qa.isCorrect ? 1 : 0),
+            0,
+          ),
+          totalQuestions: quizLength,
+          answers: checkedAnswers,
+          completedAt: new Date(),
+        })
+        .returning();
       await this.redis.delete(`quizSession:${userId}:${quizId}`);
-      return true;
+      return quizResult[0].id;
     }
 
     this.logger.log(
       `[QuizPartial] User ${userId} reached question ${quizPartialData.currentQuestionIndex}`,
     );
-    return false;
+    return null;
   }
 }

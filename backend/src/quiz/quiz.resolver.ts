@@ -24,6 +24,15 @@ export class QuizResolver {
   }
 
   @UseGuards(GqlAuthGuard)
+  @Query(() => QuizResultType, { nullable: true })
+  async getQuizResultByQuizId(
+    @CurrentUser() user: PayloadDto,
+    @Args('id') id: string,
+  ) {
+    return await this.quizService.getQuizResultByQuizId(id, user.id);
+  }
+
+  @UseGuards(GqlAuthGuard)
   @Query(() => QuizOutputType, { nullable: true })
   async getQuizzesByMaterial(
     @CurrentUser() user: PayloadDto,
@@ -82,7 +91,7 @@ export class QuizResolver {
   }
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => Boolean, { nullable: true })
+  @Mutation(() => String, { nullable: true })
   async registerQuizProgress(
     @CurrentUser() user: PayloadDto,
     @Args('quizId') quizId: string,
