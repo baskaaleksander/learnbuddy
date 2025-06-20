@@ -257,6 +257,7 @@ export class QuizService {
           content,
         }),
         partialData: quizPartialData,
+        material: toMaterialGraphQL(material),
       };
     }
 
@@ -278,18 +279,8 @@ export class QuizService {
           currentQuestionIndex: quizPartial[0].currentQuestionIndex,
           questionsAndAnswers: quizPartial[0].answers,
         },
+        material: toMaterialGraphQL(material),
       };
-    }
-
-    const materialAccess = await this.drizzle
-      .select()
-      .from(materials)
-      .where(
-        and(eq(materials.id, quiz.materialId), eq(materials.userId, userId)),
-      );
-
-    if (materialAccess.length === 0) {
-      throw new UnauthorizedException('Material not found or access denied');
     }
 
     return {
@@ -360,46 +351,6 @@ export class QuizService {
     return true;
   }
 
-  async submitQuiz(
-    materialId: string,
-    aiOutputId: string,
-    userId: string,
-    score: number,
-  ) {
-    const materialAccess = await this.drizzle
-      .select()
-      .from(materials)
-      .where(and(eq(materials.id, materialId), eq(materials.userId, userId)));
-    if (materialAccess.length === 0) {
-      throw new UnauthorizedException('Material not found or access denied');
-    }
-
-    const quiz = (await this.drizzle
-      .select()
-      .from(aiOutputs)
-      .where(
-        and(
-          eq(aiOutputs.id, aiOutputId),
-          eq(aiOutputs.materialId, materialId),
-          eq(aiOutputs.type, 'quiz'),
-        ),
-      )) as QuizResponse[];
-
-    if (quiz.length === 0) {
-      throw new NotFoundException('Quiz not found');
-    }
-
-    // await this.drizzle.insert(quizResults).values({
-    //   userId: userId,
-    //   materialId: materialId,
-    //   aiOutputId: aiOutputId,
-    //   score: score,
-    //   totalQuestions: quiz[0].content.length,
-    // });
-
-    return true;
-  }
-
   async getQuizResults(quizId: string, userId: string) {
     const results = await this.drizzle
       .select()
@@ -415,14 +366,57 @@ export class QuizService {
     return results.map((result) => toQuizResultGraphQl(result));
   }
 
-  //good concept but need to be fixed
+  async resetQuizProgress(userId: string, quizId: string) {
+    const existingSession = await this.redis.get(
+      `quizSession:${userId}:${quizId}`,
+    );
+    if (existingSession) {
+      this.logger.log(
+        `[QuizPartial] Found existing session for user ${userId} for quiz ${quizId}, deleting it`,
+      );
+      await this.redis.delete(`quizSession:${userId}:${quizId}`);
+    } else {
+      this.logger.log(
+        `[QuizPartial] No existing session found for user ${userId} for quiz ${quizId}`,
+      );
+    }
+
+    const quizPartial = await this.drizzle
+      .select()
+      .from(quizPartials)
+      .where(
+        and(eq(quizPartials.userId, userId), eq(quizPartials.quizId, quizId)),
+      );
+
+    this.logger.log(
+      `[QuizPartial] Attempting to reset progress for user ${userId} for quiz ${quizId}, existingPartial: ${quizPartial.length > 0}`,
+    );
+
+    if (quizPartial.length > 0) {
+      await this.drizzle
+        .delete(quizPartials)
+        .where(
+          and(eq(quizPartials.userId, userId), eq(quizPartials.quizId, quizId)),
+        );
+      this.logger.log(
+        `[QuizPartial] Reset progress for user ${userId} for quiz ${quizId}`,
+      );
+      return true;
+    }
+    this.logger.warn(
+      `[QuizPartial] No progress found to reset for user ${userId} for quiz ${quizId}`,
+    );
+    return false;
+  }
+
   async getQuizResultByQuizId(quizId: string, userId: string) {
     const results = await this.drizzle
       .select()
       .from(quizResults)
       .where(
         and(eq(quizResults.aiOutputId, quizId), eq(quizResults.userId, userId)),
-      );
+      )
+      .orderBy(desc(quizResults.completedAt));
 
     if (results.length === 0) {
       return null;

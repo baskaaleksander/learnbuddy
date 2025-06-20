@@ -4,7 +4,6 @@ import { PayloadDto } from 'src/auth/dtos/payload.dto';
 import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
 import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
 import { QuizService } from './quiz.service';
-import { SubmitQuizInput } from './dtos/submit-quiz.input';
 import { QuizResultType } from './quiz-result.graphql';
 import {
   QuizOutputType,
@@ -58,16 +57,11 @@ export class QuizResolver {
 
   @UseGuards(GqlAuthGuard)
   @Mutation(() => Boolean)
-  async submitQuiz(
+  async resetQuizProgress(
     @CurrentUser() user: PayloadDto,
-    @Args('input') input: SubmitQuizInput,
+    @Args('quizId') quizId: string,
   ) {
-    return this.quizService.submitQuiz(
-      input.materialId,
-      input.aiOutputId,
-      user.id,
-      input.score,
-    );
+    return this.quizService.resetQuizProgress(user.id, quizId);
   }
 
   @UseGuards(GqlAuthGuard)

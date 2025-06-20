@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   CircleAlert,
   Loader2,
+  RotateCcw,
   Trophy,
 } from "lucide-react";
 import ErrorComponent from "@/components/error-component";
@@ -35,6 +36,8 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [materialTitle, setMaterialTitle] = useState("");
+  const [quizResultLoading, setQuizResultLoading] = useState<boolean>(true);
+  const [quizResult, setQuizResult] = useState<any>(null);
 
   useEffect(() => {
     const fetchQuizContent = async () => {
@@ -87,6 +90,67 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
     fetchQuizContent();
   }, [quizId]);
 
+  useEffect(() => {
+    if (!quizCompleted) return;
+
+    const getQuizResult = async () => {
+      try {
+        const resultResponse = await fetchGraphQL(`
+                    query GetQuizResultByQuizId {
+                        getQuizResultByQuizId(id: "${quizId}") {
+                            id
+                            userId
+                            materialId
+                            aiOutputId
+                            score
+                            totalQuestions
+                            completedAt
+                            answers {
+                                question
+                                answer
+                                isCorrect
+                            }
+
+                        }
+                    }
+                `);
+
+        if (resultResponse.getQuizResultByQuizId) {
+          setQuizResult(resultResponse.getQuizResultByQuizId);
+        } else {
+          setError("Failed to fetch quiz result.");
+        }
+      } catch (error: any) {
+        console.error("Error fetching quiz result:", error);
+        setError("Failed to fetch quiz result. Please try again later.");
+      } finally {
+        setQuizResultLoading(false);
+      }
+    };
+
+    setTimeout(() => getQuizResult(), 1000);
+  }, [quizCompleted, quizId]);
+
+  const handleQuizReset = async () => {
+    setSelectedAnswers({});
+    setCurrentQuestionIndex(0);
+    setQuizCompleted(false);
+    setSubmitting(false);
+    setQuizResult(null);
+    setQuizResultLoading(true);
+
+    try {
+      await fetchGraphQL(
+        `mutation ResetQuizProgress {
+            resetQuizProgress(quizId: "${quizId}")
+          }`
+      );
+    } catch (error) {
+      console.error("Error resetting quiz progress:", error);
+      setError("Failed to reset quiz progress. Please try again.");
+    }
+  };
+
   const handleSelectAnswer = (answer: string) => {
     setSelectedAnswers({
       ...selectedAnswers,
@@ -108,7 +172,7 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
 
     const answersCount = Object.entries(selectedAnswers).length;
 
-    const res = await fetchGraphQL(
+    await fetchGraphQL(
       `mutation RegisterQuizProgress($quizId: String!, $currentQuestionIndex: Int!, $questionsAndAnswers: [QuestionAndAnswer!]!) {
           registerQuizProgress(
             quizId: $quizId,
@@ -143,7 +207,7 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
         answer: ans,
       })
     );
-
+    setSubmitting(true);
     const res = await fetchGraphQL(
       `mutation RegisterQuizProgress($quizId: String!, $currentQuestionIndex: Int!, $questionsAndAnswers: [QuestionAndAnswer!]!) {
           registerQuizProgress(
@@ -160,6 +224,7 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
     );
     if (res.registerQuizProgress) {
       setQuizCompleted(true);
+      setSubmitting(false);
     } else {
       setError("Failed to submit quiz. Please try again.");
     }
@@ -179,13 +244,18 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
 
   if (quizCompleted) {
     const totalQuestions = quiz.length;
-    const percentage = (1 / totalQuestions) * 100;
+    const percentage = quizResult.score
+      ? (quizResult.score / totalQuestions) * 100
+      : 0;
+
+    if (quizResultLoading) {
+      return <LoadingScreen />;
+    }
 
     return (
       <div className="p-4 max-w-4xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader className="text-center space-y-2">
-            <Trophy className="w-16 h-16 text-yellow-500 mx-auto" />
             <div>
               <h1 className="text-2xl font-bold">Quiz Completed!</h1>
               <p className="text-muted-foreground">{materialTitle}</p>
@@ -195,7 +265,7 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
           <CardContent className="space-y-6">
             <div className="text-center">
               <div className="text-4xl font-bold mb-2">
-                1 / {totalQuestions}
+                {quizResult.score} / {totalQuestions}
               </div>
               <Badge
                 variant={
@@ -211,16 +281,18 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
               </Badge>
             </div>
 
-            <div className="border rounded-lg p-4 space-y-2 bg-muted/20">
+            <div className="border border-gray-200 rounded-lg p-4 space-y-2 bg-muted/20">
               <h3 className="font-medium">Performance Summary</h3>
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <span>Correct: </span>
+                  <span>Correct: {quizResult.score}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CircleAlert className="w-4 h-4 text-red-500" />
-                  <span>Incorrect: </span>
+                  <span>
+                    Incorrect: {totalQuestions - (quizResult.score || 0)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -231,7 +303,9 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
               <Link href={`/dashboard/quizzes`}>Back to All Quizzes</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href={`/dashboard/materials`}>Browse Materials</Link>
+              <Link href={`/dashboard/quizzes/result/${quizResult.id}`}>
+                Show details
+              </Link>
             </Button>
           </CardFooter>
         </Card>
@@ -242,8 +316,6 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
   const currentQuestion = quiz[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === quiz.length - 1;
   const isAnswerSelected = selectedAnswers[currentQuestionIndex] !== undefined;
-  const allQuestionsAnswered =
-    quiz.length === Object.keys(selectedAnswers).length;
 
   return (
     <div className="p-4 max-w-4xl mx-auto">
@@ -256,19 +328,24 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
                 Question {currentQuestionIndex + 1} of {quiz.length}
               </p>
             </div>
-            <div className="flex items-center gap-1">
-              {Array.from({ length: quiz.length }).map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-2 h-2 rounded-full ${
-                    index === currentQuestionIndex
-                      ? "bg-primary"
-                      : selectedAnswers[index] !== undefined
-                      ? "bg-primary"
-                      : "bg-gray-300"
-                  }`}
-                />
-              ))}
+            <div className="flex flex-col justify-end items-end gap-1">
+              <Button variant="outline" size="sm" onClick={handleQuizReset}>
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: quiz.length }).map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 rounded-full ${
+                      index === currentQuestionIndex
+                        ? "bg-primary"
+                        : selectedAnswers[index] !== undefined
+                        ? "bg-primary"
+                        : "bg-gray-300"
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </CardHeader>
