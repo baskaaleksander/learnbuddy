@@ -22,6 +22,11 @@ import {
 import ErrorComponent from "@/components/error-component";
 import LoadingScreen from "@/components/loading-screen";
 import Link from "next/link";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 function QuizPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -244,11 +249,11 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
 
   if (quizCompleted) {
     const totalQuestions = quiz.length;
-    const percentage = quizResult.score
+    const percentage = quizResult?.score
       ? (quizResult.score / totalQuestions) * 100
       : 0;
 
-    if (quizResultLoading) {
+    if (quizResultLoading || !quizResult) {
       return <LoadingScreen />;
     }
 
@@ -265,7 +270,7 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
           <CardContent className="space-y-6">
             <div className="text-center">
               <div className="text-4xl font-bold mb-2">
-                {quizResult.score} / {totalQuestions}
+                {quizResult?.score || 0} / {totalQuestions}
               </div>
               <Badge
                 variant={
@@ -286,12 +291,12 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <span>Correct: {quizResult.score}</span>
+                  <span>Correct: {quizResult?.score || 0}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CircleAlert className="w-4 h-4 text-red-500" />
                   <span>
-                    Incorrect: {totalQuestions - (quizResult.score || 0)}
+                    Incorrect: {totalQuestions - (quizResult?.score || 0)}
                   </span>
                 </div>
               </div>
@@ -303,7 +308,7 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
               <Link href={`/dashboard/quizzes`}>Back to All Quizzes</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href={`/dashboard/quizzes/result/${quizResult.id}`}>
+              <Link href={`/dashboard/quizzes/result/${quizResult?.id || ""}`}>
                 Show details
               </Link>
             </Button>
@@ -329,9 +334,6 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
               </p>
             </div>
             <div className="flex flex-col justify-end items-end gap-1">
-              <Button variant="outline" size="sm" onClick={handleQuizReset}>
-                <RotateCcw className="w-4 h-4" />
-              </Button>
               <div className="flex items-center gap-1">
                 {Array.from({ length: quiz.length }).map((_, index) => (
                   <div
@@ -368,15 +370,6 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center border ${
-                        selectedAnswers[currentQuestionIndex] === value
-                          ? "border-primary bg-primary text-white"
-                          : "border-gray-300"
-                      }`}
-                    >
-                      {key}
-                    </div>
                     <span>{value}</span>
                   </div>
                 </div>
@@ -386,14 +379,29 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
         </CardContent>
 
         <CardFooter className="flex justify-between border-t border-gray-200 pt-4">
-          <Button
-            variant="outline"
-            onClick={handlePreviousQuestion}
-            disabled={currentQuestionIndex === 0}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Previous
-          </Button>
+          <div className="flex items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hover:cursor-pointer"
+                  onClick={handleQuizReset}
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Reset Quiz Progress</TooltipContent>
+            </Tooltip>
+            <Button
+              variant="outline"
+              onClick={handlePreviousQuestion}
+              disabled={currentQuestionIndex === 0}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Previous
+            </Button>
+          </div>
 
           {isLastQuestion ? (
             <Button

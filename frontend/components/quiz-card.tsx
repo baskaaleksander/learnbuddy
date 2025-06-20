@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { QuizData } from "@/lib/definitions";
 import { formatDate } from "@/utils/format-date";
+import { Button } from "./ui/button";
 
 function QuizCard({
   quizData,
@@ -37,16 +38,16 @@ function QuizCard({
     return lowScore || daysSinceLastAttempt > 7;
   };
 
-  const getScoreColor = (percentage: number) => {
-    if (percentage >= 80) return "text-green-600";
-    if (percentage >= 60) return "text-yellow-600";
-    return "text-red-600";
-  };
-
   const handleMaterialClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     window.location.href = `/dashboard/materials/${quizData.material.id}`;
+  };
+
+  const handleResultClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    window.location.href = `/dashboard/quizzes/${quizData.id}/results`;
   };
 
   return (
@@ -102,12 +103,7 @@ function QuizCard({
                 <TrendingUp className="h-3 w-3 text-purple-500" />
                 <span className="text-xs font-medium">Average</span>
               </div>
-              <p
-                className={cn(
-                  "text-lg font-bold",
-                  getScoreColor(quizData.averagePercentage)
-                )}
-              >
+              <p className="text-lg font-bold">
                 {quizData.averagePercentage.toFixed(0)}%
               </p>
             </div>
@@ -115,37 +111,31 @@ function QuizCard({
             <div className="text-center p-2 bg-muted/50 rounded-lg">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Trophy className="h-3 w-3 text-yellow-500" />
-                <span className="text-xs font-medium">Best</span>
+                <span className="text-xs font-medium">Best score</span>
               </div>
-              <p className="text-lg font-bold text-green-600">
-                {quizData.bestScore || 0}%
-              </p>
+              <p className="text-lg font-bold">{quizData.bestScore || 0}</p>
             </div>
 
             <div className="text-center p-2 bg-muted/50 rounded-lg">
               <div className="flex items-center justify-center gap-1 mb-1">
-                <span className="text-xs font-medium">Latest</span>
+                <span className="text-xs font-medium">Latest score</span>
               </div>
-              <p
-                className={cn(
-                  "text-lg font-bold",
-                  quizData.latestResult
-                    ? getScoreColor(quizData.latestResult.score)
-                    : "text-muted-foreground"
-                )}
-              >
+              <p className="text-lg font-bold">
                 {quizData.latestResult
-                  ? `${quizData.latestResult.score}%`
+                  ? `${quizData.latestResult.score}`
                   : "N/A"}
               </p>
             </div>
           </div>
 
           {quizData.latestResult && (
-            <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+            <div className="pt-2 border-t border-gray-200 dark:border-gray-700 flex justify-between">
               <p className="text-xs text-muted-foreground">
                 Last attempt: {formatDate(quizData.latestResult.completedAt)}
               </p>
+              <Button variant="outline" size="sm" onClick={handleResultClick}>
+                See results
+              </Button>
             </div>
           )}
 
