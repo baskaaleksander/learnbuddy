@@ -4,7 +4,7 @@ import { PayloadDto } from 'src/auth/dtos/payload.dto';
 import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
 import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
 import { QuizService } from './quiz.service';
-import { QuizResultType } from './quiz-result.graphql';
+import { PaginatedQuizResultType, QuizResultType } from './quiz-result.graphql';
 import {
   QuizOutputType,
   PaginatedQuizResponse,
@@ -41,6 +41,24 @@ export class QuizResolver {
   }
 
   @UseGuards(GqlAuthGuard)
+  @Query(() => PaginatedQuizResultType, { nullable: true })
+  async getQuizResultsByQuizId(
+    @CurrentUser() user: PayloadDto,
+    @Args('quizId') quizId: string,
+    @Args('page', { type: () => Int, nullable: true }) offset?: number,
+    @Args('pageSize', { type: () => Int, nullable: true }) limit?: number,
+    @Args('sortBy', { type: () => String, nullable: true }) sortBy?: string,
+  ) {
+    return this.quizService.getQuizResultsByQuizId(
+      quizId,
+      user.id,
+      offset,
+      limit,
+      sortBy,
+    );
+  }
+
+  @UseGuards(GqlAuthGuard)
   @Mutation(() => Boolean)
   async createQuiz(
     @CurrentUser() user: PayloadDto,
@@ -62,15 +80,6 @@ export class QuizResolver {
     @Args('quizId') quizId: string,
   ) {
     return this.quizService.resetQuizProgress(user.id, quizId);
-  }
-
-  @UseGuards(GqlAuthGuard)
-  @Query(() => [QuizResultType], { nullable: true })
-  async getQuizResults(
-    @CurrentUser() user: PayloadDto,
-    @Args('quizId') quizId: string,
-  ) {
-    return this.quizService.getQuizResults(quizId, user.id);
   }
 
   @UseGuards(GqlAuthGuard)

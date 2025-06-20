@@ -245,9 +245,9 @@ export class QuizService {
     const existingSession = await this.redis.get(`quizSession:${userId}:${id}`);
 
     if (existingSession) {
-      const quizPartialData: QuizPartialInput = JSON.parse(
+      const quizPartialData = JSON.parse(
         existingSession as string,
-      );
+      ) as QuizPartialInput;
       this.logger.log(
         `[QuizPartial] Found existing session for user ${userId} for quiz ${id}`,
       );
@@ -351,21 +351,6 @@ export class QuizService {
     return true;
   }
 
-  async getQuizResults(quizId: string, userId: string) {
-    const results = await this.drizzle
-      .select()
-      .from(quizResults)
-      .where(
-        and(eq(quizResults.aiOutputId, quizId), eq(quizResults.userId, userId)),
-      );
-
-    if (results.length === 0) {
-      throw new NotFoundException('Quiz results not found');
-    }
-
-    return results.map((result) => toQuizResultGraphQl(result));
-  }
-
   async resetQuizProgress(userId: string, quizId: string) {
     const existingSession = await this.redis.get(
       `quizSession:${userId}:${quizId}`,
@@ -437,6 +422,66 @@ export class QuizService {
     }
 
     return toQuizResultGraphQl(result);
+  }
+
+  async getQuizResultsByQuizId(
+    quizId: string,
+    userId: string,
+    page: number = 1,
+    pageSize: number = 10,
+    sortBy: string = 'completedAt-desc',
+  ) {
+    const totalCountResult = await this.drizzle
+      .select({ count: sql<number>`count(*)` })
+      .from(quizResults)
+      .where(
+        and(eq(quizResults.aiOutputId, quizId), eq(quizResults.userId, userId)),
+      );
+
+    const totalItems = totalCountResult[0]?.count || 0;
+    const totalPages = Math.ceil(totalItems / pageSize);
+
+    if (totalItems === 0) {
+      return {
+        data: [],
+        totalItems: 0,
+        totalPages: 1,
+        currentPage: page,
+        pageSize,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      };
+    }
+
+    const results = await this.drizzle
+      .select()
+      .from(quizResults)
+      .where(
+        and(eq(quizResults.aiOutputId, quizId), eq(quizResults.userId, userId)),
+      )
+      .orderBy(
+        sortBy === 'completedAt-desc'
+          ? desc(quizResults.completedAt)
+          : sortBy === 'completedAt-asc'
+            ? quizResults.completedAt
+            : sortBy === 'score-desc'
+              ? desc(quizResults.score)
+              : quizResults.score,
+      )
+      .limit(pageSize)
+      .offset((page - 1) * pageSize);
+
+    const data = results.map((result) => toQuizResultGraphQl(result));
+
+    return {
+      data,
+      totalItems,
+      totalPages,
+      currentPage: page,
+      pageSize,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    };
   }
 
   async saveQuizProgressAsync(

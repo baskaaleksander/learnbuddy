@@ -1,4 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { PaginatedResponse } from 'src/graphql/pagination.graphql';
 
 @ObjectType()
 export class QuizAnswerType {
@@ -32,9 +33,15 @@ export class QuizResultType {
   @Field(() => Int)
   totalQuestions: number;
 
-  @Field(() => [QuizAnswerType]) // Changed from QuizAnswerType to [QuizAnswerType]
+  @Field(() => [QuizAnswerType])
   answers: QuizAnswerType[];
 
   @Field()
   completedAt: Date;
+}
+
+@ObjectType()
+export class PaginatedQuizResultType extends PaginatedResponse {
+  @Field(() => [QuizResultType])
+  data: QuizResultType[];
 }

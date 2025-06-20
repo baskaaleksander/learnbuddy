@@ -1,7 +1,7 @@
 "use client";
 import React, { use, useEffect, useState } from "react";
 import { fetchGraphQL } from "@/utils/gql-axios";
-import { QuizQuestion } from "@/lib/definitions";
+import { QuizQuestion, QuizResult } from "@/lib/definitions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -42,7 +42,7 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
   const [submitting, setSubmitting] = useState(false);
   const [materialTitle, setMaterialTitle] = useState("");
   const [quizResultLoading, setQuizResultLoading] = useState<boolean>(true);
-  const [quizResult, setQuizResult] = useState<any>(null);
+  const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
 
   useEffect(() => {
     const fetchQuizContent = async () => {
@@ -104,7 +104,6 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
                     query GetQuizResultByQuizId {
                         getQuizResultByQuizId(id: "${quizId}") {
                             id
-                            userId
                             materialId
                             aiOutputId
                             score
