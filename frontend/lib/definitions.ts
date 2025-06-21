@@ -116,4 +116,5 @@ export interface QuizResultDetails {
   correctAnswer: string;
   questionIndex: number;
   totalQuestions: number;
+  answers: string[];
 }

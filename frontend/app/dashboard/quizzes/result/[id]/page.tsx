@@ -8,6 +8,7 @@ import React, { use, useEffect, useState } from "react";
 
 function ResultPage({ params }: { params: Promise<{ id: string }> }) {
   const [results, setResults] = useState<QuizResult | null>(null);
+  const [quiz, setQuiz] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const resolvedParams = use(params);
@@ -20,7 +21,7 @@ function ResultPage({ params }: { params: Promise<{ id: string }> }) {
         setError(null);
 
         const resultsResponse = await fetchGraphQL(`
-          query GetQuizResultByQuizId {
+          query GetQuizResultById {
             getQuizResultById(id: "${id}") {
                 id
                 userId
@@ -37,10 +38,23 @@ function ResultPage({ params }: { params: Promise<{ id: string }> }) {
                 }
             }
         }
-`);
+    `);
 
         if (resultsResponse.getQuizResultById) {
           setResults(resultsResponse.getQuizResultById);
+
+          const quizResponse = await fetchGraphQL(`
+            query GetQuizById {
+              getQuizById(id: "${resultsResponse.getQuizResultById.aiOutputId}") {
+                  id
+                  content
+              }
+          }
+        `);
+
+          if (quizResponse.getQuizById) {
+            setQuiz(quizResponse.getQuizById);
+          }
         } else {
           setError("Results not found");
         }
@@ -55,38 +69,44 @@ function ResultPage({ params }: { params: Promise<{ id: string }> }) {
     fetchResults();
   }, [id]);
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
-
-  if (error) {
-    return <ErrorComponent message={error} />;
-  }
+  if (loading) return <LoadingScreen />;
+  if (error) return <ErrorComponent message={error} />;
 
   return (
-    <div className="flex flex-col justify-center p-4">
-      <div>
-        <h1 className="text-2xl font-bold mb-4">Quiz Result</h1>
-        <p>
-          Score: {results?.score} / {results?.totalQuestions}
-        </p>
-        <p>
-          Completed At:{" "}
-          {results?.completedAt
-            ? new Date(results.completedAt).toLocaleDateString()
-            : "N/A"}
-        </p>
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-4">Quiz Results</h1>
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-lg font-medium">Score</span>
+            <span className="text-2xl font-bold">
+              {results?.score} / {results?.totalQuestions}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-500">
+              Completed on{" "}
+              {results?.completedAt
+                ? new Date(results.completedAt).toLocaleDateString("en-US")
+                : "N/A"}
+            </span>
+            <span className="text-sm text-gray-500">
+              {results?.totalQuestions} questions
+            </span>
+          </div>
+        </div>
       </div>
-      <div>
-        <h2>Questions</h2>
+
+      <div className="space-y-4">
         {results?.answers.map((question: any, index: number) => (
           <ResultQuestionCard
             key={index}
             questionIndex={index}
             totalQuestions={results.totalQuestions}
             isCorrect={question.isCorrect}
-            question={question.question}
+            question={quiz?.content?.[index]?.question || question.question}
             answer={question.answer}
+            answers={quiz?.content?.[index]?.answers || []}
             correctAnswer={results.correctAnswers[index]}
           />
         ))}
