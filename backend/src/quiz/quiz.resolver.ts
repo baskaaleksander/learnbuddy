@@ -103,11 +103,6 @@ export class QuizResolver {
     @Args({ name: 'questionsAndAnswers', type: () => [QuestionAndAnswer] })
     questionsAndAnswers: QuestionAndAnswer[],
   ) {
-    console.log('[registerQuizProgress] called');
-    console.log('quizId:', quizId);
-    console.log('currentQuestionIndex:', currentQuestionIndex);
-    console.log('questionsAndAnswers:', questionsAndAnswers);
-
     const quizPartialInput: QuizPartialInput = {
       currentQuestionIndex,
       questionsAndAnswers,

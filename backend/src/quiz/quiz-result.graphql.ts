@@ -33,6 +33,9 @@ export class QuizResultType {
   @Field(() => Int)
   totalQuestions: number;
 
+  @Field(() => [String])
+  correctAnswers: string[];
+
   @Field(() => [QuizAnswerType])
   answers: QuizAnswerType[];
 

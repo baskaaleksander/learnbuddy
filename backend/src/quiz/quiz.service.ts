@@ -409,6 +409,15 @@ export class QuizService {
 
     const result = results[0];
 
+    const quiz = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .where(and(eq(aiOutputs.id, quizId), eq(aiOutputs.type, 'quiz')));
+
+    const content = quiz[0].content as Quiz[];
+
+    const correctAnswers = content.map((item) => item.correct_answer);
+
     if (
       !result.id ||
       !result.userId ||
@@ -421,7 +430,7 @@ export class QuizService {
       return null;
     }
 
-    return toQuizResultGraphQl(result);
+    return { ...toQuizResultGraphQl(result), correctAnswers };
   }
 
   async getQuizResultsByQuizId(
@@ -453,6 +462,15 @@ export class QuizService {
       };
     }
 
+    const quiz = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .where(and(eq(aiOutputs.id, quizId), eq(aiOutputs.type, 'quiz')));
+
+    const content = quiz[0].content as Quiz[];
+
+    const correctAnswers = content.map((item) => item.correct_answer);
+
     const results = await this.drizzle
       .select()
       .from(quizResults)
@@ -471,7 +489,9 @@ export class QuizService {
       .limit(pageSize)
       .offset((page - 1) * pageSize);
 
-    const data = results.map((result) => toQuizResultGraphQl(result));
+    const data = results.map((result) => {
+      return { ...toQuizResultGraphQl(result), correctAnswers };
+    });
 
     return {
       data,

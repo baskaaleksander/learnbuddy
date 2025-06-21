@@ -101,9 +101,19 @@ export interface QuizResult {
   score: number;
   totalQuestions: number;
   completedAt: Date;
+  correctAnswers: string[];
   answers: Array<{
     question: string;
     answer: string;
     isCorrect: boolean;
   }>;
+}
+
+export interface QuizResultDetails {
+  question: string;
+  answer: string;
+  isCorrect: boolean;
+  correctAnswer: string;
+  questionIndex: number;
+  totalQuestions: number;
 }
