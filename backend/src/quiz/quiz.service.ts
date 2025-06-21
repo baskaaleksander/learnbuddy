@@ -394,6 +394,43 @@ export class QuizService {
     return false;
   }
 
+  async getQuizResultById(id: string, userId: string) {
+    const result = await this.drizzle
+      .select()
+      .from(quizResults)
+      .where(and(eq(quizResults.id, id), eq(quizResults.userId, userId)));
+    if (result.length === 0) {
+      throw new NotFoundException('Quiz result not found');
+    }
+    const quiz = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .where(
+        and(eq(aiOutputs.id, result[0].aiOutputId), eq(aiOutputs.type, 'quiz')),
+      );
+    if (quiz.length === 0) {
+      throw new NotFoundException('Quiz not found');
+    }
+    const content = quiz[0].content as Quiz[];
+    const correctAnswers = content.map((item) => item.correct_answer);
+    if (
+      !result[0].id ||
+      !result[0].userId ||
+      !result[0].materialId ||
+      !result[0].aiOutputId
+    ) {
+      this.logger.error(
+        `Invalid quiz result data for quiz ${id} and user ${userId}`,
+      );
+      return null;
+    }
+
+    return {
+      ...toQuizResultGraphQl(result[0]),
+      correctAnswers,
+    };
+  }
+
   async getQuizResultByQuizId(quizId: string, userId: string) {
     const results = await this.drizzle
       .select()
@@ -466,6 +503,10 @@ export class QuizService {
       .select()
       .from(aiOutputs)
       .where(and(eq(aiOutputs.id, quizId), eq(aiOutputs.type, 'quiz')));
+
+    if (quiz.length === 0) {
+      throw new NotFoundException('Quiz not found');
+    }
 
     const content = quiz[0].content as Quiz[];
 

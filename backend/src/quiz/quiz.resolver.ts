@@ -24,6 +24,15 @@ export class QuizResolver {
 
   @UseGuards(GqlAuthGuard)
   @Query(() => QuizResultType, { nullable: true })
+  async getQuizResultById(
+    @CurrentUser() user: PayloadDto,
+    @Args('id') id: string,
+  ) {
+    return this.quizService.getQuizResultById(id, user.id);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Query(() => QuizResultType, { nullable: true })
   async getQuizResultByQuizId(
     @CurrentUser() user: PayloadDto,
     @Args('id') id: string,
