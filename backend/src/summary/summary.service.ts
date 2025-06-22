@@ -9,7 +9,6 @@ import { db } from 'src/database/drizzle.module';
 import { aiOutputs, materials } from 'src/database/schema';
 import { toAIOutputGraphQL } from 'src/mappers/ai-output.mapper';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
-import { async } from 'rxjs';
 import { toMaterialGraphQL } from '../materials/materials.mapper';
 import { SummaryAiOutputContent } from '../utils/types';
 
@@ -191,26 +190,20 @@ export class SummaryService {
     const summary = await this.drizzle
       .select()
       .from(aiOutputs)
-      .where(and(eq(aiOutputs.id, id)));
+      .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
+      .where(
+        and(
+          eq(aiOutputs.id, id), // Changed from materials.id to aiOutputs.id
+          eq(aiOutputs.type, 'summary'),
+          eq(materials.userId, userId),
+        ),
+      );
 
     if (summary.length === 0) {
       throw new NotFoundException('Summary not found');
     }
 
-    const materialAccess = await this.drizzle
-      .select()
-      .from(materials)
-      .where(
-        and(
-          eq(materials.id, summary[0].materialId),
-          eq(materials.userId, userId),
-        ),
-      );
-    if (materialAccess.length === 0) {
-      throw new UnauthorizedException('Material not found or access denied');
-    }
-
-    await this.drizzle.delete(aiOutputs).where(eq(aiOutputs.id, id));
+    await this.drizzle.delete(aiOutputs).where(eq(aiOutputs.id, id)); // Use the id parameter directly
 
     return true;
   }

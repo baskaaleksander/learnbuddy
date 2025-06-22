@@ -9,6 +9,7 @@ import Link from "next/link";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import { GenerateAssetDialog } from "@/components/generate-asset";
 import { useRouter } from "next/navigation";
+import DeleteAssetDialog from "./delete-asset-dialog";
 
 interface SummaryData {
   id: string;
@@ -73,14 +74,39 @@ function MaterialSummary({
     cost: 2,
   };
 
-  const handleGenerateSummary = () => {
+  const handleGenerateSummary = async () => {
     try {
+      setSubmittingGenerate(true);
+      setError(null);
+      await fetchGraphQL(`
+        mutation CreateSummary {
+            createSummary(materialId: "${id}")
+        }
+      `);
     } catch (error) {
       setError("Failed to generate summary. Please try again later.");
     } finally {
       setSubmittingGenerate(false);
       setGenerateDialogOpen(false);
       router.refresh();
+    }
+  };
+
+  const handleDeleteSummary = async () => {
+    try {
+      setSubmittingDelete(true);
+      setError(null);
+      await fetchGraphQL(`
+        mutation DeleteSummary {
+          deleteSummary(id: "${summary?.id}")
+        }
+      `);
+      router.refresh();
+    } catch (error) {
+      setError("Failed to delete summary. Please try again later.");
+    } finally {
+      setSubmittingDelete(false);
+      setDeleteDialogOpen(false);
     }
   };
 
@@ -176,12 +202,24 @@ function MaterialSummary({
             </div>
 
             <div className="mt-4 pt-4 border-t border-gray-200">
-              <Button asChild variant="outline" className="w-full" size="sm">
+              <Button asChild className="w-full" size="sm">
                 <Link href={`/dashboard/summaries/${summary.id}`}>
                   View Full Summary
                   <ChevronRight className="h-4 w-4 ml-2" />
                 </Link>
               </Button>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <Button variant="outline" size="sm" className="">
+                  Regenerate
+                </Button>
+                <DeleteAssetDialog
+                  isOpen={deleteDialogOpen}
+                  setIsOpenAction={setDeleteDialogOpen}
+                  onDeleteAction={handleDeleteSummary}
+                  submitting={submittingDelete}
+                  name="Summary"
+                />
+              </div>
             </div>
           </div>
         )}
