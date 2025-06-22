@@ -379,6 +379,16 @@ export class QuizService {
     return true;
   }
 
+  async regenerateQuiz(id: string, materialId: string, userId: string) {
+    const quizRemoval = await this.deleteQuiz(id, userId);
+
+    if (!quizRemoval) {
+      return false;
+    }
+
+    return await this.createQuiz(materialId, userId);
+  }
+
   async resetQuizProgress(userId: string, quizId: string) {
     const existingSession = await this.redis.get(
       `quizSession:${userId}:${quizId}`,

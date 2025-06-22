@@ -20,6 +20,9 @@ function MaterialQuiz({ id, className }: { id: string; className?: string }) {
   const [submittingDelete, setSubmittingDelete] = useState(false);
   const [submittingGenerate, setSubmittingGenerate] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [submittingRegenerate, setSubmittingRegenerate] = useState(false);
+  const [regenerateDialogOpen, setRegenerateDialogOpen] =
+    useState<boolean>(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -81,13 +84,41 @@ function MaterialQuiz({ id, className }: { id: string; className?: string }) {
     }
   };
 
+  //FIXME: take a look at this - should be working but not
   const handleRegenerateQuiz = async () => {
-    // Add regenerate logic here
-    console.log("Regenerate quiz");
+    try {
+      setSubmittingRegenerate(true);
+      setError(null);
+      await fetchGraphQL(`
+            mutation RegenerateQuiz {
+              regenerateQuiz(id: "${quizzes?.id}", materialId: "${id}")
+            }
+          `);
+    } catch (error) {
+      setError("Failed to regenerate summary. Please try again later.");
+    } finally {
+      setSubmittingRegenerate(false);
+      setRegenerateDialogOpen(false);
+      router.refresh();
+    }
   };
 
-  const handleGenerateQuiz = () => {
-    console.log("Generate quiz");
+  const handleGenerateQuiz = async () => {
+    try {
+      setSubmittingGenerate(true);
+      setError(null);
+      await fetchGraphQL(`
+            mutation CreateQuiz {
+                createQuiz(materialId: "${id}")
+            }
+          `);
+    } catch (error) {
+      setError("Failed to generate summary. Please try again later.");
+    } finally {
+      setSubmittingGenerate(false);
+      setGenerateDialogOpen(false);
+      router.refresh();
+    }
   };
 
   return (
@@ -236,14 +267,14 @@ function MaterialQuiz({ id, className }: { id: string; className?: string }) {
               </Button>
 
               <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRegenerateQuiz}
-                >
-                  <RefreshCw className="h-4 w-4 mr-1" />
-                  Regenerate
-                </Button>
+                <GenerateAssetDialog
+                  isOpen={regenerateDialogOpen}
+                  setIsOpenAction={setRegenerateDialogOpen}
+                  assetData={assetData}
+                  onGenerateAction={handleRegenerateQuiz}
+                  submitting={submittingRegenerate}
+                  triggerText="Regenerate"
+                />
 
                 <DeleteAssetDialog
                   isOpen={deleteDialogOpen}

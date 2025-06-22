@@ -76,6 +76,15 @@ export class QuizResolver {
     return this.quizService.createQuiz(materialId, user.id);
   }
 
+  @Mutation(() => Boolean)
+  async regenerateQuiz(
+    @Args('id') id: string,
+    @Args('materialId') materialId: string,
+    @CurrentUser() user: PayloadDto,
+  ) {
+    return this.quizService.regenerateQuiz(id, materialId, user.id);
+  }
+
   @UseGuards(GqlAuthGuard)
   @Mutation(() => Boolean)
   async deleteQuiz(@CurrentUser() user: PayloadDto, @Args('id') id: string) {
