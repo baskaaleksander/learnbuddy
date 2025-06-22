@@ -193,7 +193,7 @@ export class SummaryService {
       .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
       .where(
         and(
-          eq(aiOutputs.id, id), // Changed from materials.id to aiOutputs.id
+          eq(aiOutputs.id, id),
           eq(aiOutputs.type, 'summary'),
           eq(materials.userId, userId),
         ),
@@ -203,8 +203,22 @@ export class SummaryService {
       throw new NotFoundException('Summary not found');
     }
 
-    await this.drizzle.delete(aiOutputs).where(eq(aiOutputs.id, id)); // Use the id parameter directly
+    await this.drizzle.delete(aiOutputs).where(eq(aiOutputs.id, id));
 
     return true;
+  }
+
+  async regenerateSummary(
+    id: string,
+    materialId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const removalOfSummary = await this.deleteSummary(id, userId);
+
+    if (!removalOfSummary) {
+      return false;
+    }
+
+    return await this.createSummary(materialId, userId);
   }
 }

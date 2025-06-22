@@ -58,4 +58,14 @@ export class SummaryResolver {
       sortBy,
     );
   }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Boolean)
+  async regenerateSummary(
+    @Args('id') id: string,
+    @Args('materialId') materialId: string,
+    @CurrentUser() user: PayloadDto,
+  ) {
+    return this.summaryService.regenerateSummary(id, materialId, user.id);
+  }
 }

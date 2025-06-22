@@ -31,12 +31,14 @@ export function GenerateAssetDialog({
   setIsOpenAction,
   assetData,
   submitting,
+  triggerText = "Generate",
 }: {
   onGenerateAction: () => void;
   isOpen: boolean;
   setIsOpenAction: (open: boolean) => void;
   assetData: AssetData;
   submitting: boolean;
+  triggerText?: string;
 }) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
@@ -47,17 +49,17 @@ export function GenerateAssetDialog({
           {submitting ? (
             <Button disabled={true} variant="outline">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Generate {assetData.title.toLowerCase()}
+              {triggerText}
             </Button>
           ) : (
-            <Button variant="outline">
-              Generate {assetData.title.toLowerCase()}
-            </Button>
+            <Button variant="outline">{triggerText}</Button>
           )}
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Generate {assetData.title.toLowerCase()}</DialogTitle>
+            <DialogTitle>
+              {triggerText} {assetData.title.toLowerCase()}
+            </DialogTitle>
             <DialogDescription>
               {assetData.description}, it will cost you {assetData.cost}{" "}
               <Coins className="w-4 h-4 text-yellow-500 inline" /> unless you
@@ -65,7 +67,7 @@ export function GenerateAssetDialog({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={onGenerateAction}>Generate</Button>
+            <Button onClick={onGenerateAction}>{triggerText}</Button>
             <DialogTrigger asChild>
               <Button variant="outline">Cancel</Button>
             </DialogTrigger>
@@ -95,11 +97,11 @@ export function GenerateAssetDialog({
           {submitting ? (
             <Button disabled={true} variant="outline">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Generate {assetData.title.toLowerCase()}
+              {triggerText} {assetData.title.toLowerCase()}
             </Button>
           ) : (
-            <Button variant="outline">
-              Generate {assetData.title.toLowerCase()}
+            <Button variant="outline" onClick={onGenerateAction}>
+              {triggerText} {assetData.title.toLowerCase()}
             </Button>
           )}
           <DrawerClose asChild>

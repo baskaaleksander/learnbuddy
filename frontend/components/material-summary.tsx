@@ -37,6 +37,9 @@ function MaterialSummary({
   const [submittingDelete, setSubmittingDelete] = useState(false);
   const [submittingGenerate, setSubmittingGenerate] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [submittingRegenerate, setSubmittingRegenerate] = useState(false);
+  const [regenerateDialogOpen, setRegenerateDialogOpen] =
+    useState<boolean>(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -107,6 +110,24 @@ function MaterialSummary({
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleRegenerateSummary = async () => {
+    try {
+      setSubmittingRegenerate(true);
+      setError(null);
+      await fetchGraphQL(`
+        mutation RegenerateSummary {
+          regenerateSummary(id: "${summary?.id}", materialId: "${id}")
+        }
+      `);
+    } catch (error) {
+      setError("Failed to regenerate summary. Please try again later.");
+    } finally {
+      setSubmittingRegenerate(false);
+      setRegenerateDialogOpen(false);
+      router.refresh();
     }
   };
 
@@ -209,9 +230,14 @@ function MaterialSummary({
                 </Link>
               </Button>
               <div className="grid grid-cols-2 gap-2 mt-2">
-                <Button variant="outline" size="sm" className="">
-                  Regenerate
-                </Button>
+                <GenerateAssetDialog
+                  isOpen={regenerateDialogOpen}
+                  setIsOpenAction={setRegenerateDialogOpen}
+                  assetData={assetData}
+                  onGenerateAction={handleRegenerateSummary}
+                  submitting={submittingRegenerate}
+                  triggerText="Regenerate"
+                />
                 <DeleteAssetDialog
                   isOpen={deleteDialogOpen}
                   setIsOpenAction={setDeleteDialogOpen}
