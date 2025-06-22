@@ -4,7 +4,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
 import {
   aiOutputs,
@@ -286,44 +286,72 @@ export class FlashcardsService {
   }
 
   async deleteFlashcards(id: string, userId: string) {
-    const materialAccess = await this.drizzle
-      .select()
-      .from(materials)
-      .where(and(eq(materials.id, id), eq(materials.userId, userId)));
-
-    if (materialAccess.length === 0) {
-      throw new UnauthorizedException('Material not found or access denied');
-    }
-
     const aiOutput = await this.drizzle
       .select()
       .from(aiOutputs)
-      .where(and(eq(aiOutputs.id, id), eq(aiOutputs.type, 'flashcards')));
+      .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
+      .where(
+        and(
+          eq(aiOutputs.id, id),
+          eq(aiOutputs.type, 'flashcards'),
+          eq(materials.userId, userId),
+        ),
+      );
 
     if (aiOutput.length === 0) {
-      throw new NotFoundException('No flashcards found for this material');
+      const materialAccess = await this.drizzle
+        .select()
+        .from(materials)
+        .where(and(eq(materials.id, id), eq(materials.userId, userId)));
+
+      if (materialAccess.length === 0) {
+        throw new UnauthorizedException('Material not found or access denied');
+      }
+
+      const aiOutputByMaterial = await this.drizzle
+        .select()
+        .from(aiOutputs)
+        .where(
+          and(eq(aiOutputs.materialId, id), eq(aiOutputs.type, 'flashcards')),
+        );
+
+      if (aiOutputByMaterial.length === 0) {
+        throw new NotFoundException('No flashcards found for this material');
+      }
+
+      const targetAiOutputId = aiOutputByMaterial[0].id;
+      await this.deleteFlashcardsByAiOutputId(targetAiOutputId);
+    } else {
+      const targetAiOutputId = aiOutput[0].ai_outputs.id;
+      await this.deleteFlashcardsByAiOutputId(targetAiOutputId);
     }
 
+    return true;
+  }
+
+  private async deleteFlashcardsByAiOutputId(aiOutputId: string) {
     const flashcardsToDelete = await this.drizzle
       .select()
       .from(flashcards)
-      .where(eq(flashcards.aiOutputId, aiOutput[0].id));
+      .where(eq(flashcards.aiOutputId, aiOutputId));
 
     if (flashcardsToDelete.length === 0) {
       throw new NotFoundException('No flashcards found for this AI output');
     }
 
+    const flashcardIds = flashcardsToDelete.map((f) => f.id);
+
+    if (flashcardIds.length > 0) {
+      await this.drizzle
+        .delete(flashcardProgress)
+        .where(inArray(flashcardProgress.flashcardId, flashcardIds));
+    }
+
     await this.drizzle
       .delete(flashcards)
-      .where(eq(flashcards.aiOutputId, aiOutput[0].id));
-    await this.drizzle
-      .delete(aiOutputs)
-      .where(eq(aiOutputs.id, aiOutput[0].id));
-    await this.drizzle
-      .delete(flashcardProgress)
-      .where(eq(flashcardProgress.flashcardId, flashcardsToDelete[0].id));
+      .where(eq(flashcards.aiOutputId, aiOutputId));
 
-    return true;
+    await this.drizzle.delete(aiOutputs).where(eq(aiOutputs.id, aiOutputId));
   }
 
   async updateFlashcardStatus(

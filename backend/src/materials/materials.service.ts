@@ -6,7 +6,14 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { db } from 'src/database/drizzle.module';
-import { aiOutputs, materials } from 'src/database/schema';
+import {
+  aiOutputs,
+  flashcardProgress,
+  flashcards,
+  materials,
+  quizPartials,
+  quizResults,
+} from 'src/database/schema';
 import { toMaterialGraphQL } from './materials.mapper';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { CreateMaterialInput } from './dtos/create-material.input';
@@ -170,6 +177,40 @@ export class MaterialsService {
         'You do not have permission to delete this material',
       );
     }
+
+    const relatedAiOutputs = await this.drizzle
+      .select({ id: aiOutputs.id })
+      .from(aiOutputs)
+      .where(eq(aiOutputs.materialId, id));
+
+    const aiOutputIds = relatedAiOutputs.map((output) => output.id);
+
+    if (aiOutputIds.length > 0) {
+      await this.drizzle.delete(flashcardProgress).where(
+        sql`${flashcardProgress.flashcardId} IN (
+          SELECT ${flashcards.id} FROM ${flashcards} 
+          WHERE ${flashcards.aiOutputId} = ANY(${aiOutputIds})
+        )`,
+      );
+
+      await this.drizzle
+        .delete(flashcards)
+        .where(sql`${flashcards.aiOutputId} = ANY(${aiOutputIds})`);
+
+      await this.drizzle
+        .delete(quizResults)
+        .where(sql`${quizResults.aiOutputId} = ANY(${aiOutputIds})`);
+
+      await this.drizzle
+        .delete(quizPartials)
+        .where(sql`${quizPartials.quizId} = ANY(${aiOutputIds})`);
+
+      await this.drizzle.delete(aiOutputs).where(eq(aiOutputs.materialId, id));
+    }
+
+    await this.drizzle
+      .delete(quizResults)
+      .where(eq(quizResults.materialId, id));
 
     await this.drizzle.delete(materials).where(eq(materials.id, id));
 

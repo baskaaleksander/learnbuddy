@@ -346,7 +346,35 @@ export class QuizService {
       throw new UnauthorizedException('Material not found or access denied');
     }
 
+    await this.drizzle
+      .delete(quizResults)
+      .where(eq(quizResults.aiOutputId, id));
+
+    await this.drizzle.delete(quizPartials).where(eq(quizPartials.quizId, id));
+
+    // const pattern = `quizSession:*:${id}`;
+    // try {
+    //   const keys = await this.redis.get(pattern);
+    //   if (keys.length > 0) {
+    //     for (const key of keys) {
+    //       await this.redis.delete(key);
+    //     }
+    //     this.logger.log(
+    //       `[QuizDeletion] Deleted ${keys.length} Redis sessions for quiz ${id}`,
+    //     );
+    //   }
+    // } catch (error) {
+    //   this.logger.warn(
+    //     `[QuizDeletion] Failed to delete Redis sessions for quiz ${id}:`,
+    //     error,
+    //   );
+    // }
+
     await this.drizzle.delete(aiOutputs).where(eq(aiOutputs.id, id));
+
+    this.logger.log(
+      `[QuizDeletion] Successfully deleted quiz ${id} and all related data`,
+    );
 
     return true;
   }

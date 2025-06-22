@@ -1,46 +1,43 @@
-import { Field, ObjectType, registerEnumType } from "@nestjs/graphql";
+import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 export enum FlashcardProgressStatus {
-    known = 'known',
-    review = 'review'
+  known = 'known',
+  review = 'review',
 }
 
 registerEnumType(FlashcardProgressStatus, {
-    name: 'FlashcardProgressStatus',
-}); 
+  name: 'FlashcardProgressStatus',
+});
 
-ObjectType()
+ObjectType();
 export class FlashcardProgressType {
+  @Field()
+  id: string;
 
-    @Field()
-    id: string;
+  @Field()
+  userId: string;
 
-    @Field()
-    userId: string;
+  @Field()
+  flashcardId: string;
 
-    @Field()
-    flashcardId: string;
+  @Field(() => FlashcardProgressStatus)
+  status: FlashcardProgressStatus;
 
-    @Field(() => FlashcardProgressStatus)
-    status: FlashcardProgressStatus;
-
-    @Field()
-    updatedAt: Date;
-
+  @Field()
+  updatedAt: Date;
 }
 
 @ObjectType()
 export class FlashcardStats {
+  @Field()
+  total: number;
 
-    @Field()
-    total: number;
+  @Field()
+  known: number;
 
-    @Field()
-    known: number;
+  @Field()
+  review: number;
 
-    @Field()
-    review: number;
-
-    @Field()
-    lastUpdated: Date;
+  @Field()
+  lastUpdated: Date;
 }
