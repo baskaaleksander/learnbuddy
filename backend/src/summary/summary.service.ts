@@ -163,6 +163,20 @@ export class SummaryService {
       throw new UnauthorizedException('Material not found or access denied');
     }
 
+    const existingSummary = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .where(
+        and(
+          eq(aiOutputs.materialId, materialId),
+          eq(aiOutputs.type, 'summary'),
+        ),
+      );
+
+    if (existingSummary.length > 0) {
+      throw new Error('Summary already exists for this material');
+    }
+
     // const pdfContent = await parsePublicPdfFromS3(material[0].content);
 
     // if (!pdfContent) {

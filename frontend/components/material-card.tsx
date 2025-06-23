@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import { Calendar, File, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "./ui/card";
@@ -10,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import DeleteAssetDialog from "./delete-asset-dialog";
 
 interface MaterialCardProps {
   title: string;
@@ -31,7 +33,10 @@ function MaterialCard({
   onEdit,
 }: MaterialCardProps) {
   const statusLower = status.toLowerCase();
+  const [submittingDelete, setSubmittingDelete] = useState<boolean>(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
+  const handleDeleteMaterial = async () => {};
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as Element).closest(".dropdown-trigger")) {
       e.preventDefault();
@@ -85,15 +90,24 @@ function MaterialCard({
               >
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete?.();
-                }}
-              >
-                Delete
-              </DropdownMenuItem>
+              {/*FIXME: something is wrong with the dialog it opens for a second and closes*/}
+              <DeleteAssetDialog
+                isOpen={deleteDialogOpen}
+                setIsOpenAction={setDeleteDialogOpen}
+                onDeleteAction={handleDeleteMaterial}
+                submitting={submittingDelete}
+                name={title}
+                trigger={
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                }
+              />
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>

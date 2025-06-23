@@ -302,6 +302,17 @@ export class QuizService {
       throw new UnauthorizedException('Material not found or access denied');
     }
 
+    const existingQuiz = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .where(
+        and(eq(aiOutputs.materialId, materialId), eq(aiOutputs.type, 'quiz')),
+      );
+
+    if (existingQuiz.length > 0) {
+      throw new Error('Quiz already exists for this material');
+    }
+
     // const pdfContent = await parsePublicPdfFromS3(material[0].content);
 
     // if (!pdfContent) {
