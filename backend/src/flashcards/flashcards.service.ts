@@ -272,6 +272,32 @@ export class FlashcardsService {
     return true;
   }
 
+  async regenerateFlashcards(
+    materialId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const flashcards = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .where(
+        and(
+          eq(aiOutputs.materialId, materialId),
+          eq(aiOutputs.type, 'flashcards'),
+        ),
+      );
+
+    const removalOfFlashcards = await this.deleteFlashcards(
+      flashcards[0].id,
+      userId,
+    );
+
+    if (!removalOfFlashcards) {
+      return false;
+    }
+
+    return await this.createFlashcards(materialId, userId);
+  }
+
   async getFlashcardById(id: string, userId: string) {
     const flashcard = await this.drizzle
       .select()

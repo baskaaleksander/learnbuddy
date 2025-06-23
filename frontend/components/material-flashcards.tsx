@@ -21,9 +21,11 @@ import DeleteAssetDialog from "./delete-asset-dialog";
 function MaterialFlashcards({
   id,
   className,
+  setSuccessMessage,
 }: {
   id: string;
   className?: string;
+  setSuccessMessage: (message: string | null) => void;
 }) {
   const [flashcardsStats, setFlashcardsStats] = useState<any>();
   const [loading, setLoading] = useState(true);
@@ -32,8 +34,10 @@ function MaterialFlashcards({
   const [submittingDelete, setSubmittingDelete] = useState(false);
   const [submittingGenerate, setSubmittingGenerate] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [submittingRegenerate, setSubmittingRegenerate] = useState(false);
+  const [regenerateDialogOpen, setRegenerateDialogOpen] =
+    useState<boolean>(false);
   const router = useRouter();
-
   useEffect(() => {
     const fetchQuizData = async () => {
       try {
@@ -94,8 +98,21 @@ function MaterialFlashcards({
   };
 
   const handleRegenerateFlashcards = async () => {
-    // Add regenerate logic here
-    console.log("Regenerate flashcards");
+    try {
+      setSubmittingRegenerate(true);
+      setError(null);
+      await fetchGraphQL(`
+                mutation RegenerateFlashcards {
+                  regenerateFlashcards(materialId: "${id}")
+                }
+              `);
+    } catch (error) {
+      setError("Failed to regenerate summary. Please try again later.");
+    } finally {
+      setSubmittingRegenerate(false);
+      setRegenerateDialogOpen(false);
+      router.refresh();
+    }
   };
 
   const handleGenerateDialog = async () => {
@@ -227,14 +244,14 @@ function MaterialFlashcards({
               </Button>
 
               <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRegenerateFlashcards}
-                >
-                  <RefreshCw className="h-4 w-4 mr-1" />
-                  Regenerate
-                </Button>
+                <GenerateAssetDialog
+                  isOpen={regenerateDialogOpen}
+                  setIsOpenAction={setRegenerateDialogOpen}
+                  assetData={assetData}
+                  onGenerateAction={handleRegenerateFlashcards}
+                  submitting={submittingRegenerate}
+                  triggerText="Regenerate"
+                />
 
                 <DeleteAssetDialog
                   isOpen={deleteDialogOpen}

@@ -76,6 +76,7 @@ export class QuizResolver {
     return this.quizService.createQuiz(materialId, user.id);
   }
 
+  @UseGuards(GqlAuthGuard)
   @Mutation(() => Boolean)
   async regenerateQuiz(
     @Args('id') id: string,

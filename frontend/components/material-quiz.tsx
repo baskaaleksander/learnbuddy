@@ -12,7 +12,15 @@ import { GenerateAssetDialog } from "@/components/generate-asset";
 import DeleteAssetDialog from "./delete-asset-dialog";
 import { useRouter } from "next/navigation";
 
-function MaterialQuiz({ id, className }: { id: string; className?: string }) {
+function MaterialQuiz({
+  id,
+  className,
+  setSuccessMessage,
+}: {
+  id: string;
+  className?: string;
+  setSuccessMessage: (message: string | null) => void;
+}) {
   const [quizzes, setQuizzes] = useState<any>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +66,7 @@ function MaterialQuiz({ id, className }: { id: string; className?: string }) {
     };
 
     fetchQuizData();
-  }, [id]);
+  }, [id, quizzes?.id]);
 
   const assetData = {
     title: "Quiz",
@@ -66,6 +74,7 @@ function MaterialQuiz({ id, className }: { id: string; className?: string }) {
     cost: 2,
   };
 
+  //FIXME: not working
   const handleDeleteQuiz = async () => {
     try {
       setSubmittingDelete(true);
@@ -80,11 +89,11 @@ function MaterialQuiz({ id, className }: { id: string; className?: string }) {
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);
-      router.push("/dashboard/materials");
+      setQuizzes(null);
+      setSuccessMessage("Quiz deleted successfully.");
     }
   };
 
-  //FIXME: take a look at this - should be working but not
   const handleRegenerateQuiz = async () => {
     try {
       setSubmittingRegenerate(true);
@@ -99,7 +108,8 @@ function MaterialQuiz({ id, className }: { id: string; className?: string }) {
     } finally {
       setSubmittingRegenerate(false);
       setRegenerateDialogOpen(false);
-      router.refresh();
+      setSuccessMessage("Quiz regenerated successfully.");
+      setQuizzes(null);
     }
   };
 
@@ -117,7 +127,8 @@ function MaterialQuiz({ id, className }: { id: string; className?: string }) {
     } finally {
       setSubmittingGenerate(false);
       setGenerateDialogOpen(false);
-      router.refresh();
+      setSuccessMessage("Quiz generated successfully.");
+      setQuizzes(null);
     }
   };
 

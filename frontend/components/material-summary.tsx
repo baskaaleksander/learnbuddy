@@ -26,9 +26,11 @@ interface SummaryData {
 function MaterialSummary({
   id,
   className,
+  setSuccessMessage,
 }: {
   id: string;
   className?: string;
+  setSuccessMessage: (message: string | null) => void;
 }) {
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);

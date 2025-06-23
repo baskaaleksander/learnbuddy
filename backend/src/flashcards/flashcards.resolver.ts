@@ -10,7 +10,6 @@ import {
   FlashcardStats,
 } from './flashcard-progress.graphql';
 import {
-  FlashcardsWithStatsType,
   FlashcardType,
   PaginatedFlashcardsWithStatsResponse,
 } from './flashcard.graphql';
@@ -61,6 +60,15 @@ export class FlashcardsResolver {
     @CurrentUser() user: PayloadDto,
   ) {
     return this.flashcardsService.createFlashcards(materialId, user.id);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Boolean)
+  async regenerateFlashcards(
+    @Args('materialId') materialId: string,
+    @CurrentUser() user: PayloadDto,
+  ) {
+    return this.flashcardsService.regenerateFlashcards(materialId, user.id);
   }
 
   @UseGuards(GqlAuthGuard)
