@@ -62,10 +62,9 @@ export class SummaryResolver {
   @UseGuards(GqlAuthGuard)
   @Mutation(() => Boolean)
   async regenerateSummary(
-    @Args('id') id: string,
     @Args('materialId') materialId: string,
     @CurrentUser() user: PayloadDto,
   ) {
-    return this.summaryService.regenerateSummary(id, materialId, user.id);
+    return this.summaryService.regenerateSummary(materialId, user.id);
   }
 }

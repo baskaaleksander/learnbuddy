@@ -79,11 +79,10 @@ export class QuizResolver {
   @UseGuards(GqlAuthGuard)
   @Mutation(() => Boolean)
   async regenerateQuiz(
-    @Args('id') id: string,
     @Args('materialId') materialId: string,
     @CurrentUser() user: PayloadDto,
   ) {
-    return this.quizService.regenerateQuiz(id, materialId, user.id);
+    return this.quizService.regenerateQuiz(materialId, user.id);
   }
 
   @UseGuards(GqlAuthGuard)

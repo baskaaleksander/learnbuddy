@@ -74,7 +74,6 @@ function MaterialQuiz({
     cost: 2,
   };
 
-  //FIXME: not working
   const handleDeleteQuiz = async () => {
     try {
       setSubmittingDelete(true);
@@ -100,7 +99,7 @@ function MaterialQuiz({
       setError(null);
       await fetchGraphQL(`
             mutation RegenerateQuiz {
-              regenerateQuiz(id: "${quizzes?.id}", materialId: "${id}")
+              regenerateQuiz(materialId: "${id}")
             }
           `);
     } catch (error) {

@@ -121,7 +121,7 @@ function MaterialSummary({
       setError(null);
       await fetchGraphQL(`
         mutation RegenerateSummary {
-          regenerateSummary(id: "${summary?.id}", materialId: "${id}")
+          regenerateSummary(materialId: "${id}")
         }
       `);
     } catch (error) {

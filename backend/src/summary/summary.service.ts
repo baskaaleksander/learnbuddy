@@ -209,11 +209,24 @@ export class SummaryService {
   }
 
   async regenerateSummary(
-    id: string,
     materialId: string,
     userId: string,
   ): Promise<boolean> {
-    const removalOfSummary = await this.deleteSummary(id, userId);
+    const summary = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .where(
+        and(
+          eq(aiOutputs.materialId, materialId),
+          eq(aiOutputs.type, 'summary'),
+        ),
+      );
+
+    if (summary.length === 0) {
+      throw new NotFoundException('Summary not found');
+    }
+
+    const removalOfSummary = await this.deleteSummary(summary[0].id, userId);
 
     if (!removalOfSummary) {
       return false;

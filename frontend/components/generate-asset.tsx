@@ -80,9 +80,7 @@ export function GenerateAssetDialog({
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpenAction}>
       <DrawerTrigger asChild>
-        <Button variant="outline">
-          Generate {assetData.title.toLowerCase()}
-        </Button>
+        <Button variant="outline">{triggerText}</Button>
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="text-left">

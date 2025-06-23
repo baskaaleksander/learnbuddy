@@ -329,7 +329,7 @@ export class QuizService {
     const quiz = await this.drizzle
       .select()
       .from(aiOutputs)
-      .where(eq(aiOutputs.id, id));
+      .where(and(eq(aiOutputs.materialId, id), eq(aiOutputs.type, 'quiz')));
 
     if (quiz.length === 0) {
       throw new NotFoundException('Quiz not found');
@@ -338,9 +338,7 @@ export class QuizService {
     const materialAccess = await this.drizzle
       .select()
       .from(materials)
-      .where(
-        and(eq(materials.id, quiz[0].materialId), eq(materials.userId, userId)),
-      );
+      .where(and(eq(materials.id, id), eq(materials.userId, userId)));
 
     if (materialAccess.length === 0) {
       throw new UnauthorizedException('Material not found or access denied');
@@ -348,29 +346,24 @@ export class QuizService {
 
     await this.drizzle
       .delete(quizResults)
-      .where(eq(quizResults.aiOutputId, id));
+      .where(eq(quizResults.aiOutputId, quiz[0].id));
 
-    await this.drizzle.delete(quizPartials).where(eq(quizPartials.quizId, id));
+    await this.drizzle
+      .delete(quizPartials)
+      .where(eq(quizPartials.quizId, quiz[0].id));
 
-    // const pattern = `quizSession:*:${id}`;
-    // try {
-    //   const keys = await this.redis.get(pattern);
-    //   if (keys.length > 0) {
-    //     for (const key of keys) {
-    //       await this.redis.delete(key);
-    //     }
-    //     this.logger.log(
-    //       `[QuizDeletion] Deleted ${keys.length} Redis sessions for quiz ${id}`,
-    //     );
-    //   }
-    // } catch (error) {
-    //   this.logger.warn(
-    //     `[QuizDeletion] Failed to delete Redis sessions for quiz ${id}:`,
-    //     error,
-    //   );
-    // }
+    try {
+      await this.redis.delete(`quizSession:${userId}:${quiz[0].id}`);
+      this.logger.log(
+        `[QuizDeletion] Deleted quiz session for user ${userId} and quiz ${quiz[0].id}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `[QuizDeletion] Failed to delete quiz session for user ${userId} and quiz ${quiz[0].id}: ${error}`,
+      );
+    }
 
-    await this.drizzle.delete(aiOutputs).where(eq(aiOutputs.id, id));
+    await this.drizzle.delete(aiOutputs).where(eq(aiOutputs.id, quiz[0].id));
 
     this.logger.log(
       `[QuizDeletion] Successfully deleted quiz ${id} and all related data`,
@@ -379,8 +372,8 @@ export class QuizService {
     return true;
   }
 
-  async regenerateQuiz(id: string, materialId: string, userId: string) {
-    const quizRemoval = await this.deleteQuiz(id, userId);
+  async regenerateQuiz(materialId: string, userId: string) {
+    const quizRemoval = await this.deleteQuiz(materialId, userId);
 
     if (!quizRemoval) {
       return false;
