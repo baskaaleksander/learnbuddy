@@ -6,7 +6,14 @@ import { Card, CardContent, CardHeader } from "./ui/card";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { RefreshCw, Play, Trophy, Target, Clock } from "lucide-react";
+import {
+  RefreshCw,
+  Play,
+  Trophy,
+  Target,
+  Clock,
+  ArrowRight,
+} from "lucide-react";
 import Link from "next/link";
 import { GenerateAssetDialog } from "@/components/generate-asset";
 import DeleteAssetDialog from "./delete-asset-dialog";
@@ -249,18 +256,27 @@ function MaterialQuiz({
               </div>
               <div className="flex items-center gap-2">
                 {quizzes.latestResult ? (
-                  <Badge
-                    variant={
-                      quizzes?.averageScore >= 8
-                        ? "default"
-                        : quizzes?.averageScore >= 6
-                        ? "secondary"
-                        : "destructive"
-                    }
-                    className="text-xs"
-                  >
-                    {quizzes?.latestResult?.score.toFixed(1)}/10
-                  </Badge>
+                  <div className="flex items-end justify-between w-full">
+                    <Badge
+                      variant={
+                        quizzes?.averageScore >= 8
+                          ? "default"
+                          : quizzes?.averageScore >= 6
+                          ? "secondary"
+                          : "destructive"
+                      }
+                      className="text-xs"
+                    >
+                      {quizzes?.latestResult?.score.toFixed(1)}/10
+                    </Badge>
+                    <Link
+                      href={`/dashboard/quizzes/${quizzes?.id}/results/`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      View all results
+                      <ArrowRight className="inline h-3 w-3 ml-1" />
+                    </Link>
+                  </div>
                 ) : (
                   <p className="text-xs text-gray-500">
                     Take your first try now!

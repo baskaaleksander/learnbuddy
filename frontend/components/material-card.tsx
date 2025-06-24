@@ -1,4 +1,3 @@
-"use client";
 import React, { useState } from "react";
 import { Calendar, File, MoreVertical, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,6 +18,7 @@ interface MaterialCardProps {
   status: "PROCESSED" | "FAILED" | "PENDING";
   id: string;
   description?: string;
+  createdAt: string;
   className?: string;
   onDelete?: () => void;
   onEdit?: () => void;
@@ -31,9 +31,9 @@ function MaterialCard({
   className,
   description,
   onDelete,
+  createdAt,
   onEdit,
 }: MaterialCardProps) {
-  const statusLower = status.toLowerCase();
   const [submittingDelete, setSubmittingDelete] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
@@ -44,7 +44,7 @@ function MaterialCard({
   };
 
   const handleOpenDeleteDialog = () => {
-    setDropdownOpen(false); // Close dropdown first
+    setDropdownOpen(false);
     setDeleteDialogOpen(true);
   };
 
@@ -58,80 +58,94 @@ function MaterialCard({
 
   return (
     <>
-      <Card
-        className={cn(
-          "flex h-full flex-col shadow-sm hover:shadow-md transition-all hover:border-primary/50 border-gray-200 dark:border-gray-800",
-          status !== "PROCESSED" &&
-            "border-red-500 bg-red-50 dark:bg-red-950/20 hover:border-red-400",
-          className
-        )}
+      <Link
+        href={
+          status === "PENDING"
+            ? `/dashboard/materials/upload/${id}`
+            : `/dashboard/materials/${id}`
+        }
       >
-        <DeleteAssetDialog
-          isOpen={deleteDialogOpen}
-          setIsOpenAction={setDeleteDialogOpen}
-          onDeleteAction={handleDeleteMaterial}
-          submitting={submittingDelete}
-          name={title}
-        />
-        <CardHeader className="pb-2 flex flex-row items-start justify-between">
-          <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
-              <File size={20} />
-            </div>
-            <div className="flex flex-col flex-1">
-              <h3 className="font-medium text-base line-clamp-2">{title}</h3>
-              <p className="text-sm md:text-base text-gray-400">
-                {description}
-              </p>
-              {status !== "PROCESSED" && (
-                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                  {status === "PENDING" ? "Processing..." : "Processing failed"}
+        <Card
+          className={cn(
+            "flex h-full flex-col shadow-sm hover:shadow-md transition-all hover:border-primary/50 border-gray-200 dark:border-gray-800 group",
+            status !== "PROCESSED" &&
+              "border-red-500 bg-red-50 dark:bg-red-950/20 hover:border-red-400",
+            className
+          )}
+        >
+          <CardHeader className="pb-2 flex flex-row items-start justify-between">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <File size={20} />
+              </div>
+              <div className="flex flex-col flex-1">
+                <h3 className="font-medium text-base line-clamp-2">{title}</h3>
+                <p className="text-sm md:text-base text-gray-400">
+                  {description}
                 </p>
-              )}
+                {status !== "PROCESSED" && (
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                    {status === "PENDING"
+                      ? "Processing..."
+                      : "Processing failed"}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
 
-          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-            <DropdownMenuTrigger asChild className="dropdown-trigger">
-              <button className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                <MoreVertical size={18} className="text-gray-500" />
-                <span className="sr-only">Open menu</span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={handleOpenDeleteDialog}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </CardHeader>
+            <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+              <DropdownMenuTrigger asChild className="dropdown-trigger">
+                <button className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                  <MoreVertical size={18} className="text-gray-500" />
+                  <span className="sr-only">Open menu</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleOpenDeleteDialog();
+                  }}
+                >
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CardHeader>
 
-        <CardContent className="py-2 mt-auto flex items-end justify-between">
-          <div className="flex items-center justify-between w-full">
-            <span className="text-xs text-gray-500 flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              Created{" "}
-              {new Date().toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })}
-            </span>
-          </div>
+          <CardContent className="py-2 mt-auto flex items-end justify-between">
+            <div className="flex items-center justify-between w-full">
+              <span className="text-xs text-gray-500 flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                Created{" "}
+                {new Date(createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </span>
+            </div>
 
-          <button
-            onClick={handleNavigate}
-            className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors mt-3 ml-auto"
-          >
-            {status !== "PROCESSED" ? "Review" : "View material"}
-            <ArrowRight size={16} />
-          </button>
-        </CardContent>
-      </Card>
+            <button
+              onClick={handleNavigate}
+              className="flex items-center gap-1 text-xs text-muted-foreground mt-3 ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            >
+              {status !== "PROCESSED" ? "Review" : "View material"}
+              <ArrowRight size={16} />
+            </button>
+          </CardContent>
+        </Card>
+      </Link>
+      <DeleteAssetDialog
+        isOpen={deleteDialogOpen}
+        setIsOpenAction={setDeleteDialogOpen}
+        onDeleteAction={handleDeleteMaterial}
+        submitting={submittingDelete}
+        name={title}
+      />
     </>
   );
 }
