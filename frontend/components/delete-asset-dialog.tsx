@@ -28,21 +28,19 @@ function DeleteAssetDialog({
   setIsOpenAction,
   submitting,
   name,
-  trigger,
 }: {
   onDeleteAction: () => void;
   isOpen: boolean;
   setIsOpenAction: (open: boolean) => void;
   submitting: boolean;
   name: string;
-  trigger?: React.ReactNode;
 }) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   if (isDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpenAction}>
-        <DialogTrigger asChild>
+        {/* <DialogTrigger asChild>
           {trigger ? (
             trigger
           ) : (
@@ -50,7 +48,7 @@ function DeleteAssetDialog({
               Delete
             </Button>
           )}
-        </DialogTrigger>
+        </DialogTrigger> */}
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Delete {name.toLowerCase()}</DialogTitle>
@@ -82,13 +80,13 @@ function DeleteAssetDialog({
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpenAction}>
       <DrawerTrigger asChild>
-        {trigger ? (
+        {/* {trigger ? (
           trigger
         ) : (
           <Button size="sm" variant="destructive">
             Delete
           </Button>
-        )}
+        )} */}
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="text-left">

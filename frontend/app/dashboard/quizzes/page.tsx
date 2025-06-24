@@ -114,8 +114,8 @@ function QuizzesPage() {
       </div>
 
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center w-full">
+          <div className="flex flex-col sm:flex-row gap-4 items-center w-full">
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
               <Select value={sortBy} onValueChange={setSortBy}>

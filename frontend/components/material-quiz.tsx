@@ -165,6 +165,7 @@ function MaterialQuiz({
             {/*<Button variant='outline' size="sm">*/}
             {/*    Generate quiz*/}
             {/*</Button>*/}
+
             <GenerateAssetDialog
               isOpen={generateDialogOpen}
               setIsOpenAction={setGenerateDialogOpen}
@@ -285,7 +286,13 @@ function MaterialQuiz({
                   submitting={submittingRegenerate}
                   triggerText="Regenerate"
                 />
-
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  Delete
+                </Button>
                 <DeleteAssetDialog
                   isOpen={deleteDialogOpen}
                   setIsOpenAction={setDeleteDialogOpen}

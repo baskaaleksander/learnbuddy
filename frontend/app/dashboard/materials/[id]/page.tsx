@@ -160,6 +160,13 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
             submitting={submitting}
             name="Material"
           />
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => setDeleteModalOpen(true)}
+          >
+            Delete
+          </Button>
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Calendar, File, MoreVertical } from "lucide-react";
+import { Calendar, File, MoreVertical, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import Link from "next/link";
@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import DeleteAssetDialog from "./delete-asset-dialog";
+import { useRouter } from "next/navigation";
 
 interface MaterialCardProps {
   title: string;
@@ -35,29 +36,43 @@ function MaterialCard({
   const statusLower = status.toLowerCase();
   const [submittingDelete, setSubmittingDelete] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
+  const router = useRouter();
 
-  const handleDeleteMaterial = async () => {};
-  const handleCardClick = (e: React.MouseEvent) => {
-    if ((e.target as Element).closest(".dropdown-trigger")) {
-      e.preventDefault();
-    }
+  const handleDeleteMaterial = async () => {
+    setDeleteDialogOpen(false);
+  };
+
+  const handleOpenDeleteDialog = () => {
+    setDropdownOpen(false); // Close dropdown first
+    setDeleteDialogOpen(true);
+  };
+
+  const handleNavigate = () => {
+    router.push(
+      status === "PENDING"
+        ? `/dashboard/materials/upload/${id}`
+        : `/dashboard/materials/${id}`
+    );
   };
 
   return (
-    <Link
-      href={
-        status == "PENDING"
-          ? `/dashboard/materials/upload/${id}`
-          : `/dashboard/materials/${id}`
-      }
-      onClick={handleCardClick}
-    >
+    <>
       <Card
         className={cn(
-          "flex h-full flex-col shadow-sm hover:shadow-md transition-all hover:border-primary/50 border-gray-200 dark:border-gray-800 cursor-pointer",
+          "flex h-full flex-col shadow-sm hover:shadow-md transition-all hover:border-primary/50 border-gray-200 dark:border-gray-800",
+          status !== "PROCESSED" &&
+            "border-red-500 bg-red-50 dark:bg-red-950/20 hover:border-red-400",
           className
         )}
       >
+        <DeleteAssetDialog
+          isOpen={deleteDialogOpen}
+          setIsOpenAction={setDeleteDialogOpen}
+          onDeleteAction={handleDeleteMaterial}
+          submitting={submittingDelete}
+          name={title}
+        />
         <CardHeader className="pb-2 flex flex-row items-start justify-between">
           <div className="flex items-start gap-3">
             <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
@@ -68,76 +83,56 @@ function MaterialCard({
               <p className="text-sm md:text-base text-gray-400">
                 {description}
               </p>
+              {status !== "PROCESSED" && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                  {status === "PENDING" ? "Processing..." : "Processing failed"}
+                </p>
+              )}
             </div>
           </div>
 
-          <DropdownMenu>
+          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
             <DropdownMenuTrigger asChild className="dropdown-trigger">
-              <button
-                className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
+              <button className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                 <MoreVertical size={18} className="text-gray-500" />
                 <span className="sr-only">Open menu</span>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
               <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit?.();
-                }}
+                className="text-destructive"
+                onClick={handleOpenDeleteDialog}
               >
-                Edit
+                Delete
               </DropdownMenuItem>
-              {/*FIXME: something is wrong with the dialog it opens for a second and closes*/}
-              <DeleteAssetDialog
-                isOpen={deleteDialogOpen}
-                setIsOpenAction={setDeleteDialogOpen}
-                onDeleteAction={handleDeleteMaterial}
-                submitting={submittingDelete}
-                name={title}
-                trigger={
-                  <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                  >
-                    Delete
-                  </DropdownMenuItem>
-                }
-              />
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>
 
-        <CardContent className="py-2 mt-auto flex items-center justify-between">
-          <Badge
-            variant={
-              statusLower === "processed"
-                ? "outline"
-                : statusLower === "in-progress"
-                ? "secondary"
-                : statusLower === "completed"
-                ? "default"
-                : "outline"
-            }
+        <CardContent className="py-2 mt-auto flex items-end justify-between">
+          <div className="flex items-center justify-between w-full">
+            <span className="text-xs text-gray-500 flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              Created{" "}
+              {new Date().toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
+            </span>
+          </div>
+
+          <button
+            onClick={handleNavigate}
+            className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors mt-3 ml-auto"
           >
-            {status}
-          </Badge>
-          <span className="text-xs text-gray-500 flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            Created{" "}
-            {new Date().toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
-          </span>
+            {status !== "PROCESSED" ? "Review" : "View material"}
+            <ArrowRight size={16} />
+          </button>
         </CardContent>
       </Card>
-    </Link>
+    </>
   );
 }
 

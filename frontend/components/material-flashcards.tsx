@@ -252,7 +252,13 @@ function MaterialFlashcards({
                   submitting={submittingRegenerate}
                   triggerText="Regenerate"
                 />
-
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  Delete
+                </Button>
                 <DeleteAssetDialog
                   isOpen={deleteDialogOpen}
                   setIsOpenAction={setDeleteDialogOpen}
