@@ -27,17 +27,22 @@ import {
 } from "./ui/dropdown-menu";
 
 import DeleteAssetDialog from "./delete-asset-dialog";
+import { fetchGraphQL } from "@/utils/gql-axios";
 
 function SummaryCard({
   summaryData,
   className,
+  onSummaryDelete,
 }: {
   summaryData: SummaryData;
   className?: string;
+  onSummaryDelete?: () => void;
 }) {
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [submittingDelete, setSubmittingDelete] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const handleMaterialClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -48,7 +53,24 @@ function SummaryCard({
     setDeleteDialogOpen(true);
   };
 
-  const handleDeleteSummary = async () => {};
+  const handleDeleteSummary = async () => {
+    try {
+      setSubmittingDelete(true);
+      setError(null);
+      await fetchGraphQL(`
+			mutation DeleteSummary {
+			  deleteSummary(id: "${summaryData.id}")
+			}
+		  `);
+      setSuccessMessage("Summary deleted successfully.");
+      onSummaryDelete?.();
+    } catch (error) {
+      setError("Failed to delete summary. Please try again later.");
+    } finally {
+      setSubmittingDelete(false);
+      setDeleteDialogOpen(false);
+    }
+  };
 
   const onRegenerate = () => {
     setDropdownOpen(false);

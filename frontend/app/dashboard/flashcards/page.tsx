@@ -26,12 +26,11 @@ function FlashcardsPage() {
   const [sortBy, setSortBy] = useState<string>("createdAt-desc");
   const [totalPages, setTotalPages] = useState<number>(1);
 
-  useEffect(() => {
-    const fetchFlashcards = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const flashcardsResponse = await fetchGraphQL(`
+  const fetchFlashcards = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const flashcardsResponse = await fetchGraphQL(`
 				  query GetFlashcardsSetsByUser {
 					  getFlashcardsSetsByUser(page: ${page}, pageSize: ${pageSize}, sortBy: "${sortBy}") {
 						  totalItems
@@ -56,16 +55,18 @@ function FlashcardsPage() {
 				  }
 
       			`);
-        if (flashcardsResponse.getFlashcardsSetsByUser) {
-          setFlashcards(flashcardsResponse.getFlashcardsSetsByUser);
-          setTotalPages(flashcardsResponse.getFlashcardsSetsByUser.totalPages);
-        }
-      } catch (error) {
-        setError("Failed to fetch flashcards. Please try again later.");
-      } finally {
-        setLoading(false);
+      if (flashcardsResponse.getFlashcardsSetsByUser) {
+        setFlashcards(flashcardsResponse.getFlashcardsSetsByUser);
+        setTotalPages(flashcardsResponse.getFlashcardsSetsByUser.totalPages);
       }
-    };
+    } catch (error) {
+      setError("Failed to fetch flashcards. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchFlashcards();
   }, [page, pageSize, sortBy]);
 
@@ -79,6 +80,11 @@ function FlashcardsPage() {
     if (page < totalPages) {
       setPage(page + 1);
     }
+  };
+
+  const handleFlashcardsDeleted = () => {
+    setPage(1);
+    fetchFlashcards();
   };
 
   const handlePageSizeChange = (size: number) => {
@@ -175,7 +181,11 @@ function FlashcardsPage() {
         {flashcards && flashcards.data.length > 0 ? (
           flashcards?.data?.map((flashcard) => {
             return (
-              <FlashcardCard key={flashcard.id} flashcardData={flashcard} />
+              <FlashcardCard
+                key={flashcard.id}
+                flashcardData={flashcard}
+                onFlashcardDeleted={handleFlashcardsDeleted}
+              />
             );
           })
         ) : (

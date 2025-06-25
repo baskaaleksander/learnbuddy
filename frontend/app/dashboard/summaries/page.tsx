@@ -25,13 +25,12 @@ function SummariesPage() {
   const [sortBy, setSortBy] = useState<string>("createdAt-desc");
   const [totalPages, setTotalPages] = useState<number>(1);
 
-  useEffect(() => {
-    const fetchSummaries = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchSummaries = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const summariesResponse = await fetchGraphQL(`
+      const summariesResponse = await fetchGraphQL(`
 					query GetSummariesByUser {
 						getSummariesByUser(page: ${page}, pageSize: ${pageSize}, sortBy: "${sortBy}") {
 							totalItems
@@ -56,20 +55,21 @@ function SummariesPage() {
 
                 `);
 
-        if (summariesResponse.getSummariesByUser.data) {
-          setSummaries(summariesResponse.getSummariesByUser);
-          setTotalPages(summariesResponse.getSummariesByUser.totalPages);
-        } else {
-          setError("Summaries not found");
-        }
-      } catch (error) {
-        console.error("Error fetching summaries:", error);
-        setError("Failed to fetch summaries. Please try again later.");
-      } finally {
-        setLoading(false);
+      if (summariesResponse.getSummariesByUser.data) {
+        setSummaries(summariesResponse.getSummariesByUser);
+        setTotalPages(summariesResponse.getSummariesByUser.totalPages);
+      } else {
+        setError("Summaries not found");
       }
-    };
+    } catch (error) {
+      console.error("Error fetching summaries:", error);
+      setError("Failed to fetch summaries. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchSummaries();
   }, [page, pageSize, sortBy]);
 
@@ -77,6 +77,11 @@ function SummariesPage() {
     if (page > 1) {
       setPage(page - 1);
     }
+  };
+
+  const handleSummaryDeleted = () => {
+    setPage(1);
+    fetchSummaries();
   };
 
   const handleNextPage = () => {
@@ -178,7 +183,13 @@ function SummariesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
         {summaries && summaries.data.length > 0 ? (
           summaries?.data?.map((summary) => {
-            return <SummaryCard key={summary.id} summaryData={summary} />;
+            return (
+              <SummaryCard
+                key={summary.id}
+                summaryData={summary}
+                onSummaryDelete={handleSummaryDeleted}
+              />
+            );
           })
         ) : (
           <p>No quizzes found</p>

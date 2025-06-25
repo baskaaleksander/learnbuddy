@@ -23,17 +23,22 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import DeleteAssetDialog from "./delete-asset-dialog";
+import { fetchGraphQL } from "@/utils/gql-axios";
 
 function QuizCard({
   quizData,
   className,
+  onQuizDeleted,
 }: {
   quizData: QuizData;
   className?: string;
+  onQuizDeleted?: () => void;
 }) {
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [submittingDelete, setSubmittingDelete] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const needsAttention = () => {
     const lowScore = quizData.averagePercentage < 60;
     const noAttempts = quizData.totalAttempts === 0;
@@ -67,7 +72,25 @@ function QuizCard({
     setDeleteDialogOpen(true);
   };
 
-  const handleDeleteQuiz = async () => {};
+  const handleDeleteQuiz = async () => {
+    try {
+      setSubmittingDelete(true);
+      setError(null);
+      await fetchGraphQL(`
+        mutation DeleteQuiz {
+          deleteQuiz(id: "${quizData.id}")
+        }
+      `);
+
+      onQuizDeleted?.();
+      setSuccessMessage("Quiz deleted successfully.");
+    } catch (error) {
+      setError("Failed to delete quiz. Please try again later.");
+    } finally {
+      setSubmittingDelete(false);
+      setDeleteDialogOpen(false);
+    }
+  };
 
   const onRegenerate = () => {
     setDropdownOpen(false);

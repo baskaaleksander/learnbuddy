@@ -25,59 +25,63 @@ function QuizzesPage() {
   const [sortBy, setSortBy] = useState<string>("createdAt-desc");
   const [totalPages, setTotalPages] = useState<number>(1);
 
-  useEffect(() => {
-    const fetchQuizzes = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchQuizzes = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const quizzesResponse = await fetchGraphQL(`
-                    query GetQuizesByUser {
-                        getQuizesByUser(page: ${page}, pageSize: ${pageSize}, sortBy: "${sortBy}") {
-                            data {
-                                id
-                                createdAt
-                                averageScore
-                                totalAttempts
-                                averagePercentage
-                                bestScore
-                                createdAt
-                                latestResult {
-                                    score
-                                    completedAt
-                                }
-                                material {
-                                    id
-                                    title
-                                    createdAt
-                                }
-                            }
-                            totalPages
-                            totalItems
-                            currentPage
-                            pageSize
-                            hasNextPage
-                            hasPreviousPage
-                        }
-                    }
-                `);
-
-        if (quizzesResponse.getQuizesByUser.data) {
-          setQuizzes(quizzesResponse.getQuizesByUser);
-          setTotalPages(quizzesResponse.getQuizesByUser.totalPages);
-        } else {
-          setError("Quizzes not found");
+      const quizzesResponse = await fetchGraphQL(`
+        query GetQuizesByUser {
+          getQuizesByUser(page: ${page}, pageSize: ${pageSize}, sortBy: "${sortBy}") {
+            data {
+              id
+              createdAt
+              averageScore
+              totalAttempts
+              averagePercentage
+              bestScore
+              createdAt
+              latestResult {
+                score
+                completedAt
+              }
+              material {
+                id
+                title
+                createdAt
+              }
+            }
+            totalPages
+            totalItems
+            currentPage
+            pageSize
+            hasNextPage
+            hasPreviousPage
+          }
         }
-      } catch (error) {
-        console.error("Error fetching material:", error);
-        setError("Failed to fetch material. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
+      `);
 
+      if (quizzesResponse.getQuizesByUser.data) {
+        setQuizzes(quizzesResponse.getQuizesByUser);
+        setTotalPages(quizzesResponse.getQuizesByUser.totalPages);
+      } else {
+        setError("Quizzes not found");
+      }
+    } catch (error) {
+      console.error("Error fetching quizzes:", error);
+      setError("Failed to fetch quizzes. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchQuizzes();
   }, [page, pageSize, sortBy]);
+
+  const handleQuizDeleted = () => {
+    fetchQuizzes();
+  };
 
   const handlePreviousPage = () => {
     if (page > 1) {
@@ -183,7 +187,13 @@ function QuizzesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
         {quizzes && quizzes.data.length > 0 ? (
           quizzes?.data?.map((quiz) => {
-            return <QuizCard key={quiz.id} quizData={quiz} />;
+            return (
+              <QuizCard
+                key={quiz.id}
+                quizData={quiz}
+                onQuizDeleted={handleQuizDeleted}
+              />
+            );
           })
         ) : (
           <p>No quizzes found</p>
