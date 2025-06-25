@@ -24,6 +24,7 @@ function SummariesPage() {
   const [pageSize, setPageSize] = useState<number>(10);
   const [sortBy, setSortBy] = useState<string>("createdAt-desc");
   const [totalPages, setTotalPages] = useState<number>(1);
+  const [message, setMessage] = useState<string | null>(null);
 
   const fetchSummaries = async () => {
     try {
@@ -102,6 +103,8 @@ function SummariesPage() {
   if (loading) {
     return <LoadingScreen />;
   }
+  //TODO: Handle message display (e.g., success messages after actions like delete)
+
   return (
     <div className="p-4 space-y-6">
       <div>
@@ -188,6 +191,7 @@ function SummariesPage() {
                 key={summary.id}
                 summaryData={summary}
                 onSummaryDelete={handleSummaryDeleted}
+                setMessage={setMessage}
               />
             );
           })

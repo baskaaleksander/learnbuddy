@@ -29,16 +29,16 @@ function QuizCard({
   quizData,
   className,
   onQuizDeleted,
+  setMessage,
 }: {
   quizData: QuizData;
   className?: string;
   onQuizDeleted?: () => void;
+  setMessage: (message: string | null) => void;
 }) {
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [submittingDelete, setSubmittingDelete] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const needsAttention = () => {
     const lowScore = quizData.averagePercentage < 60;
     const noAttempts = quizData.totalAttempts === 0;
@@ -75,7 +75,7 @@ function QuizCard({
   const handleDeleteQuiz = async () => {
     try {
       setSubmittingDelete(true);
-      setError(null);
+      setMessage(null);
       await fetchGraphQL(`
         mutation DeleteQuiz {
           deleteQuiz(id: "${quizData.id}")
@@ -83,9 +83,9 @@ function QuizCard({
       `);
 
       onQuizDeleted?.();
-      setSuccessMessage("Quiz deleted successfully.");
+      setMessage("Quiz deleted successfully.");
     } catch (error) {
-      setError("Failed to delete quiz. Please try again later.");
+      setMessage("Failed to delete quiz. Please try again later.");
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);

@@ -25,6 +25,7 @@ function FlashcardsPage() {
   const [pageSize, setPageSize] = useState<number>(10);
   const [sortBy, setSortBy] = useState<string>("createdAt-desc");
   const [totalPages, setTotalPages] = useState<number>(1);
+  const [message, setMessage] = useState<string | null>(null);
 
   const fetchFlashcards = async () => {
     try {
@@ -99,6 +100,8 @@ function FlashcardsPage() {
   if (loading) {
     return <LoadingScreen />;
   }
+  //TODO: Handle message display (e.g., success messages after actions like delete)
+
   return (
     <div className="p-4 space-y-6">
       <div>
@@ -185,6 +188,7 @@ function FlashcardsPage() {
                 key={flashcard.id}
                 flashcardData={flashcard}
                 onFlashcardDeleted={handleFlashcardsDeleted}
+                setMessage={setMessage}
               />
             );
           })

@@ -27,10 +27,12 @@ function FlashcardCard({
   flashcardData,
   className,
   onFlashcardDeleted,
+  setMessage,
 }: {
   flashcardData: FlashcardData;
   className?: string;
   onFlashcardDeleted?: () => void;
+  setMessage: (message: string | null) => void;
 }) {
   const needAttention =
     flashcardData.review > 0 && flashcardData.known < flashcardData.total;
@@ -45,12 +47,9 @@ function FlashcardCard({
 
   const knowledgePercentage = (flashcardData.known / flashcardData.total) * 100;
 
-  //TODO: Handle error somehow and success messages
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [submittingDelete, setSubmittingDelete] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const handleMaterialClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -64,16 +63,16 @@ function FlashcardCard({
   const handleDeleteFlashcards = async () => {
     try {
       setSubmittingDelete(true);
-      setError(null);
+      setMessage(null);
       await fetchGraphQL(`
         mutation DeleteFlashcard {
           deleteFlashcard(id: "${flashcardData.id}")
         }
       `);
-      setSuccessMessage("Flashcard set deleted successfully.");
+      setMessage("Flashcard set deleted successfully.");
       onFlashcardDeleted?.();
     } catch (error) {
-      setError("Failed to delete flashcard set. Please try again later.");
+      setMessage("Failed to delete flashcard set. Please try again later.");
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);

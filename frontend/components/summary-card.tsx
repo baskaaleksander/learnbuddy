@@ -33,16 +33,16 @@ function SummaryCard({
   summaryData,
   className,
   onSummaryDelete,
+  setMessage,
 }: {
   summaryData: SummaryData;
   className?: string;
   onSummaryDelete?: () => void;
+  setMessage: (message: string | null) => void;
 }) {
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [submittingDelete, setSubmittingDelete] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const handleMaterialClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -56,16 +56,16 @@ function SummaryCard({
   const handleDeleteSummary = async () => {
     try {
       setSubmittingDelete(true);
-      setError(null);
+      setMessage(null);
       await fetchGraphQL(`
 			mutation DeleteSummary {
 			  deleteSummary(id: "${summaryData.id}")
 			}
 		  `);
-      setSuccessMessage("Summary deleted successfully.");
+      setMessage("Summary deleted successfully.");
       onSummaryDelete?.();
     } catch (error) {
-      setError("Failed to delete summary. Please try again later.");
+      setMessage("Failed to delete summary. Please try again later.");
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);
