@@ -1,13 +1,15 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { FlashcardProgressStatus } from './flashcard-progress.graphql';
+import {
+  FlashcardProgressStatus,
+  FlashcardStats,
+} from './flashcard-progress.graphql';
 
 @ObjectType()
 export class FlashcardWithProgressType {
   @Field()
-  id: string;
+  flashcardId: string;
 
-  @Field()
-  aiOutputId: string;
+  statusId: string;
 
   @Field()
   question: string;
@@ -15,9 +17,15 @@ export class FlashcardWithProgressType {
   @Field()
   answer: string;
 
-  @Field(() => Date)
-  createdAt: Date;
-
   @Field(() => FlashcardProgressStatus)
   status: FlashcardProgressStatus;
+
+  @Field(() => Date)
+  statusUpdatedAt: Date;
+}
+
+@ObjectType()
+export class FlashcardWithProgressAndStatsType extends FlashcardStats {
+  @Field(() => [FlashcardWithProgressType], { nullable: true })
+  data: FlashcardWithProgressType[];
 }

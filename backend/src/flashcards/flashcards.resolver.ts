@@ -13,20 +13,11 @@ import {
   FlashcardType,
   PaginatedFlashcardsWithStatsResponse,
 } from './flashcard.graphql';
-import { FlashcardWithProgressType } from './flashcard-with-progress.graphql';
+import { FlashcardWithProgressAndStatsType } from './flashcard-with-progress.graphql';
 
 @Resolver(() => AIOutputType)
 export class FlashcardsResolver {
   constructor(private readonly flashcardsService: FlashcardsService) {}
-
-  @UseGuards(GqlAuthGuard)
-  @Query(() => AIOutputType)
-  async getFlashcardById(
-    @Args('id') id: string,
-    @CurrentUser() user: PayloadDto,
-  ) {
-    return this.flashcardsService.getFlashcardById(id, user.id);
-  }
 
   @UseGuards(GqlAuthGuard)
   @Query(() => PaginatedFlashcardsWithStatsResponse)
@@ -91,23 +82,20 @@ export class FlashcardsResolver {
   }
 
   @UseGuards(GqlAuthGuard)
-  @Query(() => [FlashcardWithProgressType])
-  async getFlashcardProgressByMaterial(
-    @Args('materialId') materialId: string,
-    @CurrentUser() user: PayloadDto,
-  ) {
-    return this.flashcardsService.getFlashcardProgressByMaterial(
-      materialId,
-      user.id,
-    );
-  }
-
-  @UseGuards(GqlAuthGuard)
   @Query(() => FlashcardStats)
   async getFlashcardStatsByMaterial(
     @Args('materialId') materialId: string,
     @CurrentUser() user: PayloadDto,
   ) {
     return this.flashcardsService.getFlashcardStats(materialId, user.id);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Query(() => FlashcardWithProgressAndStatsType)
+  async getFlashcardsById(
+    @Args('id') id: string,
+    @CurrentUser() user: PayloadDto,
+  ) {
+    return this.flashcardsService.getFlashcardsById(id, user.id);
   }
 }

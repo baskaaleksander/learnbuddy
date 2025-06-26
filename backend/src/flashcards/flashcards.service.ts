@@ -298,19 +298,6 @@ export class FlashcardsService {
     return await this.createFlashcards(materialId, userId);
   }
 
-  async getFlashcardById(id: string, userId: string) {
-    const flashcard = await this.drizzle
-      .select()
-      .from(flashcards)
-      .where(eq(flashcards.id, id));
-
-    if (flashcard.length === 0) {
-      throw new NotFoundException('Flashcard not found');
-    }
-
-    return toFlashcardGraphQL(flashcard[0]);
-  }
-
   async deleteFlashcards(id: string, userId: string) {
     const aiOutput = await this.drizzle
       .select()
@@ -459,6 +446,72 @@ export class FlashcardsService {
     ).length;
 
     return {
+      total,
+      known,
+      review,
+      lastUpdated: new Date(),
+    };
+  }
+  async getFlashcardsById(id: string, userId: string) {
+    const aiOutput = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
+      .where(
+        and(
+          eq(aiOutputs.id, id),
+          eq(aiOutputs.type, 'flashcards'),
+          eq(materials.userId, userId),
+        ),
+      );
+
+    if (aiOutput.length === 0) {
+      return {
+        data: [],
+        total: 0,
+        known: 0,
+        review: 0,
+        lastUpdated: new Date(),
+      };
+    }
+
+    const flashcardsWithProgress = await this.drizzle
+      .select()
+      .from(flashcards)
+      .innerJoin(
+        flashcardProgress,
+        eq(flashcards.id, flashcardProgress.flashcardId),
+      )
+      .where(eq(flashcards.aiOutputId, aiOutput[0].ai_outputs.id));
+
+    const data = flashcardsWithProgress.map((flashcard) => ({
+      flashcardId: flashcard.flashcards.id,
+      statusId: flashcard.flashcard_progress.id,
+      question: flashcard.flashcards.question,
+      answer: flashcard.flashcards.answer,
+      status: flashcard.flashcard_progress.status,
+      statusUpdatedAt: flashcard.flashcard_progress.updatedAt,
+    }));
+
+    const flashcardsArr = await this.drizzle
+      .select()
+      .from(flashcards)
+      .innerJoin(
+        flashcardProgress,
+        eq(flashcards.id, flashcardProgress.flashcardId),
+      )
+      .where(eq(flashcards.aiOutputId, aiOutput[0].ai_outputs.id));
+
+    const total = flashcardsArr.length;
+    const known = flashcardsArr.filter(
+      (f) => f.flashcard_progress.status === FlashcardProgressStatus.known,
+    ).length;
+    const review = flashcardsArr.filter(
+      (f) => f.flashcard_progress.status === FlashcardProgressStatus.review,
+    ).length;
+
+    return {
+      data,
       total,
       known,
       review,
