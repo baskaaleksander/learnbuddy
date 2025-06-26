@@ -11,6 +11,7 @@ import {
   ExternalLink,
   MoreVertical,
   ArrowRight,
+  Trash,
 } from "lucide-react";
 import Link from "next/link";
 import { QuizData } from "@/lib/definitions";
@@ -24,17 +25,16 @@ import {
 } from "./ui/dropdown-menu";
 import DeleteAssetDialog from "./delete-asset-dialog";
 import { fetchGraphQL } from "@/utils/gql-axios";
+import { toast } from "sonner";
 
 function QuizCard({
   quizData,
   className,
   onQuizDeleted,
-  setMessage,
 }: {
   quizData: QuizData;
   className?: string;
   onQuizDeleted?: () => void;
-  setMessage: (message: string | null) => void;
 }) {
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
@@ -75,7 +75,6 @@ function QuizCard({
   const handleDeleteQuiz = async () => {
     try {
       setSubmittingDelete(true);
-      setMessage(null);
       await fetchGraphQL(`
         mutation DeleteQuiz {
           deleteQuiz(id: "${quizData.id}")
@@ -83,9 +82,12 @@ function QuizCard({
       `);
 
       onQuizDeleted?.();
-      setMessage("Quiz deleted successfully.");
+      toast("Quiz deleted successfully.", {
+        duration: 3000,
+        icon: <Trash className="w-4 h-4" />,
+      });
     } catch (error) {
-      setMessage("Failed to delete quiz. Please try again later.");
+      toast.error("Failed to delete quiz. Please try again later.");
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);

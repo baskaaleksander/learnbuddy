@@ -18,7 +18,6 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
   const [error, setError] = useState<string | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const router = useRouter();
 
   const resolvedParams = use(params);
@@ -56,15 +55,6 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
   useEffect(() => {
     fetchMaterial();
   }, [id]);
-
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
 
   const handleDeleteMaterial = async () => {
     try {
@@ -129,19 +119,6 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <div className="p-6 space-y-6">
-      {successMessage && (
-        <div className="fixed top-0 left-0 right-0 z-50 p-4 animate-in slide-in-from-top-2 duration-300">
-          <Alert
-            variant="default"
-            className="shadow-lg border-green-200 bg-green-50 max-w-4xl mx-auto"
-          >
-            <AlertTitle className="text-green-800">Success</AlertTitle>
-            <AlertDescription className="text-green-700">
-              {successMessage}
-            </AlertDescription>
-          </Alert>
-        </div>
-      )}
       <div className="border-b border-gray-200 pb-4 flex flex-col md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col">
           <h1 className="text-3xl font-bold">{material.title}</h1>
@@ -175,24 +152,12 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
 
       <div className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <MaterialQuiz
-            id={id}
-            setSuccessMessage={setSuccessMessage}
-            onAssetChange={handleAssetChanged}
-          />
-          <MaterialFlashcards
-            id={id}
-            setSuccessMessage={setSuccessMessage}
-            onAssetChange={handleAssetChanged}
-          />
+          <MaterialQuiz id={id} onAssetChange={handleAssetChanged} />
+          <MaterialFlashcards id={id} onAssetChange={handleAssetChanged} />
         </div>
 
         <div className="w-full">
-          <MaterialSummary
-            id={id}
-            setSuccessMessage={setSuccessMessage}
-            onAssetChange={handleAssetChanged}
-          />
+          <MaterialSummary id={id} onAssetChange={handleAssetChanged} />
         </div>
       </div>
     </div>

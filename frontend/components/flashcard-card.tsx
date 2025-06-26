@@ -10,6 +10,7 @@ import {
   ExternalLink,
   MoreVertical,
   ReceiptText,
+  Trash,
   X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -22,17 +23,16 @@ import {
 } from "./ui/dropdown-menu";
 import DeleteAssetDialog from "./delete-asset-dialog";
 import { fetchGraphQL } from "@/utils/gql-axios";
+import { toast } from "sonner";
 
 function FlashcardCard({
   flashcardData,
   className,
   onFlashcardDeleted,
-  setMessage,
 }: {
   flashcardData: FlashcardData;
   className?: string;
   onFlashcardDeleted?: () => void;
-  setMessage: (message: string | null) => void;
 }) {
   const needAttention =
     flashcardData.review > 0 && flashcardData.known < flashcardData.total;
@@ -63,16 +63,19 @@ function FlashcardCard({
   const handleDeleteFlashcards = async () => {
     try {
       setSubmittingDelete(true);
-      setMessage(null);
       await fetchGraphQL(`
         mutation DeleteFlashcard {
           deleteFlashcard(id: "${flashcardData.id}")
         }
       `);
-      setMessage("Flashcard set deleted successfully.");
+      toast("Flashcards deleted successfully.", {
+        duration: 3000,
+        icon: <Trash className="h-4 w-4" />,
+      });
+
       onFlashcardDeleted?.();
     } catch (error) {
-      setMessage("Failed to delete flashcard set. Please try again later.");
+      toast.error("Failed to delete flashcards. Please try again later.");
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);

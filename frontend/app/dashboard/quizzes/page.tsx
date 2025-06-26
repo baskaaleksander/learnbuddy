@@ -24,7 +24,6 @@ function QuizzesPage() {
   const [pageSize, setPageSize] = useState<number>(10);
   const [sortBy, setSortBy] = useState<string>("createdAt-desc");
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [message, setMessage] = useState<string | null>(null);
 
   const fetchQuizzes = async () => {
     try {
@@ -109,7 +108,6 @@ function QuizzesPage() {
     return <LoadingScreen />;
   }
 
-  //TODO: Handle message display (e.g., success messages after actions like delete)
   return (
     <div className="p-4 space-y-6">
       <div>
@@ -195,7 +193,6 @@ function QuizzesPage() {
                 key={quiz.id}
                 quizData={quiz}
                 onQuizDeleted={handleQuizDeleted}
-                setMessage={setMessage}
               />
             );
           })

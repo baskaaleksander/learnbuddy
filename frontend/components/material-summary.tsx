@@ -4,12 +4,13 @@ import { cn } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Button } from "./ui/button";
-import { ChevronRight, FileText } from "lucide-react";
+import { Check, ChevronRight, FileText, RefreshCw, Trash } from "lucide-react";
 import Link from "next/link";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import { GenerateAssetDialog } from "@/components/generate-asset";
 import { useRouter } from "next/navigation";
 import DeleteAssetDialog from "./delete-asset-dialog";
+import { toast } from "sonner";
 
 interface SummaryData {
   id: string;
@@ -26,12 +27,10 @@ interface SummaryData {
 function MaterialSummary({
   id,
   className,
-  setSuccessMessage,
   onAssetChange,
 }: {
   id: string;
   className?: string;
-  setSuccessMessage: (message: string | null) => void;
   onAssetChange: () => void;
 }) {
   const [summary, setSummary] = useState<SummaryData | null>(null);
@@ -89,10 +88,14 @@ function MaterialSummary({
             createSummary(materialId: "${id}")
         }
       `);
-      setSuccessMessage("Summary generated successfully!");
+      toast("Summary generated successfully", {
+        icon: <Check className="h-4 w-4" />,
+        duration: 3000,
+      });
       onAssetChange();
     } catch (error) {
       setError("Failed to generate summary. Please try again later.");
+      toast.error("Failed to generate summary. Please try again later.");
     } finally {
       setSubmittingGenerate(false);
       setGenerateDialogOpen(false);
@@ -108,10 +111,14 @@ function MaterialSummary({
           deleteSummary(id: "${summary?.id}")
         }
       `);
-      setSuccessMessage("Summary deleted successfully.");
+      toast("Summary deleted successfully", {
+        icon: <Trash className="h-4 w-4" />,
+        duration: 3000,
+      });
       onAssetChange();
     } catch (error) {
       setError("Failed to delete summary. Please try again later.");
+      toast.error("Failed to delete summary. Please try again later.");
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);
@@ -127,10 +134,14 @@ function MaterialSummary({
           regenerateSummary(materialId: "${id}")
         }
       `);
-      setSuccessMessage("Summary regenerated successfully.");
+      toast("Summary regenerated successfully", {
+        icon: <RefreshCw className="h-4 w-4" />,
+        duration: 3000,
+      });
       onAssetChange();
     } catch (error) {
       setError("Failed to regenerate summary. Please try again later.");
+      toast.error("Failed to regenerate summary. Please try again later.");
     } finally {
       setSubmittingRegenerate(false);
       setRegenerateDialogOpen(false);

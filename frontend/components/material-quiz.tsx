@@ -13,21 +13,21 @@ import {
   Target,
   Clock,
   ArrowRight,
+  Trash,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
 import { GenerateAssetDialog } from "@/components/generate-asset";
 import DeleteAssetDialog from "./delete-asset-dialog";
-import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 function MaterialQuiz({
   id,
   className,
-  setSuccessMessage,
   onAssetChange,
 }: {
   id: string;
   className?: string;
-  setSuccessMessage: (message: string | null) => void;
   onAssetChange: () => void;
 }) {
   const [quizzes, setQuizzes] = useState<any>();
@@ -91,10 +91,14 @@ function MaterialQuiz({
                     deleteQuiz(id: "${id}")
                 }
             `);
+      toast("Quiz deleted successfully.", {
+        duration: 3000,
+        icon: <Trash className="w-4 h-4" />,
+      });
       onAssetChange();
-      setSuccessMessage("Quiz deleted successfully.");
     } catch (error) {
       setError("Failed to delete material. Please try again later.");
+      toast.error("Failed to delete quiz. Please try again later.");
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);
@@ -110,7 +114,10 @@ function MaterialQuiz({
               regenerateQuiz(materialId: "${id}")
             }
           `);
-      setSuccessMessage("Quiz regenerated successfully.");
+      toast("Quiz regenerated successfully.", {
+        duration: 3000,
+        icon: <RefreshCw className="w-4 h-4" />,
+      });
       onAssetChange();
     } catch (error) {
       setError("Failed to regenerate summary. Please try again later.");
@@ -129,7 +136,10 @@ function MaterialQuiz({
                 createQuiz(materialId: "${id}")
             }
           `);
-      setSuccessMessage("Quiz generated successfully.");
+      toast("Quiz generated successfully.", {
+        duration: 3000,
+        icon: <Check className="w-4 h-4" />,
+      });
       onAssetChange();
     } catch (error) {
       setError("Failed to generate summary. Please try again later.");

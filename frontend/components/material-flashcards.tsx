@@ -8,6 +8,7 @@ import {
   ReceiptText,
   RefreshCw,
   Target,
+  Trash,
   Trash2,
   X,
 } from "lucide-react";
@@ -16,16 +17,15 @@ import { Badge } from "./ui/badge";
 import Link from "next/link";
 import { GenerateAssetDialog } from "@/components/generate-asset";
 import DeleteAssetDialog from "./delete-asset-dialog";
+import { toast } from "sonner";
 
 function MaterialFlashcards({
   id,
   className,
-  setSuccessMessage,
   onAssetChange,
 }: {
   id: string;
   className?: string;
-  setSuccessMessage: (message: string | null) => void;
   onAssetChange: () => void;
 }) {
   const [flashcardsStats, setFlashcardsStats] = useState<any>();
@@ -82,16 +82,19 @@ function MaterialFlashcards({
   const handleDeleteFlashcards = async () => {
     try {
       setSubmittingDelete(true);
-      setSuccessMessage(null);
       await fetchGraphQL(`
         mutation DeleteFlashcard {
             deleteFlashcard(id: "${id}")
         }
     `);
-      setSuccessMessage("Flashcards deleted successfully.");
+      toast("Flashcards deleted successfully.", {
+        duration: 3000,
+        icon: <Trash className="h-4 w-4" />,
+      });
       onAssetChange();
     } catch (error) {
-      setSuccessMessage("Failed to delete material. Please try again later.");
+      setError("Failed to delete flashcards. Please try again later.");
+      toast.error("Failed to delete flashcards. Please try again later.");
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);
@@ -107,10 +110,14 @@ function MaterialFlashcards({
                   regenerateFlashcards(materialId: "${id}")
                 }
               `);
-      setSuccessMessage("Flashcards regenerated successfully.");
+      toast("Flashcards regenerated successfully.", {
+        icon: <RefreshCw className="h-4 w-4" />,
+        duration: 3000,
+      });
       onAssetChange();
     } catch (error) {
       setError("Failed to regenerate summary. Please try again later.");
+      toast.error("Failed to regenerate flashcards. Please try again later.");
     } finally {
       setSubmittingRegenerate(false);
       setRegenerateDialogOpen(false);
@@ -126,10 +133,15 @@ function MaterialFlashcards({
             createFlashcard(materialId: "${id}")
         }
     `);
-      setSuccessMessage("Flashcards generated successfully.");
+      toast("Flashcards generated successfully.", {
+        icon: <Check className="h-4 w-4" />,
+        duration: 3000,
+      });
+      setGenerateDialogOpen(false);
       onAssetChange();
     } catch (error) {
       setError("Failed to delete material. Please try again later.");
+      toast.error("Failed to generate flashcards. Please try again later.");
     } finally {
       setSubmittingGenerate(false);
       setGenerateDialogOpen(false);

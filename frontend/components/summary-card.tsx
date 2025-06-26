@@ -17,6 +17,7 @@ import {
   ExternalLink,
   List,
   MoreVertical,
+  Trash,
 } from "lucide-react";
 import { formatDate } from "@/utils/format-date";
 import {
@@ -28,17 +29,16 @@ import {
 
 import DeleteAssetDialog from "./delete-asset-dialog";
 import { fetchGraphQL } from "@/utils/gql-axios";
+import { toast } from "sonner";
 
 function SummaryCard({
   summaryData,
   className,
   onSummaryDelete,
-  setMessage,
 }: {
   summaryData: SummaryData;
   className?: string;
   onSummaryDelete?: () => void;
-  setMessage: (message: string | null) => void;
 }) {
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
@@ -56,16 +56,18 @@ function SummaryCard({
   const handleDeleteSummary = async () => {
     try {
       setSubmittingDelete(true);
-      setMessage(null);
       await fetchGraphQL(`
 			mutation DeleteSummary {
 			  deleteSummary(id: "${summaryData.id}")
 			}
 		  `);
-      setMessage("Summary deleted successfully.");
+      toast("Summary deleted successfully", {
+        icon: <Trash className="h-4 w-4" />,
+        duration: 3000,
+      });
       onSummaryDelete?.();
     } catch (error) {
-      setMessage("Failed to delete summary. Please try again later.");
+      toast.error("Failed to delete summary. Please try again later.");
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);
