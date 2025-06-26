@@ -23,10 +23,12 @@ function MaterialQuiz({
   id,
   className,
   setSuccessMessage,
+  onAssetChange,
 }: {
   id: string;
   className?: string;
   setSuccessMessage: (message: string | null) => void;
+  onAssetChange: () => void;
 }) {
   const [quizzes, setQuizzes] = useState<any>();
   const [loading, setLoading] = useState(true);
@@ -38,7 +40,6 @@ function MaterialQuiz({
   const [submittingRegenerate, setSubmittingRegenerate] = useState(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] =
     useState<boolean>(false);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchQuizData = async () => {
@@ -90,13 +91,13 @@ function MaterialQuiz({
                     deleteQuiz(id: "${id}")
                 }
             `);
+      onAssetChange();
+      setSuccessMessage("Quiz deleted successfully.");
     } catch (error) {
       setError("Failed to delete material. Please try again later.");
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);
-      setQuizzes(null);
-      setSuccessMessage("Quiz deleted successfully.");
     }
   };
 
@@ -109,13 +110,13 @@ function MaterialQuiz({
               regenerateQuiz(materialId: "${id}")
             }
           `);
+      setSuccessMessage("Quiz regenerated successfully.");
+      onAssetChange();
     } catch (error) {
       setError("Failed to regenerate summary. Please try again later.");
     } finally {
       setSubmittingRegenerate(false);
       setRegenerateDialogOpen(false);
-      setSuccessMessage("Quiz regenerated successfully.");
-      setQuizzes(null);
     }
   };
 
@@ -128,13 +129,13 @@ function MaterialQuiz({
                 createQuiz(materialId: "${id}")
             }
           `);
+      setSuccessMessage("Quiz generated successfully.");
+      onAssetChange();
     } catch (error) {
       setError("Failed to generate summary. Please try again later.");
     } finally {
       setSubmittingGenerate(false);
       setGenerateDialogOpen(false);
-      setSuccessMessage("Quiz generated successfully.");
-      setQuizzes(null);
     }
   };
 

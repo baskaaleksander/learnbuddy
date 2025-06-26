@@ -23,14 +23,12 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
 
   const resolvedParams = use(params);
   const { id } = resolvedParams;
+  const fetchMaterial = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  useEffect(() => {
-    const fetchMaterial = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const materialResponse = await fetchGraphQL(`
+      const materialResponse = await fetchGraphQL(`
                     query GetMaterialById {
                         getMaterialById(id: "${id}") {
                             id
@@ -42,19 +40,20 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
                     }
                 `);
 
-        if (materialResponse.getMaterialById) {
-          setMaterial(materialResponse.getMaterialById);
-        } else {
-          setError("Material not found");
-        }
-      } catch (error) {
-        console.error("Error fetching material:", error);
-        setError("Failed to fetch material. Please try again later.");
-      } finally {
-        setLoading(false);
+      if (materialResponse.getMaterialById) {
+        setMaterial(materialResponse.getMaterialById);
+      } else {
+        setError("Material not found");
       }
-    };
+    } catch (error) {
+      console.error("Error fetching material:", error);
+      setError("Failed to fetch material. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchMaterial();
   }, [id]);
 
@@ -83,6 +82,10 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
       setDeleteModalOpen(false);
       router.push("/dashboard/materials");
     }
+  };
+
+  const handleAssetChanged = () => {
+    fetchMaterial();
   };
 
   if (loading) {
@@ -172,12 +175,24 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
 
       <div className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <MaterialQuiz id={id} setSuccessMessage={setSuccessMessage} />
-          <MaterialFlashcards id={id} setSuccessMessage={setSuccessMessage} />
+          <MaterialQuiz
+            id={id}
+            setSuccessMessage={setSuccessMessage}
+            onAssetChange={handleAssetChanged}
+          />
+          <MaterialFlashcards
+            id={id}
+            setSuccessMessage={setSuccessMessage}
+            onAssetChange={handleAssetChanged}
+          />
         </div>
 
         <div className="w-full">
-          <MaterialSummary id={id} setSuccessMessage={setSuccessMessage} />
+          <MaterialSummary
+            id={id}
+            setSuccessMessage={setSuccessMessage}
+            onAssetChange={handleAssetChanged}
+          />
         </div>
       </div>
     </div>

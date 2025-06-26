@@ -15,17 +15,18 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import Link from "next/link";
 import { GenerateAssetDialog } from "@/components/generate-asset";
-import { useRouter } from "next/navigation";
 import DeleteAssetDialog from "./delete-asset-dialog";
 
 function MaterialFlashcards({
   id,
   className,
   setSuccessMessage,
+  onAssetChange,
 }: {
   id: string;
   className?: string;
   setSuccessMessage: (message: string | null) => void;
+  onAssetChange: () => void;
 }) {
   const [flashcardsStats, setFlashcardsStats] = useState<any>();
   const [loading, setLoading] = useState(true);
@@ -37,7 +38,6 @@ function MaterialFlashcards({
   const [submittingRegenerate, setSubmittingRegenerate] = useState(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] =
     useState<boolean>(false);
-  const router = useRouter();
   useEffect(() => {
     const fetchQuizData = async () => {
       try {
@@ -82,18 +82,19 @@ function MaterialFlashcards({
   const handleDeleteFlashcards = async () => {
     try {
       setSubmittingDelete(true);
-      setError(null);
+      setSuccessMessage(null);
       await fetchGraphQL(`
         mutation DeleteFlashcard {
             deleteFlashcard(id: "${id}")
         }
     `);
+      setSuccessMessage("Flashcards deleted successfully.");
+      onAssetChange();
     } catch (error) {
-      setError("Failed to delete material. Please try again later.");
+      setSuccessMessage("Failed to delete material. Please try again later.");
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);
-      router.refresh();
     }
   };
 
@@ -106,12 +107,13 @@ function MaterialFlashcards({
                   regenerateFlashcards(materialId: "${id}")
                 }
               `);
+      setSuccessMessage("Flashcards regenerated successfully.");
+      onAssetChange();
     } catch (error) {
       setError("Failed to regenerate summary. Please try again later.");
     } finally {
       setSubmittingRegenerate(false);
       setRegenerateDialogOpen(false);
-      router.refresh();
     }
   };
 
@@ -124,12 +126,13 @@ function MaterialFlashcards({
             createFlashcard(materialId: "${id}")
         }
     `);
+      setSuccessMessage("Flashcards generated successfully.");
+      onAssetChange();
     } catch (error) {
       setError("Failed to delete material. Please try again later.");
     } finally {
       setSubmittingGenerate(false);
       setGenerateDialogOpen(false);
-      router.refresh();
     }
   };
 

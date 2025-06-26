@@ -27,10 +27,12 @@ function MaterialSummary({
   id,
   className,
   setSuccessMessage,
+  onAssetChange,
 }: {
   id: string;
   className?: string;
   setSuccessMessage: (message: string | null) => void;
+  onAssetChange: () => void;
 }) {
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,7 +44,6 @@ function MaterialSummary({
   const [submittingRegenerate, setSubmittingRegenerate] = useState(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] =
     useState<boolean>(false);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchSummaryData = async () => {
@@ -88,12 +89,13 @@ function MaterialSummary({
             createSummary(materialId: "${id}")
         }
       `);
+      setSuccessMessage("Summary generated successfully!");
+      onAssetChange();
     } catch (error) {
       setError("Failed to generate summary. Please try again later.");
     } finally {
       setSubmittingGenerate(false);
       setGenerateDialogOpen(false);
-      router.refresh();
     }
   };
 
@@ -106,7 +108,8 @@ function MaterialSummary({
           deleteSummary(id: "${summary?.id}")
         }
       `);
-      router.refresh();
+      setSuccessMessage("Summary deleted successfully.");
+      onAssetChange();
     } catch (error) {
       setError("Failed to delete summary. Please try again later.");
     } finally {
@@ -124,12 +127,13 @@ function MaterialSummary({
           regenerateSummary(materialId: "${id}")
         }
       `);
+      setSuccessMessage("Summary regenerated successfully.");
+      onAssetChange();
     } catch (error) {
       setError("Failed to regenerate summary. Please try again later.");
     } finally {
       setSubmittingRegenerate(false);
       setRegenerateDialogOpen(false);
-      router.refresh();
     }
   };
 

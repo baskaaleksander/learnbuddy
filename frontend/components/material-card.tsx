@@ -74,11 +74,11 @@ function MaterialCard({
           )}
         >
           <CardHeader className="pb-2 flex flex-row items-start justify-between">
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 flex-1 min-w-0">
               <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
                 <File size={20} />
               </div>
-              <div className="flex flex-col flex-1">
+              <div className="flex flex-col flex-1 min-w-0">
                 <h3 className="font-medium text-base line-clamp-2">{title}</h3>
                 <p className="text-sm md:text-base text-gray-400">
                   {description}
@@ -94,16 +94,21 @@ function MaterialCard({
             </div>
 
             <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-              <DropdownMenuTrigger asChild className="dropdown-trigger">
+              <DropdownMenuTrigger
+                asChild
+                className="dropdown-trigger shrink-0 ml-2"
+              >
                 <button className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                   <MoreVertical size={18} className="text-gray-500" />
                   <span className="sr-only">Open menu</span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
+                <DropdownMenuItem onClick={onEdit} className="text-sm">
+                  Edit
+                </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="text-destructive"
+                  className="text-destructive text-sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
