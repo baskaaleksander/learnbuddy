@@ -99,4 +99,13 @@ export class FlashcardsResolver {
   ) {
     return this.flashcardsService.getFlashcardsById(id, user.id, status);
   }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Boolean)
+  async resetFlashcardProgress(
+    @Args('id') id: string,
+    @CurrentUser() user: PayloadDto,
+  ) {
+    return this.flashcardsService.resetFlashcardProgress(id, user.id);
+  }
 }

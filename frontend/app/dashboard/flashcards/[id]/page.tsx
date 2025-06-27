@@ -1,6 +1,8 @@
 "use client";
+import DeleteAssetDialog from "@/components/delete-asset-dialog";
 import ErrorComponent from "@/components/error-component";
 import FlashcardQuestionCard from "@/components/flashcard-question-card";
+import { GenerateAssetDialog } from "@/components/generate-asset";
 import LoadingScreen from "@/components/loading-screen";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,8 +12,16 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { fetchGraphQL } from "@/utils/gql-axios";
-import { Calendar, Check, ReceiptText, X } from "lucide-react";
+import {
+  Calendar,
+  Check,
+  ReceiptText,
+  RefreshCw,
+  Trash,
+  X,
+} from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { use, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -19,10 +29,18 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const { id } = resolvedParams;
   const [flashcardsSet, setFlashcardsSet] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [flashcardsStats, setFlashcardsStats] = useState<any>(null);
+  const [submittingDelete, setSubmittingDelete] = useState<boolean>(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [submittingRegenerate, setSubmittingRegenerate] =
+    useState<boolean>(false);
+  const [regenerateDialogOpen, setRegenerateDialogOpen] =
+    useState<boolean>(false);
+  const router = useRouter();
 
+  //TODO: add materialId to the query
   const fetchFlashcardsSet = async () => {
     try {
       const flashcardsResponse = await fetchGraphQL(`
@@ -94,19 +112,93 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
     fetchFlashcardsSet();
   };
 
-  const restartProgress = async () => {};
+  const restartProgress = async () => {
+    try {
+      await fetchGraphQL(`
+        mutation ResetFlashcardProgress {
+            resetFlashcardProgress(id: "${id}" )
+        }
+      `);
+      fetchFlashcardsSet();
+    } catch (error) {
+      console.error("Error restarting flashcards progress:", error);
+      toast.error(
+        "Failed to restart flashcards progress. Please try again later."
+      );
+    }
+  };
+
+  const handleDeleteFlashcards = async () => {
+    try {
+      setSubmittingDelete(true);
+      await fetchGraphQL(`
+        mutation DeleteFlashcard {
+            deleteFlashcard(id: "${id}")
+        }
+    `);
+      toast("Flashcards deleted successfully.", {
+        duration: 3000,
+        icon: <Trash className="h-4 w-4" />,
+      });
+      router.push("/dashboard/flashcards");
+    } catch (error) {
+      setError("Failed to delete flashcards. Please try again later.");
+      toast.error("Failed to delete flashcards. Please try again later.");
+    } finally {
+      setSubmittingDelete(false);
+      setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleRegenerateFlashcards = async () => {
+    try {
+      setSubmittingRegenerate(true);
+      setError(null);
+      await fetchGraphQL(`
+                mutation RegenerateFlashcards {
+                  regenerateFlashcards(materialId: "${id}")
+                }
+              `);
+      toast("Flashcards regenerated successfully.", {
+        icon: <RefreshCw className="h-4 w-4" />,
+        duration: 3000,
+      });
+      fetchFlashcardsSet();
+    } catch (error) {
+      setError("Failed to regenerate summary. Please try again later.");
+      toast.error("Failed to regenerate flashcards. Please try again later.");
+    } finally {
+      setSubmittingRegenerate(false);
+      setRegenerateDialogOpen(false);
+    }
+  };
+
   return (
     <div className="p-4 space-y-6">
       {flashcardsSet && (
         <div>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-4">
             <h1 className="text-2xl font-bold mb-4">Flashcards Set</h1>
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline">
-                Regenerate
-              </Button>
-              <Button size="sm" variant="destructive">
-                Delete
+              <GenerateAssetDialog
+                isOpen={regenerateDialogOpen}
+                setIsOpenAction={setRegenerateDialogOpen}
+                assetData={{
+                  title: "Flashcards set",
+                  description: "Regenerate flashcards for this set",
+                  cost: 2,
+                }}
+                onGenerateAction={handleRegenerateFlashcards}
+                submitting={submittingRegenerate}
+                triggerText="Regenerate"
+              />
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => setDeleteDialogOpen(true)}
+                disabled={submittingDelete}
+              >
+                {submittingDelete ? "Deleting..." : "Delete"}
               </Button>
             </div>
           </div>
@@ -173,6 +265,13 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
           </div>
         </div>
       )}
+      <DeleteAssetDialog
+        isOpen={deleteDialogOpen}
+        setIsOpenAction={setDeleteDialogOpen}
+        name="flashcards set"
+        onDeleteAction={handleDeleteFlashcards}
+        submitting={submittingDelete}
+      />
     </div>
   );
 }

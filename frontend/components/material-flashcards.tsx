@@ -19,6 +19,7 @@ import { GenerateAssetDialog } from "@/components/generate-asset";
 import DeleteAssetDialog from "./delete-asset-dialog";
 import { toast } from "sonner";
 
+//TODO: add here aioutputid for correct link
 function MaterialFlashcards({
   id,
   className,

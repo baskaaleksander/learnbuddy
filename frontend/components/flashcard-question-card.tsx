@@ -1,21 +1,13 @@
 import { FlashcardQuestionData } from "@/lib/definitions";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Check, ChevronsUpDown, MoreVertical, X } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { Button } from "./ui/button";
-import { cn } from "@/lib/utils";
+import { Check, X } from "lucide-react";
+
 import { Switch } from "./ui/switch";
 
 function FlashcardQuestionCard({
@@ -26,6 +18,10 @@ function FlashcardQuestionCard({
   onProgressUpdated?: (flashcardId: string, status: string) => void;
 }) {
   const [status, setStatus] = useState(flashcardQuestionData.status);
+
+  useEffect(() => {
+    setStatus(flashcardQuestionData.status);
+  }, [flashcardQuestionData.status]);
 
   const handleStatusUpdate = (newStatus: string) => {
     setStatus(newStatus);

@@ -452,6 +452,39 @@ export class FlashcardsService {
       lastUpdated: new Date(),
     };
   }
+
+  async resetFlashcardProgress(id: string, userId: string) {
+    const aiOutput = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
+      .where(
+        and(
+          eq(aiOutputs.id, id),
+          eq(aiOutputs.type, 'flashcards'),
+          eq(materials.userId, userId),
+        ),
+      );
+
+    if (aiOutput.length === 0) {
+      throw new NotFoundException('Flashcard set not found or access denied');
+    }
+
+    await this.drizzle
+      .update(flashcardProgress)
+      .set({ status: FlashcardProgressStatus.review })
+      .where(
+        and(
+          eq(flashcardProgress.userId, userId),
+          sql`${flashcardProgress.flashcardId} IN (
+          SELECT ${flashcards.id} FROM ${flashcards} 
+          WHERE ${flashcards.aiOutputId} = ${id}
+        )`,
+        ),
+      );
+
+    return true;
+  }
   async getFlashcardsById(id: string, userId: string, status?: string) {
     const aiOutput = await this.drizzle
       .select()
