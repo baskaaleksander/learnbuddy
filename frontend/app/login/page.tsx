@@ -1,5 +1,5 @@
 import DescriptionSection from "@/components/landing-page/description-section";
-import LoginForm from "@/components/login-form";
+import LoginForm from "@/components/features/auth/login-form";
 import React from "react";
 
 function LoginPage() {

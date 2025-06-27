@@ -19,7 +19,6 @@ import { GenerateAssetDialog } from "@/components/common/generate-asset";
 import DeleteAssetDialog from "@/components/common/delete-asset-dialog";
 import { toast } from "sonner";
 
-//TODO: add here aioutputid for correct link
 function MaterialFlashcards({
   id,
   className,
@@ -158,7 +157,12 @@ function MaterialFlashcards({
       )}
     >
       <CardHeader className="flex flex-row items-center justify-between">
-        <h2 className="text-lg font-semibold">Flashcards</h2>
+        <Link
+          href={`/dashboard/flashcards/${flashcardsStats?.aiOutputId}`}
+          className="text-lg font-semibold hover:underline"
+        >
+          Flashcards
+        </Link>
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col">
@@ -255,7 +259,7 @@ function MaterialFlashcards({
             <div className="mt-auto space-y-2">
               <Button asChild className="w-full" size="sm">
                 <Link
-                  href={`/dashboard/flashcards/${flashcardsStats.aiOutputId}/play`}
+                  href={`/dashboard/flashcards/${flashcardsStats?.aiOutputId}/revise`}
                 >
                   <Play className="h-4 w-4 mr-2" />
                   Revise

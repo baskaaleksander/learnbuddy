@@ -157,7 +157,12 @@ function MaterialQuiz({
       )}
     >
       <CardHeader className="flex flex-row items-center justify-between">
-        <h2 className="text-lg font-semibold">Quiz</h2>
+        <Link
+          href={`/dashboard/quizzes/${quizzes?.id}`}
+          className="text-lg font-semibold"
+        >
+          Quiz
+        </Link>
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col">
@@ -298,7 +303,7 @@ function MaterialQuiz({
 
             <div className="mt-auto space-y-2">
               <Button asChild className="w-full" size="sm">
-                <Link href={`/dashboard/quizzes/${quizzes?.id}`}>
+                <Link href={`/dashboard/quizzes/${quizzes?.id}/take`}>
                   <Play className="h-4 w-4 mr-2" />
                   Take Quiz
                 </Link>

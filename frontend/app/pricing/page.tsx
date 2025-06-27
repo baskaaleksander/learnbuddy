@@ -1,5 +1,5 @@
-import FaqPricing from "@/components/faq-pricing";
-import Features from "@/components/features";
+import FaqPricing from "@/components/landing-page/faq-pricing";
+import Features from "@/components/landing-page/features";
 import PricingSection from "@/components/landing-page/pricing-section";
 import React from "react";
 

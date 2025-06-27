@@ -274,8 +274,8 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
                 <Button variant="outline" onClick={restartProgress}>
                   Restart progress
                 </Button>
-                <Link href={`/dashboard/flashcards/${id}/play`}>
-                  <Button>Play</Button>
+                <Link href={`/dashboard/flashcards/${id}/revise`}>
+                  <Button>Revise</Button>
                 </Link>
               </div>
             </CardFooter>
