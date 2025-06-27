@@ -118,3 +118,11 @@ export interface QuizResultDetails {
   totalQuestions: number;
   answers: string[];
 }
+
+export interface FlashcardQuestionData {
+  flashcardId: string;
+  question: string;
+  answer: string;
+  status: string;
+  statusUpdatedAt: Date;
+}
