@@ -3,6 +3,7 @@ import {
   FlashcardProgressStatus,
   FlashcardStats,
 } from './flashcard-progress.graphql';
+import { MaterialType } from 'src/materials/materials.graphql';
 
 @ObjectType()
 export class FlashcardWithProgressType {
@@ -28,4 +29,7 @@ export class FlashcardWithProgressType {
 export class FlashcardWithProgressAndStatsType extends FlashcardStats {
   @Field(() => [FlashcardWithProgressType], { nullable: true })
   data: FlashcardWithProgressType[];
+
+  @Field(() => MaterialType, { nullable: true })
+  material?: MaterialType;
 }

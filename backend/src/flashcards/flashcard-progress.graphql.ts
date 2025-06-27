@@ -29,6 +29,9 @@ export class FlashcardProgressType {
 
 @ObjectType()
 export class FlashcardStats {
+  @Field({ nullable: true })
+  aiOutputId: string;
+
   @Field()
   total: number;
 

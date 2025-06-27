@@ -4,6 +4,7 @@ import ErrorComponent from "@/components/error-component";
 import FlashcardQuestionCard from "@/components/flashcard-question-card";
 import { GenerateAssetDialog } from "@/components/generate-asset";
 import LoadingScreen from "@/components/loading-screen";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,10 +12,12 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { MaterialData } from "@/lib/definitions";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import {
   Calendar,
   Check,
+  ExternalLink,
   ReceiptText,
   RefreshCw,
   Trash,
@@ -29,6 +32,7 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const { id } = resolvedParams;
   const [flashcardsSet, setFlashcardsSet] = useState<any>(null);
+  const [material, setMaterial] = useState<Partial<MaterialData> | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [flashcardsStats, setFlashcardsStats] = useState<any>(null);
@@ -40,7 +44,6 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
     useState<boolean>(false);
   const router = useRouter();
 
-  //TODO: add materialId to the query
   const fetchFlashcardsSet = async () => {
     try {
       const flashcardsResponse = await fetchGraphQL(`
@@ -50,6 +53,10 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
                     known
                     review
                     lastUpdated
+                    material {
+                        id
+                        title
+                        }
                     data {
                         flashcardId
                         question
@@ -69,6 +76,7 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
           review: flashcardsResponse.getFlashcardsById.review,
           lastUpdated: flashcardsResponse.getFlashcardsById.lastUpdated,
         });
+        setMaterial(flashcardsResponse.getFlashcardsById.material);
       } else {
         setError("Flashcards set not found");
       }
@@ -77,6 +85,14 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
       setError("Failed to fetch flashcards set. Please try again later.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMaterialClick = () => {
+    if (material && material.id) {
+      router.push(`/dashboard/materials/${material.id}`);
+    } else {
+      toast.error("Material not found or not linked to this flashcard set.");
     }
   };
 
@@ -156,14 +172,14 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
       setError(null);
       await fetchGraphQL(`
                 mutation RegenerateFlashcards {
-                  regenerateFlashcards(materialId: "${id}")
+                  regenerateFlashcards(materialId: "${material?.id}" )
                 }
               `);
       toast("Flashcards regenerated successfully.", {
         icon: <RefreshCw className="h-4 w-4" />,
         duration: 3000,
       });
-      fetchFlashcardsSet();
+      router.push("/dashboard/flashcards/");
     } catch (error) {
       setError("Failed to regenerate summary. Please try again later.");
       toast.error("Failed to regenerate flashcards. Please try again later.");
@@ -178,7 +194,23 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
       {flashcardsSet && (
         <div>
           <div className="flex flex-col md:flex-row items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold mb-4">Flashcards Set</h1>
+            <div className="flex items-center gap-4 mb-4 md:mb-0">
+              <h1 className="text-2xl font-bold mb-4">Flashcards Set</h1>
+              {material && (
+                <Badge
+                  variant="secondary"
+                  className="text-xs w-fit flex items-center gap-1"
+                >
+                  <button
+                    onClick={handleMaterialClick}
+                    className="flex items-center gap-1 text-xs hover:underline"
+                  >
+                    <ExternalLink className="inline w-3 h-3" />
+                    {material.title}
+                  </button>
+                </Badge>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <GenerateAssetDialog
                 isOpen={regenerateDialogOpen}

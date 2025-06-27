@@ -47,6 +47,7 @@ function MaterialFlashcards({
         const response = await fetchGraphQL(`
                   query GetFlashcardStatsByMaterial {
                       getFlashcardStatsByMaterial(materialId: "${id}") {
+                          aiOutputId
                           total
                           known
                           review
@@ -253,7 +254,9 @@ function MaterialFlashcards({
 
             <div className="mt-auto space-y-2">
               <Button asChild className="w-full" size="sm">
-                <Link href={`/dashboard/flashcards/${id}`}>
+                <Link
+                  href={`/dashboard/flashcards/${flashcardsStats.aiOutputId}/play`}
+                >
                   <Play className="h-4 w-4 mr-2" />
                   Revise
                 </Link>

@@ -446,6 +446,7 @@ export class FlashcardsService {
     ).length;
 
     return {
+      aiOutputId: aiOutput[0].id,
       total,
       known,
       review,
@@ -552,6 +553,7 @@ export class FlashcardsService {
 
     return {
       data,
+      material: toMaterialGraphQL(aiOutput[0].materials),
       total,
       known,
       review,

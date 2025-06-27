@@ -161,14 +161,7 @@ function FlashcardCard({
                   <X className="h-4 w-4 text-red-500" />
                   <span className="text-xs font-medium">Review</span>
                 </div>
-                <p
-                  className={cn(
-                    "text-lg font-bold",
-                    knowledgePercentage < 60 ? "text-red-600" : "text-green-600"
-                  )}
-                >
-                  {flashcardData.review}
-                </p>
+                <p className="text-lg font-bold">{flashcardData.review}</p>
               </div>
 
               <div className="text-center p-2 bg-muted/50 rounded-lg">
@@ -176,23 +169,14 @@ function FlashcardCard({
                   <ReceiptText className="h-4 w-4 text-blue-500" />
                   <span className="text-xs font-medium">Total</span>
                 </div>
-                <p className="text-lg font-bold text-green-600">
-                  {flashcardData.total}
-                </p>
+                <p className="text-lg font-bold">{flashcardData.total}</p>
               </div>
 
               <div className="text-center p-2 bg-muted/50 rounded-lg">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <span className="text-xs font-medium">Knowledge rate</span>
                 </div>
-                <p
-                  className={cn(
-                    "text-lg font-bold",
-                    knowledgePercentage < 60
-                      ? "text-red-600"
-                      : "text-muted-foreground"
-                  )}
-                >
+                <p className="text-lg font-bold">
                   {knowledgePercentage.toFixed(0)}%
                 </p>
               </div>
