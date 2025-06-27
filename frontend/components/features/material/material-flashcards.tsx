@@ -1,6 +1,6 @@
 import { fetchGraphQL } from "@/utils/gql-axios";
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader } from "./ui/card";
+import { Card, CardContent, CardHeader } from "../../ui/card";
 import { cn } from "@/lib/utils";
 import {
   Check,
@@ -12,11 +12,11 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
+import { Button } from "../../ui/button";
+import { Badge } from "../../ui/badge";
 import Link from "next/link";
-import { GenerateAssetDialog } from "@/components/generate-asset";
-import DeleteAssetDialog from "./delete-asset-dialog";
+import { GenerateAssetDialog } from "@/components/common/generate-asset";
+import DeleteAssetDialog from "@/components/common/delete-asset-dialog";
 import { toast } from "sonner";
 
 //TODO: add here aioutputid for correct link

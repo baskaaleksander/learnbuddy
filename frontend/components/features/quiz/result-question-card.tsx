@@ -1,6 +1,6 @@
 import { QuizResultDetails } from "@/lib/definitions";
 import React from "react";
-import { Card, CardContent } from "./ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Check, X } from "lucide-react";
 
 function ResultQuestionCard(props: QuizResultDetails) {

@@ -1,9 +1,9 @@
 "use client";
-import DeleteAssetDialog from "@/components/delete-asset-dialog";
-import ErrorComponent from "@/components/error-component";
-import FlashcardQuestionCard from "@/components/flashcard-question-card";
-import { GenerateAssetDialog } from "@/components/generate-asset";
-import LoadingScreen from "@/components/loading-screen";
+import DeleteAssetDialog from "@/components/common/delete-asset-dialog";
+import ErrorComponent from "@/components/common/error-component";
+import FlashcardQuestionCard from "@/components/features/flashcards/flashcard-question-card";
+import { GenerateAssetDialog } from "@/components/common/generate-asset";
+import LoadingScreen from "@/components/common/loading-screen";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -195,7 +195,7 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
         <div>
           <div className="flex flex-col md:flex-row items-center justify-between mb-4">
             <div className="flex items-center gap-4 mb-4 md:mb-0">
-              <h1 className="text-2xl font-bold mb-4">Flashcards Set</h1>
+              <h1 className="text-2xl font-bold">Flashcards Set</h1>
               {material && (
                 <Badge
                   variant="secondary"

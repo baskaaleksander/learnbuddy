@@ -2,14 +2,13 @@
 
 import { cn } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader } from "./ui/card";
-import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader } from "../../ui/card";
+import { Button } from "../../ui/button";
 import { Check, ChevronRight, FileText, RefreshCw, Trash } from "lucide-react";
 import Link from "next/link";
 import { fetchGraphQL } from "@/utils/gql-axios";
-import { GenerateAssetDialog } from "@/components/generate-asset";
-import { useRouter } from "next/navigation";
-import DeleteAssetDialog from "./delete-asset-dialog";
+import { GenerateAssetDialog } from "@/components/common/generate-asset";
+import DeleteAssetDialog from "@/components/common/delete-asset-dialog";
 import { toast } from "sonner";
 
 interface SummaryData {

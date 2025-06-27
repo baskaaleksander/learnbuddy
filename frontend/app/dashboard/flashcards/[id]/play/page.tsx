@@ -1,6 +1,6 @@
 "use client";
-import ErrorComponent from "@/components/error-component";
-import LoadingScreen from "@/components/loading-screen";
+import ErrorComponent from "@/components/common/error-component";
+import LoadingScreen from "@/components/common/loading-screen";
 import { Button } from "@/components/ui/button";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import { Check, X } from "lucide-react";

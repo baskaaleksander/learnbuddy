@@ -1,21 +1,27 @@
-'use client';
-import React, { useState } from 'react'
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { set, useForm } from 'react-hook-form';
-import { fetchGraphQL } from '@/utils/gql-axios';
-import { Form, FormField } from './ui/form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { AlertCircle, Check, Dot, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Input } from './ui/input';
-import { useRouter } from 'next/navigation';
+"use client";
+import React, { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useForm } from "react-hook-form";
+import { fetchGraphQL } from "@/utils/gql-axios";
+import { Form, FormField } from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, Check, Dot, Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-    title: z.string().min(1, "Title is required"),
-    description: z.string().optional(),
-})
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+});
 
 function SecondStepUpload({ id }: { id: string }) {
   const [loading, setLoading] = useState(false);
@@ -26,11 +32,11 @@ function SecondStepUpload({ id }: { id: string }) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: '',
-      description: '',
+      title: "",
+      description: "",
     },
   });
-  
+
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       setLoading(true);
@@ -42,24 +48,24 @@ function SecondStepUpload({ id }: { id: string }) {
           description
         }
       }
-  `)
-        if(response.createMaterial) {
-          setUploadSuccess(true);
-          setLoading(false);
-          setTimeout(() => {
-            router.push('/dashboard/materials');
-          }, 2000)
-
-        }
-    } catch (error) {
+  `);
+      if (response.createMaterial) {
+        setUploadSuccess(true);
         setLoading(false);
-        setErrorMessage("An error occurred while uploading the material. Please try again later.")
+        setTimeout(() => {
+          router.push("/dashboard/materials");
+        }, 2000);
+      }
+    } catch (error) {
+      setLoading(false);
+      setErrorMessage(
+        "An error occurred while uploading the material. Please try again later."
+      );
     }
-    
-  }
+  };
   return (
     <div className="container max-w-3xl py-8">
-      <div className='flex items-center justify-center mb-2'>
+      <div className="flex items-center justify-center mb-2">
         <Dot className="h-8 w-8 text-gray-400 mr-2" />
         <Dot className="h-8 w-8 text-primary" />
       </div>
@@ -70,7 +76,7 @@ function SecondStepUpload({ id }: { id: string }) {
           <AlertDescription>{errorMessage}</AlertDescription>
         </Alert>
       )}
-      
+
       {uploadSuccess && (
         <Alert className="mb-6 bg-green-50 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900">
           <Check className="h-4 w-4" />
@@ -78,7 +84,7 @@ function SecondStepUpload({ id }: { id: string }) {
           <AlertDescription>Material uploaded successfully!</AlertDescription>
         </Alert>
       )}
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Upload Material</CardTitle>
@@ -93,11 +99,7 @@ function SecondStepUpload({ id }: { id: string }) {
                 control={form.control}
                 name="title"
                 render={({ field }) => (
-                  <Input
-                    {...field}
-                    placeholder="Title"
-                    className="w-full"
-                  />
+                  <Input {...field} placeholder="Title" className="w-full" />
                 )}
               />
               <FormField
@@ -111,19 +113,17 @@ function SecondStepUpload({ id }: { id: string }) {
                   />
                 )}
               />
-              
+
               <div className="pt-4">
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={loading}
-                >
+                <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Please wait...
                     </>
-                  ) : "Finish"}
+                  ) : (
+                    "Finish"
+                  )}
                 </Button>
               </div>
             </form>
@@ -131,7 +131,7 @@ function SecondStepUpload({ id }: { id: string }) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
-export default SecondStepUpload
+export default SecondStepUpload;

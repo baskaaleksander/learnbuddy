@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Check, X } from "lucide-react";
 
-import { Switch } from "./ui/switch";
+import { Switch } from "../../ui/switch";
 
 function FlashcardQuestionCard({
   flashcardQuestionData,

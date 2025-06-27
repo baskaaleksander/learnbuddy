@@ -1,7 +1,7 @@
 "use client";
-import ErrorComponent from "@/components/error-component";
-import LoadingScreen from "@/components/loading-screen";
-import QuizResultCard from "@/components/quiz-result-card";
+import ErrorComponent from "@/components/common/error-component";
+import LoadingScreen from "@/components/common/loading-screen";
+import QuizResultCard from "@/components/features/quiz/quiz-result-card";
 import { Button } from "@/components/ui/button";
 import {
   Select,

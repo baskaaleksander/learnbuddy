@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import { Calendar, File, MoreVertical, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader } from "./ui/card";
+import { Card, CardContent, CardHeader } from "../../ui/card";
 import Link from "next/link";
-import { Badge } from "./ui/badge";
+import { Badge } from "../../ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import DeleteAssetDialog from "./delete-asset-dialog";
+} from "../../ui/dropdown-menu";
+import DeleteAssetDialog from "@/components/common/delete-asset-dialog";
 import { useRouter } from "next/navigation";
 
 interface MaterialCardProps {

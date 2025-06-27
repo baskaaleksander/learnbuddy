@@ -19,8 +19,8 @@ import {
   RotateCcw,
   Trophy,
 } from "lucide-react";
-import ErrorComponent from "@/components/error-component";
-import LoadingScreen from "@/components/loading-screen";
+import ErrorComponent from "@/components/common/error-component";
+import LoadingScreen from "@/components/common/loading-screen";
 import Link from "next/link";
 import {
   Tooltip,

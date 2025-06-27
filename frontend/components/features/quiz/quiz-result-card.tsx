@@ -1,9 +1,9 @@
 import { QuizResult } from "@/lib/definitions";
 import React from "react";
-import { Card, CardContent } from "./ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Check, X, Clock, Calendar, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { Badge } from "./ui/badge";
+import { Badge } from "@/components/ui/badge";
 
 function QuizResultCard(props: QuizResult) {
   const percentageScore = (props.score / props.totalQuestions) * 100;

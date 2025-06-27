@@ -2,10 +2,10 @@
 
 import { fetchGraphQL } from "@/utils/gql-axios";
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader } from "./ui/card";
+import { Card, CardContent, CardHeader } from "../../ui/card";
 import { cn } from "@/lib/utils";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
+import { Button } from "../../ui/button";
+import { Badge } from "../../ui/badge";
 import {
   RefreshCw,
   Play,
@@ -17,8 +17,8 @@ import {
   Check,
 } from "lucide-react";
 import Link from "next/link";
-import { GenerateAssetDialog } from "@/components/generate-asset";
-import DeleteAssetDialog from "./delete-asset-dialog";
+import { GenerateAssetDialog } from "@/components/common/generate-asset";
+import DeleteAssetDialog from "@/components/common/delete-asset-dialog";
 import { toast } from "sonner";
 
 function MaterialQuiz({

@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import { FlashcardData, PaginationProps } from "@/lib/definitions";
-import FlashcardCard from "@/components/flashcard-card";
-import ErrorComponent from "@/components/error-component";
-import LoadingScreen from "@/components/loading-screen";
+import FlashcardCard from "@/components/features/flashcards/flashcard-card";
+import ErrorComponent from "@/components/common/error-component";
+import LoadingScreen from "@/components/common/loading-screen";
 import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Select,

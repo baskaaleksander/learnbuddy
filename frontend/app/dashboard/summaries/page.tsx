@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { fetchGraphQL } from "@/utils/gql-axios";
-import LoadingScreen from "@/components/loading-screen";
-import ErrorComponent from "@/components/error-component";
+import LoadingScreen from "@/components/common/loading-screen";
+import ErrorComponent from "@/components/common/error-component";
 import { PaginationProps, SummaryData } from "@/lib/definitions";
 import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import SummaryCard from "@/components/summary-card";
+import SummaryCard from "@/components/features/summaries/summary-card";
 
 function SummariesPage() {
   const [loading, setLoading] = useState<boolean>(false);

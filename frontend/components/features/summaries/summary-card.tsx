@@ -25,9 +25,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "../../ui/dropdown-menu";
 
-import DeleteAssetDialog from "./delete-asset-dialog";
+import DeleteAssetDialog from "@/components/common/delete-asset-dialog";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import { toast } from "sonner";
 

@@ -1,8 +1,8 @@
 "use client";
-import ErrorComponent from "@/components/error-component";
-import LoadingScreen from "@/components/loading-screen";
-import MaterialCard from "@/components/material-card";
-import UploadCard from "@/components/upload-card";
+import ErrorComponent from "@/components/common/error-component";
+import LoadingScreen from "@/components/common/loading-screen";
+import MaterialCard from "@/components/features/material/material-card";
+import UploadCard from "@/components/features/material/upload-card";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import React, { useEffect, useState } from "react";
 import {

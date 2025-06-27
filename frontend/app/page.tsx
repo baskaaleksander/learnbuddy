@@ -1,11 +1,10 @@
-import CTA from "@/components/cta";
-import Features from "@/components/features";
-import ForWho from "@/components/for-who";
-import Hero from "@/components/hero";
-import HowItWorks from "@/components/how-it-works";
+import CTA from "@/components/landing-page/cta";
+import Features from "@/components/landing-page/features";
+import ForWho from "@/components/landing-page/for-who";
+import Hero from "@/components/landing-page/hero";
+import HowItWorks from "@/components/landing-page/how-it-works";
 
 export default function Home() {
-
   return (
     <div>
       <Hero />

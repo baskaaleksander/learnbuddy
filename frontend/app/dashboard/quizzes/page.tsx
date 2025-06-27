@@ -1,6 +1,6 @@
 "use client";
 
-import QuizCard from "@/components/quiz-card";
+import QuizCard from "@/components/features/quiz/quiz-card";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,8 +12,8 @@ import {
 import { fetchGraphQL } from "@/utils/gql-axios";
 import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import ErrorComponent from "@/components/error-component";
-import LoadingScreen from "@/components/loading-screen";
+import ErrorComponent from "@/components/common/error-component";
+import LoadingScreen from "@/components/common/loading-screen";
 import { PaginationProps, QuizData } from "@/lib/definitions";
 
 function QuizzesPage() {

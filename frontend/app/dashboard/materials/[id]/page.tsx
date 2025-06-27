@@ -1,15 +1,15 @@
 "use client";
 
-import MaterialFlashcards from "@/components/material-flashcards";
-import MaterialQuiz from "@/components/material-quiz";
-import MaterialSummary from "@/components/material-summary";
+import MaterialFlashcards from "@/components/features/material/material-flashcards";
+import MaterialQuiz from "@/components/features/material/material-quiz";
+import MaterialSummary from "@/components/features/material/material-summary";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import React, { use, useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import DeleteAssetDialog from "@/components/delete-asset-dialog";
+import DeleteAssetDialog from "@/components/common/delete-asset-dialog";
 import { useRouter } from "next/navigation";
 
 function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
