@@ -452,7 +452,7 @@ export class FlashcardsService {
       lastUpdated: new Date(),
     };
   }
-  async getFlashcardsById(id: string, userId: string) {
+  async getFlashcardsById(id: string, userId: string, status?: string) {
     const aiOutput = await this.drizzle
       .select()
       .from(aiOutputs)
@@ -482,7 +482,14 @@ export class FlashcardsService {
         flashcardProgress,
         eq(flashcards.id, flashcardProgress.flashcardId),
       )
-      .where(eq(flashcards.aiOutputId, aiOutput[0].ai_outputs.id));
+      .where(
+        status
+          ? and(
+              eq(flashcards.aiOutputId, aiOutput[0].ai_outputs.id),
+              eq(flashcardProgress.status, status as FlashcardProgressStatus),
+            )
+          : eq(flashcards.aiOutputId, aiOutput[0].ai_outputs.id),
+      );
 
     const data = flashcardsWithProgress.map((flashcard) => ({
       flashcardId: flashcard.flashcards.id,

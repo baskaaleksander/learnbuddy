@@ -95,7 +95,8 @@ export class FlashcardsResolver {
   async getFlashcardsById(
     @Args('id') id: string,
     @CurrentUser() user: PayloadDto,
+    @Args('status', { nullable: true }) status?: string,
   ) {
-    return this.flashcardsService.getFlashcardsById(id, user.id);
+    return this.flashcardsService.getFlashcardsById(id, user.id, status);
   }
 }
