@@ -110,6 +110,75 @@ export class QuizService {
     };
   }
 
+  async getQuizInfoById(id: string, userId: string) {
+    const quiz = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
+      .where(
+        and(
+          eq(aiOutputs.id, id),
+          eq(aiOutputs.type, 'quiz'),
+          eq(materials.userId, userId),
+        ),
+      )
+      .limit(1);
+
+    if (quiz.length === 0) {
+      return null;
+    }
+
+    const averageScore = await this.drizzle
+      .select({
+        averageScore: sql<number>`AVG(${quizResults.score})::numeric`,
+        totalAttempts: sql<number>`COUNT(*)::integer`,
+        bestScore: sql<number>`MAX(${quizResults.score})::integer`,
+        totalQuestions: quizResults.totalQuestions,
+      })
+      .from(quizResults)
+      .where(
+        and(
+          eq(quizResults.aiOutputId, quiz[0].ai_outputs.id),
+          eq(quizResults.userId, userId),
+        ),
+      )
+      .groupBy(quizResults.totalQuestions);
+
+    const latestQuizResult = await this.drizzle
+      .select()
+      .from(quizResults)
+      .where(
+        and(
+          eq(quizResults.aiOutputId, quiz[0].ai_outputs.id),
+          eq(quizResults.userId, userId),
+        ),
+      )
+      .orderBy(desc(quizResults.completedAt))
+      .limit(1);
+
+    const quizGraphQL = toAIOutputGraphQL(quiz[0].ai_outputs);
+    const avgData = averageScore.length > 0 ? averageScore[0] : null;
+
+    return {
+      ...quizGraphQL,
+      averageScore: avgData ? parseFloat(avgData.averageScore.toString()) : 0,
+      totalAttempts: avgData ? avgData.totalAttempts : 0,
+      averagePercentage: avgData
+        ? (parseFloat(avgData.averageScore.toString()) /
+            avgData.totalQuestions) *
+          100
+        : 0,
+      bestScore: avgData ? avgData.bestScore : 0,
+      latestResult:
+        latestQuizResult.length > 0
+          ? {
+              score: latestQuizResult[0].score,
+              completedAt: latestQuizResult[0].completedAt,
+            }
+          : null,
+      material: toMaterialGraphQL(quiz[0].materials),
+    };
+  }
   async getQuizesByUser(
     userId: string,
     page: number = 1,

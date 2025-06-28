@@ -181,7 +181,7 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
       });
       router.push("/dashboard/flashcards/");
     } catch (error) {
-      setError("Failed to regenerate summary. Please try again later.");
+      setError("Failed to regenerate flashcards. Please try again later.");
       toast.error("Failed to regenerate flashcards. Please try again later.");
     } finally {
       setSubmittingRegenerate(false);
@@ -232,6 +232,13 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
               >
                 {submittingDelete ? "Deleting..." : "Delete"}
               </Button>
+              <DeleteAssetDialog
+                isOpen={deleteDialogOpen}
+                setIsOpenAction={setDeleteDialogOpen}
+                name="flashcards set"
+                onDeleteAction={handleDeleteFlashcards}
+                submitting={submittingDelete}
+              />
             </div>
           </div>
           <Card>
@@ -297,13 +304,6 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
           </div>
         </div>
       )}
-      <DeleteAssetDialog
-        isOpen={deleteDialogOpen}
-        setIsOpenAction={setDeleteDialogOpen}
-        name="flashcards set"
-        onDeleteAction={handleDeleteFlashcards}
-        submitting={submittingDelete}
-      />
     </div>
   );
 }

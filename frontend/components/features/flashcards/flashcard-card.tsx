@@ -195,7 +195,7 @@ function FlashcardCard({
 
           <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <div className="flex items-center gap-1 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md">
-              <span>Click to practice</span>
+              <span>Click to view</span>
               <ArrowRight className="w-3 h-3" />
             </div>
           </div>

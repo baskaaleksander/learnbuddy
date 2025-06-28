@@ -1,7 +1,7 @@
 "use client";
 import ErrorComponent from "@/components/common/error-component";
 import LoadingScreen from "@/components/common/loading-screen";
-import ResultQuestionCard from "@/components/result-question-card";
+import ResultQuestionCard from "@/components/features/quiz/result-question-card";
 import { QuizResult } from "@/lib/definitions";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import React, { use, useEffect, useState } from "react";

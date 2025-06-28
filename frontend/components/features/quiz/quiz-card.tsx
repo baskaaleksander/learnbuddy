@@ -77,7 +77,7 @@ function QuizCard({
       setSubmittingDelete(true);
       await fetchGraphQL(`
         mutation DeleteQuiz {
-          deleteQuiz(id: "${quizData.id}")
+          deleteQuiz(id: "${quizData.material.id}")
         }
       `);
 
@@ -205,27 +205,18 @@ function QuizCard({
 
             {quizData.latestResult && (
               <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col gap-1">
-                    <p className="text-xs text-muted-foreground">
-                      Last attempt:{" "}
-                      {formatDate(quizData.latestResult.completedAt)}
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleResultClick}
-                  >
-                    See results
-                  </Button>
+                <div className="flex flex-col gap-1">
+                  <p className="text-xs text-muted-foreground">
+                    Last attempt:{" "}
+                    {formatDate(quizData.latestResult.completedAt)}
+                  </p>
                 </div>
               </div>
             )}
 
             <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <div className="flex items-center gap-1 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md">
-                <span>Click to attempt</span>
+                <span>Click to view</span>
                 <ArrowRight className="w-3 h-3" />
               </div>
             </div>
