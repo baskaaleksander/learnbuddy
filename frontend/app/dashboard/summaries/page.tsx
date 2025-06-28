@@ -163,7 +163,7 @@ function SummariesPage() {
               <span className="hidden sm:inline">Previous</span>
             </Button>
 
-            <span className="text-sm text-muted-foreground px-2">
+            <span className="text-sm text-muted-foreground px-2 whitespace-nowrap">
               Page {page} of {totalPages}
             </span>
 
@@ -193,7 +193,7 @@ function SummariesPage() {
             );
           })
         ) : (
-          <p>No quizzes found</p>
+          <p>No summaries found</p>
         )}
       </div>
     </div>

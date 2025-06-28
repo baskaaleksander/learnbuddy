@@ -307,8 +307,8 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
       <div>
         <h1 className="text-xl font-bold">Quiz results</h1>
         <p className="text-sm text-muted-foreground">
-          {quizResults?.data?.length} result
-          {quizResults?.data?.length !== 1 ? "s" : ""} found
+          {quizResults?.totalItems} result
+          {quizResults?.totalItems !== 1 ? "s" : ""} found
         </p>
       </div>
 

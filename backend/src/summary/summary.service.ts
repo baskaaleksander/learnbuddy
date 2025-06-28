@@ -4,7 +4,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, is, sql } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
 import { aiOutputs, materials } from 'src/database/schema';
 import { toAIOutputGraphQL } from 'src/mappers/ai-output.mapper';
@@ -132,26 +132,114 @@ export class SummaryService {
     const summary = await this.drizzle
       .select()
       .from(aiOutputs)
-      .where(and(eq(aiOutputs.id, id)));
+      .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
+      .where(
+        and(
+          eq(aiOutputs.id, id),
+          eq(aiOutputs.type, 'summary'),
+          eq(materials.userId, userId),
+        ),
+      );
 
     if (summary.length === 0) {
       throw new NotFoundException('Summary not found');
     }
 
-    const materialAccess = await this.drizzle
+    const content = summary[0].ai_outputs.content as SummaryAiOutputContent;
+    const chaptersCount = content.chapters.length;
+    let bulletPointsCount = 0;
+
+    content.chapters.forEach((chapter) => {
+      bulletPointsCount += chapter.bullet_points.length;
+    });
+    return {
+      ...toAIOutputGraphQL(summary[0].ai_outputs),
+      chaptersCount,
+      title: content.title,
+      bulletPointsCount,
+      material: toMaterialGraphQL(summary[0].materials),
+    };
+  }
+
+  async markChapterAsKnown(
+    summaryId: string,
+    chapterIndex: number,
+    userId: string,
+  ) {
+    const summary = await this.drizzle
       .select()
-      .from(materials)
+      .from(aiOutputs)
+      .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
       .where(
         and(
-          eq(materials.id, summary[0].materialId),
+          eq(aiOutputs.id, summaryId),
+          eq(aiOutputs.type, 'summary'),
           eq(materials.userId, userId),
         ),
       );
-    if (materialAccess.length === 0) {
-      throw new UnauthorizedException('Material not found or access denied');
+
+    if (summary.length === 0) {
+      throw new NotFoundException('Summary not found');
     }
 
-    return toAIOutputGraphQL(summary[0]);
+    const content = summary[0].ai_outputs.content as SummaryAiOutputContent;
+
+    if (chapterIndex < 0 || chapterIndex >= content.chapters.length) {
+      throw new NotFoundException('Chapter index out of bounds');
+    }
+
+    if (content.chapters[chapterIndex].isKnown) {
+      content.chapters[chapterIndex].isKnown = false;
+    } else {
+      content.chapters[chapterIndex].isKnown = true;
+    }
+
+    await this.drizzle
+      .update(aiOutputs)
+      .set({ content: content })
+      .where(eq(aiOutputs.id, summaryId));
+
+    return true;
+  }
+
+  async markChapterAsImportant(
+    summaryId: string,
+    chapterIndex: number,
+    userId: string,
+  ) {
+    const summary = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .innerJoin(materials, eq(aiOutputs.materialId, materials.id))
+      .where(
+        and(
+          eq(aiOutputs.id, summaryId),
+          eq(aiOutputs.type, 'summary'),
+          eq(materials.userId, userId),
+        ),
+      );
+    if (summary.length === 0) {
+      throw new NotFoundException('Summary not found');
+    }
+
+    const content = summary[0].ai_outputs.content as SummaryAiOutputContent;
+
+    if (chapterIndex < 0 || chapterIndex >= content.chapters.length) {
+      throw new NotFoundException('Chapter index out of bounds');
+    }
+
+    if (content.chapters[chapterIndex].isImportant) {
+      content.chapters[chapterIndex].isImportant = false;
+    } else {
+      content.chapters[chapterIndex].isImportant = true;
+    }
+
+    await this.drizzle
+      .update(aiOutputs)
+      .set({ content: content })
+      .where(eq(aiOutputs.id, summaryId));
+
+    return true;
   }
 
   async createSummary(materialId: string, userId: string) {
@@ -190,10 +278,20 @@ export class SummaryService {
       throw new Error('Failed to generate quiz');
     }
 
+    const summaryContent = summary.chapters.map((chapter) => ({
+      name: chapter.name,
+      bullet_points: chapter.bullet_points,
+      isKnown: false,
+      isImportant: false,
+    }));
+
     await this.drizzle.insert(aiOutputs).values({
       materialId: materialId,
       type: 'summary',
-      content: summary,
+      content: {
+        title: summary.title,
+        chapters: summaryContent,
+      },
       createdAt: new Date(),
     });
 

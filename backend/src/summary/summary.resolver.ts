@@ -30,6 +30,30 @@ export class SummaryResolver {
 
   @UseGuards(GqlAuthGuard)
   @Mutation(() => Boolean)
+  async markChapterAsKnown(
+    @Args('id') id: string,
+    @Args('chapterIndex') chapterIndex: number,
+    @CurrentUser() user: PayloadDto,
+  ) {
+    return this.summaryService.markChapterAsKnown(id, chapterIndex, user.id);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Boolean)
+  async markChapterAsImportant(
+    @Args('id') id: string,
+    @Args('chapterIndex') chapterIndex: number,
+    @CurrentUser() user: PayloadDto,
+  ) {
+    return this.summaryService.markChapterAsImportant(
+      id,
+      chapterIndex,
+      user.id,
+    );
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Boolean)
   async createSummary(
     @Args('materialId') materialId: string,
     @CurrentUser() user: PayloadDto,

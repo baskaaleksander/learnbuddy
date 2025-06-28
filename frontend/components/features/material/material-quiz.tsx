@@ -286,7 +286,7 @@ function MaterialQuiz({
                       {quizzes?.latestResult?.score.toFixed(1)}/10
                     </Badge>
                     <Link
-                      href={`/dashboard/quizzes/${quizzes?.id}/results/`}
+                      href={`/dashboard/quizzes/${quizzes?.id}/`}
                       className="text-xs text-muted-foreground"
                     >
                       View all results

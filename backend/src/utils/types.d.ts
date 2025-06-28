@@ -18,5 +18,7 @@ export interface SummaryAiOutputContent {
   chapters: Array<{
     name: string;
     bullet_points: string[];
+    isKnown: boolean;
+    isImportant: boolean;
   }>;
 }

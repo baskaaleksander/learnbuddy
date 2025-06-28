@@ -67,6 +67,16 @@ export interface AssetData {
   cost: number;
 }
 
+export interface SummaryContent {
+  title: string;
+  chapters: Array<{
+    name: string;
+    bullet_points: string[];
+    isKnown: boolean;
+    isImportant: boolean;
+  }>;
+}
+
 export interface SummaryData {
   id: string;
   createdAt: string;
@@ -74,6 +84,7 @@ export interface SummaryData {
   title: string;
   chaptersCount: number;
   bulletPointsCount: number;
+  content: SummaryContent;
 }
 
 export interface MaterialData {
