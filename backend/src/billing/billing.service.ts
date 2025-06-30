@@ -1,7 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 
+// TODO: wire up to database for user subs
 @Injectable()
 export class BillingService {
   private stripe: Stripe;
@@ -34,5 +39,66 @@ export class BillingService {
     });
 
     return session.url;
+  }
+
+  async cancelSubscription(subscriptionId: string) {
+    const subscription =
+      await this.stripe.subscriptions.retrieve(subscriptionId);
+
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
+    }
+
+    if (subscription.status === 'canceled') {
+      throw new ConflictException('Subscription is already canceled');
+    }
+
+    const canceledSubscription = await this.stripe.subscriptions.update(
+      subscriptionId,
+      {
+        cancel_at_period_end: true,
+      },
+    );
+
+    return canceledSubscription;
+  }
+
+  async getSubscriptionStatus(subscriptionId: string) {
+    const subscription =
+      await this.stripe.subscriptions.retrieve(subscriptionId);
+
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
+    }
+
+    return {
+      id: subscription.id,
+      status: subscription.status,
+      current_period_end: subscription.current_period_end,
+      plan: subscription.items.data[0].plan.nickname,
+    };
+  }
+
+  async updateSubscriptionPlan(subscriptionId: string, newPriceId: string) {
+    const subscription =
+      await this.stripe.subscriptions.retrieve(subscriptionId);
+
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
+    }
+
+    const updatedSubscription = await this.stripe.subscriptions.update(
+      subscriptionId,
+      {
+        items: [
+          {
+            id: subscription.items.data[0].id,
+            price: newPriceId,
+          },
+        ],
+      },
+    );
+
+    return updatedSubscription;
   }
 }
