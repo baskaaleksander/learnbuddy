@@ -19,6 +19,7 @@ import * as depthLimit from 'graphql-depth-limit';
 import { RedisModule } from './redis/redis.module';
 import { QueueModule } from './queue/queue.module';
 import { LoggerModule } from 'nestjs-pino';
+import { BillingModule } from './billing/billing.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { LoggerModule } from 'nestjs-pino';
     FlashcardsModule,
     RedisModule,
     QueueModule,
+    BillingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -30,7 +30,8 @@ export const flashcardStatusEnum = pgEnum('flashcard_status', [
 ]);
 export const subscriptionPlanEnum = pgEnum('subscription_plan', [
   'free',
-  'pro',
+  'tier1',
+  'tier2',
   'unlimited',
 ]);
 export const subscriptionStatusEnum = pgEnum('subscription_status', [

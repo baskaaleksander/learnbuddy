@@ -141,10 +141,18 @@ function DesktopNavbar({
             </DropdownMenu>
           ) : (
             <div className="h-10 flex items-center">
-              <Button variant="default" className="text-sm px-4 py-2 h-10">
+              <Button
+                size="sm"
+                variant="default"
+                className="text-sm px-4 py-2 h-10"
+              >
                 <Link href="/login">Login</Link>
               </Button>
-              <Button variant="outline" className="text-sm px-4 py-2 ml-2 h-10">
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-sm px-4 py-2 ml-2 h-10"
+              >
                 <Link href="/register">Register</Link>
               </Button>
             </div>
