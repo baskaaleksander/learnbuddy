@@ -1,9 +1,13 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { eq } from 'drizzle-orm';
+import { db } from 'src/database/drizzle.module';
+import { subscriptions } from 'src/database/schema';
 import Stripe from 'stripe';
 
 // TODO: wire up to database for user subs
@@ -11,7 +15,10 @@ import Stripe from 'stripe';
 export class BillingService {
   private stripe: Stripe;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @Inject('DRIZZLE') private drizzle: typeof db,
+  ) {
     const stripeSecretKey = configService.get<string>('STRIPE_SECRET_KEY');
     if (!stripeSecretKey) {
       throw new Error(
@@ -23,7 +30,7 @@ export class BillingService {
     });
   }
 
-  async createCheckoutSession(email: string, priceId: string) {
+  async createCheckoutSession(email: string, priceId: string, plan: string) {
     const session = await this.stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
@@ -36,6 +43,9 @@ export class BillingService {
       customer_email: email,
       success_url: `${this.configService.get<string>('FRONTEND_URL')}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${this.configService.get<string>('FRONTEND_URL')}/cancel`,
+      metadata: {
+        plan: plan,
+      },
     });
 
     return session.url;
@@ -60,6 +70,13 @@ export class BillingService {
       },
     );
 
+    await this.drizzle
+      .update(subscriptions)
+      .set({
+        status: 'canceled',
+      })
+      .where(eq(subscriptions.id, subscriptionId));
+
     return canceledSubscription;
   }
 
@@ -74,7 +91,7 @@ export class BillingService {
     return {
       id: subscription.id,
       status: subscription.status,
-      current_period_end: subscription.current_period_end,
+      days_until_due: subscription.days_until_due,
       plan: subscription.items.data[0].plan.nickname,
     };
   }

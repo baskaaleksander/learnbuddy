@@ -37,7 +37,6 @@ export const subscriptionPlanEnum = pgEnum('subscription_plan', [
 export const subscriptionStatusEnum = pgEnum('subscription_status', [
   'active',
   'canceled',
-  'trialing',
   'past_due',
 ]);
 

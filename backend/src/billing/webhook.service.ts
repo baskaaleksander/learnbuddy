@@ -1,12 +1,18 @@
-import { Injectable, Req } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { eq } from 'drizzle-orm';
+import { db } from 'src/database/drizzle.module';
+import { subscriptions, users } from 'src/database/schema';
 import Stripe from 'stripe';
 
 @Injectable()
 export class WebhookService {
   private stripe: Stripe;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @Inject('DRIZZLE') private drizzle: typeof db,
+  ) {
     const stripeSecretKey = configService.get<string>('STRIPE_SECRET_KEY');
     if (!stripeSecretKey) {
       throw new Error(
@@ -21,6 +27,7 @@ export class WebhookService {
   async processWebhookEvent(event: Stripe.Event) {
     switch (event.type) {
       case 'checkout.session.completed':
+        await this.handleCheckoutSessionCompleted(event.data.object);
         break;
       case 'customer.subscription.deleted':
         break;
@@ -59,5 +66,76 @@ export class WebhookService {
         `Webhook signature verification failed: ${error.message}`,
       );
     }
+  }
+
+  async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+    const { customer_email } = session;
+
+    if (!customer_email) {
+      throw new Error('Customer email is required for subscription creation');
+    }
+
+    const user = await this.drizzle
+      .select()
+      .from(users)
+      .where(eq(users.email, customer_email));
+
+    if (user.length === 0) {
+      throw new Error(`User with email ${customer_email} not found`);
+    }
+
+    const subscription = await this.stripe.subscriptions.retrieve(
+      session.subscription as string,
+    );
+
+    let plan: 'free' | 'tier1' | 'tier2' | 'unlimited' = 'tier1';
+
+    if (session.metadata?.plan) {
+      plan = session.metadata.plan as any;
+    }
+
+    const existingSubscription = await this.drizzle
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.userId, user[0].id));
+
+    if (existingSubscription.length > 0) {
+      await this.drizzle
+        .update(subscriptions)
+        .set({
+          stripeSubscriptionId: subscription.id,
+          plan: plan,
+          status: 'active',
+          currentPeriodEnd: new Date(
+            subscription.items.data[0].current_period_end * 1000,
+          ),
+          updatedAt: new Date(),
+        })
+        .where(eq(subscriptions.userId, user[0].id));
+    } else {
+      await this.drizzle.insert(subscriptions).values({
+        userId: user[0].id,
+        stripeSubscriptionId: subscription.id,
+        plan: plan,
+        status: 'active',
+        currentPeriodEnd: new Date(
+          subscription.items.data[0].current_period_end * 1000,
+        ),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+
+    if (!user[0].stripeCustomerId) {
+      await this.drizzle
+        .update(users)
+        .set({
+          stripeCustomerId: session.customer as string,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, user[0].id));
+    }
+
+    console.log(`Subscription created/updated for user ${user[0].email}`);
   }
 }
