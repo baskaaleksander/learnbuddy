@@ -24,6 +24,47 @@ export class WebhookService {
     });
   }
 
+  //   async processWebhookEvent(event: Stripe.Event) {
+  //     switch (event.type) {
+  //       case 'checkout.session.completed':
+  //         await this.handleCheckoutSessionCompleted(event);
+  //         break;
+  //     }
+  //   }
+
+  //   async handleWebhookEvent(payload: Buffer, signature: string) {
+  //     const event = this.verifyWebhookSignature(payload, signature);
+
+  //     return this.processWebhookEvent(event);
+  //   }
+
+  //   verifyWebhookSignature(payload: Buffer, signature: string) {
+  //     const stripeSecret = this.configService.get<string>(
+  //       'STRIPE_WEBHOOK_SECRET',
+  //     );
+  //     if (!stripeSecret) {
+  //       throw new Error('STRIPE_WEBHOOK_SECRET is not defined');
+  //     }
+
+  //     try {
+  //       const event = this.stripe.webhooks.constructEvent(
+  //         payload,
+  //         signature,
+  //         stripeSecret,
+  //       );
+  //       return event;
+  //     } catch (error) {
+  //       throw new Error(
+  //         `Webhook signature verification failed: ${error.message}`,
+  //       );
+  //     }
+  //   }
+
+  //   async handleCheckoutSessionCompleted(event: Stripe.Event) {
+  //     console.log(event.data.object);
+  //   }
+  // }
+
   async processWebhookEvent(event: Stripe.Event) {
     switch (event.type) {
       case 'checkout.session.completed':
@@ -50,6 +91,13 @@ export class WebhookService {
     const stripeSecret = this.configService.get<string>(
       'STRIPE_WEBHOOK_SECRET',
     );
+
+    console.log('Webhook Secret exists:', !!stripeSecret);
+    console.log('Webhook Secret length:', stripeSecret?.length);
+    console.log('Payload length:', payload.length);
+    console.log('Signature:', signature);
+    console.log('Payload first 100 chars:', payload.toString('utf8', 0, 100));
+
     if (!stripeSecret) {
       throw new Error('STRIPE_WEBHOOK_SECRET is not defined');
     }
@@ -60,8 +108,15 @@ export class WebhookService {
         signature,
         stripeSecret,
       );
+      console.log('Webhook verification successful!');
       return event;
     } catch (error) {
+      console.error('Webhook verification error details:', {
+        message: error.message,
+        payload_length: payload.length,
+        signature,
+        secret_defined: !!stripeSecret,
+      });
       throw new Error(
         `Webhook signature verification failed: ${error.message}`,
       );
@@ -135,7 +190,5 @@ export class WebhookService {
         })
         .where(eq(users.id, user[0].id));
     }
-
-    console.log(`Subscription created/updated for user ${user[0].email}`);
   }
 }

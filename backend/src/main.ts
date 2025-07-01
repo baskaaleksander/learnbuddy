@@ -5,15 +5,12 @@ import * as cookieParser from 'cookie-parser';
 import { Logger } from 'nestjs-pino';
 import { setupBullBoard } from 'src/utils/setupBullBoard';
 import { getQueueToken } from '@nestjs/bullmq';
-import { json, raw } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     rawBody: true,
     bufferLogs: true,
   });
-
-  app.use('/billing/webhook', raw({ type: 'application/json' }));
 
   app.useGlobalPipes(
     new ValidationPipe({

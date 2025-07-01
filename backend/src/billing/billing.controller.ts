@@ -7,6 +7,7 @@ import {
   Post,
   RawBodyRequest,
   Req,
+  ConflictException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { BillingService } from './billing.service';
@@ -21,20 +22,17 @@ export class BillingController {
   ) {}
 
   @Post('webhook')
-  @Header('content-type', 'application/json')
-  handleWebhook(
+  webhook(
     @Headers('stripe-signature') signature: string,
     @Req() request: RawBodyRequest<Request>,
   ) {
     const payload = request.rawBody;
-
     if (!payload) {
       throw new NotFoundException('Request body is required');
     }
 
     return this.webhookService.handleWebhookEvent(payload, signature);
   }
-
   @Post('create-checkout-session')
   async createCheckoutSession(@Body() body: CreateCheckoutSessionDto) {
     return this.billingService.createCheckoutSession(
