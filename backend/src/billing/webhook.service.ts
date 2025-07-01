@@ -24,47 +24,6 @@ export class WebhookService {
     });
   }
 
-  //   async processWebhookEvent(event: Stripe.Event) {
-  //     switch (event.type) {
-  //       case 'checkout.session.completed':
-  //         await this.handleCheckoutSessionCompleted(event);
-  //         break;
-  //     }
-  //   }
-
-  //   async handleWebhookEvent(payload: Buffer, signature: string) {
-  //     const event = this.verifyWebhookSignature(payload, signature);
-
-  //     return this.processWebhookEvent(event);
-  //   }
-
-  //   verifyWebhookSignature(payload: Buffer, signature: string) {
-  //     const stripeSecret = this.configService.get<string>(
-  //       'STRIPE_WEBHOOK_SECRET',
-  //     );
-  //     if (!stripeSecret) {
-  //       throw new Error('STRIPE_WEBHOOK_SECRET is not defined');
-  //     }
-
-  //     try {
-  //       const event = this.stripe.webhooks.constructEvent(
-  //         payload,
-  //         signature,
-  //         stripeSecret,
-  //       );
-  //       return event;
-  //     } catch (error) {
-  //       throw new Error(
-  //         `Webhook signature verification failed: ${error.message}`,
-  //       );
-  //     }
-  //   }
-
-  //   async handleCheckoutSessionCompleted(event: Stripe.Event) {
-  //     console.log(event.data.object);
-  //   }
-  // }
-
   async processWebhookEvent(event: Stripe.Event) {
     switch (event.type) {
       case 'checkout.session.completed':
