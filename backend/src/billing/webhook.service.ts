@@ -30,10 +30,12 @@ export class WebhookService {
         await this.handleCheckoutSessionCompleted(event.data.object);
         break;
       case 'customer.subscription.deleted':
+        await this.handleCustomerSubscriptionDeleted(event.data.object);
         break;
       case 'customer.subscription.updated':
         break;
       case 'invoice.paid':
+        await this.handleInvoicePaid(event.data.object);
         break;
       case 'invoice.payment_failed':
         break;
@@ -50,12 +52,6 @@ export class WebhookService {
     const stripeSecret = this.configService.get<string>(
       'STRIPE_WEBHOOK_SECRET',
     );
-
-    console.log('Webhook Secret exists:', !!stripeSecret);
-    console.log('Webhook Secret length:', stripeSecret?.length);
-    console.log('Payload length:', payload.length);
-    console.log('Signature:', signature);
-    console.log('Payload first 100 chars:', payload.toString('utf8', 0, 100));
 
     if (!stripeSecret) {
       throw new Error('STRIPE_WEBHOOK_SECRET is not defined');
@@ -149,5 +145,57 @@ export class WebhookService {
         })
         .where(eq(users.id, user[0].id));
     }
+  }
+
+  async handleCustomerSubscriptionDeleted(event: Stripe.Subscription) {
+    const subscriptionId = event.id;
+
+    if (!subscriptionId) {
+      throw new Error('Subscription ID is required for deletion');
+    }
+
+    const subscription = await this.drizzle
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
+
+    if (subscription.length === 0) {
+      throw new Error(`Subscription with ID ${subscriptionId} not found`);
+    }
+
+    await this.drizzle
+      .delete(subscriptions)
+      .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
+
+    console.log(`Subscription with ID ${subscriptionId} deleted successfully`);
+  }
+
+  async handleInvoicePaid(event: Stripe.Invoice) {
+    const subscriptionId = event.lines.data[0].parent?.subscription_item_details
+      ?.subscription as string;
+
+    if (!subscriptionId) {
+      throw new Error('Subscription ID is required for invoice payment');
+    }
+
+    const subscription = await this.drizzle
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
+
+    if (subscription.length === 0) {
+      throw new Error(`Subscription with ID ${subscriptionId} not found`);
+    }
+
+    await this.drizzle
+      .update(subscriptions)
+      .set({
+        status: 'active',
+        currentPeriodEnd: new Date(event.lines.data[0].period.end * 1000),
+        updatedAt: new Date(),
+      })
+      .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
+
+    console.log(`Invoice for subscription ${subscriptionId} paid successfully`);
   }
 }

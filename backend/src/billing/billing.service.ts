@@ -34,21 +34,27 @@ export class BillingService {
     const user = await this.drizzle
       .select()
       .from(users)
-      .innerJoin(subscriptions, eq(users.id, subscriptions.userId))
       .where(eq(users.email, email));
 
     if (user.length === 0) {
       throw new NotFoundException('User not found');
     }
 
-    const stripeCustomerId = user[0].users.stripeCustomerId;
+    const existingSubscription = await this.drizzle
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.userId, user[0].id));
 
-    if (
-      user[0].subscriptions.status === 'active' ||
-      user[0].subscriptions.currentPeriodEnd > new Date()
-    ) {
-      throw new ConflictException('User already has an active subscription');
+    if (existingSubscription.length > 0) {
+      if (
+        existingSubscription[0].status === 'active' ||
+        existingSubscription[0].currentPeriodEnd > new Date()
+      ) {
+        throw new ConflictException('User already has an active subscription');
+      }
     }
+
+    const stripeCustomerId = user[0]?.stripeCustomerId;
 
     if (stripeCustomerId) {
       const session = await this.stripe.checkout.sessions.create({
@@ -131,7 +137,26 @@ export class BillingService {
     return canceledSubscription;
   }
 
-  async getSubscriptionStatus(subscriptionId: string) {
+  async getSubscriptionStatus(userId: string) {
+    const userSubscription = await this.drizzle
+      .select()
+      .from(users)
+      .innerJoin(subscriptions, eq(subscriptions.userId, users.id))
+      .where(eq(users.id, userId));
+
+    if (userSubscription.length === 0) {
+      throw new NotFoundException('User not found or no subscription exists');
+    }
+
+    if (userSubscription[0].subscriptions.status !== 'active') {
+      throw new ConflictException(
+        'User does not have an active subscription to update',
+      );
+    }
+
+    const subscriptionId =
+      userSubscription[0].subscriptions.stripeSubscriptionId;
+
     const subscription =
       await this.stripe.subscriptions.retrieve(subscriptionId);
 
@@ -191,7 +216,32 @@ export class BillingService {
     };
   }
 
-  async updateSubscriptionPlan(subscriptionId: string, newPriceId: string) {
+  async updateSubscriptionPlan(userId: string, newPriceId: string) {
+    const userSubscription = await this.drizzle
+      .select()
+      .from(users)
+      .innerJoin(subscriptions, eq(subscriptions.userId, users.id))
+      .where(eq(users.id, userId));
+
+    if (userSubscription.length === 0) {
+      throw new NotFoundException('User not found or no subscription exists');
+    }
+
+    if (userSubscription[0].subscriptions.status !== 'active') {
+      throw new ConflictException(
+        'User does not have an active subscription to update',
+      );
+    }
+
+    if (userSubscription[0].subscriptions.plan === newPriceId) {
+      throw new ConflictException(
+        'User already has this plan, no update needed',
+      );
+    }
+
+    const subscriptionId =
+      userSubscription[0].subscriptions.stripeSubscriptionId;
+
     const subscription =
       await this.stripe.subscriptions.retrieve(subscriptionId);
 
@@ -208,6 +258,7 @@ export class BillingService {
             price: newPriceId,
           },
         ],
+        proration_behavior: 'create_prorations',
       },
     );
 

@@ -2,14 +2,13 @@ import {
   Body,
   Controller,
   Headers,
-  Header,
   NotFoundException,
   Post,
   RawBodyRequest,
   Req,
-  ConflictException,
   UseGuards,
   Get,
+  Patch,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { BillingService } from './billing.service';
@@ -68,5 +67,14 @@ export class BillingController {
       user.id,
       newPriceId,
     );
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('update-subscription')
+  async updateSubscription(
+    @CurrentUser() user: PayloadDto,
+    @Body('newPriceId') newPriceId: string,
+  ) {
+    return this.billingService.updateSubscriptionPlan(user.id, newPriceId);
   }
 }
