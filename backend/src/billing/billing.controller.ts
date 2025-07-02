@@ -17,6 +17,7 @@ import { CreateCheckoutSessionDto } from './dtos/create-checkout-session.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { PayloadDto } from 'src/auth/dtos/payload.dto';
+import { NewPlanDto } from './dtos/new-plan.dto';
 
 @Controller('billing')
 export class BillingController {
@@ -46,8 +47,8 @@ export class BillingController {
   ) {
     return this.billingService.createCheckoutSession(
       user.email,
-      body.priceId,
-      body.plan,
+      body.planName,
+      body.planInterval,
     );
   }
 
@@ -61,11 +62,12 @@ export class BillingController {
   @Get('check-price-change')
   async checkPriceChange(
     @CurrentUser() user: PayloadDto,
-    @Body('newPriceId') newPriceId: string,
+    @Body() body: NewPlanDto,
   ) {
     return this.billingService.checkPricechangeAfterSubChange(
       user.id,
-      newPriceId,
+      body.planName,
+      body.planInterval,
     );
   }
 
@@ -73,8 +75,12 @@ export class BillingController {
   @Patch('update-subscription')
   async updateSubscription(
     @CurrentUser() user: PayloadDto,
-    @Body('newPriceId') newPriceId: string,
+    @Body() body: NewPlanDto,
   ) {
-    return this.billingService.updateSubscriptionPlan(user.id, newPriceId);
+    return this.billingService.updateSubscriptionPlan(
+      user.id,
+      body.planName,
+      body.planInterval,
+    );
   }
 }

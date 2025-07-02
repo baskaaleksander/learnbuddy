@@ -5,12 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
-import { subscriptions, users } from 'src/database/schema';
+import { plans, subscriptions, users } from 'src/database/schema';
 import Stripe from 'stripe';
 
-// TODO: wire up to database for user subs
 @Injectable()
 export class BillingService {
   private stripe: Stripe;
@@ -30,7 +29,11 @@ export class BillingService {
     });
   }
 
-  async createCheckoutSession(email: string, priceId: string, plan: string) {
+  async createCheckoutSession(
+    email: string,
+    planName: string,
+    planInterval: string,
+  ) {
     const user = await this.drizzle
       .select()
       .from(users)
@@ -56,6 +59,17 @@ export class BillingService {
 
     const stripeCustomerId = user[0]?.stripeCustomerId;
 
+    const plan = await this.drizzle
+      .select()
+      .from(plans)
+      .where(and(eq(plans.name, planName), eq(plans.interval, planInterval)));
+
+    const priceId = plan[0]?.price_id;
+
+    if (!priceId) {
+      throw new NotFoundException('Plan not found');
+    }
+
     if (stripeCustomerId) {
       const session = await this.stripe.checkout.sessions.create({
         mode: 'subscription',
@@ -70,7 +84,8 @@ export class BillingService {
         success_url: `${this.configService.get<string>('FRONTEND_URL')}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${this.configService.get<string>('FRONTEND_URL')}/cancel`,
         metadata: {
-          plan: plan,
+          planName: planName,
+          planInterval: planInterval,
         },
       });
 
@@ -90,7 +105,8 @@ export class BillingService {
       success_url: `${this.configService.get<string>('FRONTEND_URL')}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${this.configService.get<string>('FRONTEND_URL')}/cancel`,
       metadata: {
-        plan: plan,
+        planName: planName,
+        planInterval: planInterval,
       },
     });
 
@@ -172,7 +188,11 @@ export class BillingService {
     };
   }
 
-  async checkPricechangeAfterSubChange(userId: string, newPriceId: string) {
+  async checkPricechangeAfterSubChange(
+    userId: string,
+    planName: string,
+    planInterval: string,
+  ) {
     const subscription = await this.drizzle
       .select()
       .from(subscriptions)
@@ -195,6 +215,11 @@ export class BillingService {
       throw new NotFoundException('Subscription not found');
     }
 
+    const plan = await this.drizzle
+      .select()
+      .from(plans)
+      .where(and(eq(plans.name, planName), eq(plans.interval, planInterval)));
+
     const prorationInvoice = await this.stripe.invoices.createPreview({
       customer: stripeCustomerId as string,
       subscription: subscriptionId,
@@ -202,7 +227,7 @@ export class BillingService {
         items: [
           {
             id: subscriptionStripe.items.data[0].id,
-            price: newPriceId,
+            price: plan[0]?.price_id,
           },
         ],
         proration_date: prorationDate,
@@ -216,7 +241,11 @@ export class BillingService {
     };
   }
 
-  async updateSubscriptionPlan(userId: string, newPriceId: string) {
+  async updateSubscriptionPlan(
+    userId: string,
+    planName: string,
+    planInterval: string,
+  ) {
     const userSubscription = await this.drizzle
       .select()
       .from(users)
@@ -233,7 +262,23 @@ export class BillingService {
       );
     }
 
-    if (userSubscription[0].subscriptions.plan === newPriceId) {
+    const newPlan = await this.drizzle
+      .select()
+      .from(plans)
+      .where(and(eq(plans.name, planName), eq(plans.interval, planInterval)));
+
+    if (newPlan.length === 0) {
+      throw new NotFoundException('New plan not found');
+    }
+
+    const newPlanId = newPlan[0].id;
+    const newPriceId = newPlan[0].price_id;
+
+    if (!newPriceId) {
+      throw new NotFoundException('New plan price ID not found');
+    }
+
+    if (userSubscription[0].subscriptions.planId === newPriceId) {
       throw new ConflictException(
         'User already has this plan, no update needed',
       );
@@ -261,6 +306,13 @@ export class BillingService {
         proration_behavior: 'create_prorations',
       },
     );
+
+    await this.drizzle
+      .update(subscriptions)
+      .set({
+        planId: newPlanId,
+      })
+      .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
 
     return updatedSubscription;
   }

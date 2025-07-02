@@ -28,19 +28,23 @@ export const flashcardStatusEnum = pgEnum('flashcard_status', [
   'known',
   'review',
 ]);
-export const subscriptionPlanEnum = pgEnum('subscription_plan', [
-  'free',
-  'tier1',
-  'tier2',
-  'unlimited',
-]);
+
 export const subscriptionStatusEnum = pgEnum('subscription_status', [
   'active',
   'canceled',
   'past_due',
 ]);
 
-// Tables
+export const plans = pgTable('plans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name').notNull(),
+  price: integer('price').notNull(),
+  interval: varchar('interval').notNull(),
+  price_id: text('price_id').notNull(),
+  tokens_monthly: integer('tokens_monthly').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   firstName: text('first_name').notNull(),
@@ -54,6 +58,7 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   stripeCustomerId: text('stripe_customer_id'),
+  tokensUsed: integer('tokens_used').default(0).notNull(),
 });
 
 export const passwordResets = pgTable('password_resets', {
@@ -147,14 +152,30 @@ export const subscriptions = pgTable('subscriptions', {
     .notNull()
     .references(() => users.id),
   stripeSubscriptionId: text('stripe_subscription_id').notNull(),
-  plan: subscriptionPlanEnum('plan').notNull(),
+  planId: uuid('plan_id')
+    .notNull()
+    .references(() => plans.id), // Add it back with correct type
   status: subscriptionStatusEnum('status').notNull(),
   currentPeriodEnd: timestamp('current_period_end').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Relations
+export const plansRelations = relations(plans, ({ many }) => ({
+  subscriptions: many(subscriptions),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptions.userId],
+    references: [users.id],
+  }),
+  plan: one(plans, {
+    fields: [subscriptions.planId],
+    references: [plans.id],
+  }),
+}));
+
 export const usersRelations = relations(users, ({ many }) => ({
   materials: many(materials),
   quizResults: many(quizResults),
@@ -221,10 +242,3 @@ export const flashcardProgressRelations = relations(
     }),
   }),
 );
-
-export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
-  user: one(users, {
-    fields: [subscriptions.userId],
-    references: [users.id],
-  }),
-}));

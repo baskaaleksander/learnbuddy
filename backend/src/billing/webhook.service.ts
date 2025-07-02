@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
-import { subscriptions, users } from 'src/database/schema';
+import { plans, subscriptions, users } from 'src/database/schema';
 import Stripe from 'stripe';
 
 @Injectable()
@@ -33,11 +33,13 @@ export class WebhookService {
         await this.handleCustomerSubscriptionDeleted(event.data.object);
         break;
       case 'customer.subscription.updated':
+        await this.handleSubscriptionUpdate(event.data.object);
         break;
       case 'invoice.paid':
         await this.handleInvoicePaid(event.data.object);
         break;
       case 'invoice.payment_failed':
+        await this.handleInvoicePaymentFailed(event.data.object);
         break;
     }
   }
@@ -57,25 +59,13 @@ export class WebhookService {
       throw new Error('STRIPE_WEBHOOK_SECRET is not defined');
     }
 
-    try {
-      const event = this.stripe.webhooks.constructEvent(
-        payload,
-        signature,
-        stripeSecret,
-      );
-      console.log('Webhook verification successful!');
-      return event;
-    } catch (error) {
-      console.error('Webhook verification error details:', {
-        message: error.message,
-        payload_length: payload.length,
-        signature,
-        secret_defined: !!stripeSecret,
-      });
-      throw new Error(
-        `Webhook signature verification failed: ${error.message}`,
-      );
-    }
+    const event = this.stripe.webhooks.constructEvent(
+      payload,
+      signature,
+      stripeSecret,
+    );
+
+    return event;
   }
 
   async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
@@ -98,11 +88,18 @@ export class WebhookService {
       session.subscription as string,
     );
 
-    let plan: 'free' | 'tier1' | 'tier2' | 'unlimited' = 'tier1';
+    const plan = session.metadata?.planName;
 
-    if (session.metadata?.plan) {
-      plan = session.metadata.plan as any;
+    const planInterval = session.metadata?.planInterval;
+
+    if (!plan || !planInterval) {
+      throw new Error('Plan name and interval are required for subscription');
     }
+
+    const planDetails = await this.drizzle
+      .select()
+      .from(plans)
+      .where(and(eq(plans.name, plan), eq(plans.interval, planInterval)));
 
     const existingSubscription = await this.drizzle
       .select()
@@ -114,7 +111,7 @@ export class WebhookService {
         .update(subscriptions)
         .set({
           stripeSubscriptionId: subscription.id,
-          plan: plan,
+          planId: planDetails[0].id,
           status: 'active',
           currentPeriodEnd: new Date(
             subscription.items.data[0].current_period_end * 1000,
@@ -126,7 +123,7 @@ export class WebhookService {
       await this.drizzle.insert(subscriptions).values({
         userId: user[0].id,
         stripeSubscriptionId: subscription.id,
-        plan: plan,
+        planId: planDetails[0].id,
         status: 'active',
         currentPeriodEnd: new Date(
           subscription.items.data[0].current_period_end * 1000,
@@ -193,6 +190,76 @@ export class WebhookService {
         status: 'active',
         currentPeriodEnd: new Date(event.lines.data[0].period.end * 1000),
         updatedAt: new Date(),
+      })
+      .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
+
+    console.log(`Invoice for subscription ${subscriptionId} paid successfully`);
+  }
+
+  async handleSubscriptionUpdate(event: Stripe.Subscription) {
+    const subscriptionId = event.id;
+
+    if (!subscriptionId) {
+      throw new Error('Subscription ID is required for update');
+    }
+
+    const subscription = await this.drizzle
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
+
+    if (subscription.length === 0) {
+      throw new Error(`Subscription with ID ${subscriptionId} not found`);
+    }
+
+    const planPriceId = event.items.data[0].plan.id;
+
+    const currentPeriodEnd = new Date(
+      event.items.data[0].current_period_end * 1000,
+    );
+
+    const planDetails = await this.drizzle
+      .select()
+      .from(plans)
+      .where(eq(plans.price_id, planPriceId));
+
+    if (planDetails.length === 0) {
+      throw new Error('Plan details not found for the updated subscription');
+    }
+
+    //planID changed but currentPeriodEnd is the same
+    await this.drizzle
+      .update(subscriptions)
+      .set({
+        planId: planDetails[0].id,
+        status: 'active',
+        currentPeriodEnd: currentPeriodEnd,
+        updatedAt: new Date(),
+      })
+      .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
+  }
+
+  async handleInvoicePaymentFailed(event: Stripe.Invoice) {
+    const subscriptionId = event.lines.data[0].parent?.subscription_item_details
+      ?.subscription as string;
+
+    if (!subscriptionId) {
+      throw new Error('Subscription ID is required for invoice payment');
+    }
+
+    const subscription = await this.drizzle
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
+
+    if (subscription.length === 0) {
+      throw new Error(`Subscription with ID ${subscriptionId} not found`);
+    }
+
+    await this.drizzle
+      .update(subscriptions)
+      .set({
+        status: 'past_due',
       })
       .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
 
