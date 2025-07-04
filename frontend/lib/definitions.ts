@@ -137,3 +137,14 @@ export interface FlashcardQuestionData {
   status: string;
   statusUpdatedAt: Date;
 }
+
+export interface CurrentPlanData {
+  planName: string;
+  planInterval: "MONTHLY" | "YEARLY";
+  price: string;
+  currency: string;
+  createdAt: string;
+  nextBillingDate: string;
+  tokensUsed: number;
+  tokensLimit: number;
+}

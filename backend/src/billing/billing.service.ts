@@ -188,6 +188,29 @@ export class BillingService {
     };
   }
 
+  async getUserSubscriptionData(userId: string) {
+    const userSubscription = await this.drizzle
+      .select()
+      .from(users)
+      .innerJoin(subscriptions, eq(subscriptions.userId, users.id))
+      .innerJoin(plans, eq(subscriptions.planId, plans.id))
+      .where(eq(users.id, userId));
+
+    if (userSubscription.length === 0) {
+      throw new NotFoundException('User not found or no subscription exists');
+    }
+    return {
+      planName: userSubscription[0].plans.name,
+      planInterval: userSubscription[0].plans.interval,
+      price: userSubscription[0].plans.price / 100,
+      currency: 'USD',
+      createdAt: userSubscription[0].subscriptions.createdAt,
+      nextBillingDate: userSubscription[0].subscriptions.currentPeriodEnd,
+      tokensUsed: userSubscription[0].users.tokensUsed || 0,
+      tokensLimit: userSubscription[0].plans.tokens_monthly || 0,
+    };
+  }
+
   async checkPricechangeAfterSubChange(
     userId: string,
     planName: string,
