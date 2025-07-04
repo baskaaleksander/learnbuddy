@@ -1,11 +1,12 @@
 export interface PricingCardProps {
-  price: string;
   nameOfPlan: string;
+  price: string;
   description: string;
-  features: {
+  tokenLimit: string;
+  features: Array<{
     name: string;
     isAvailable: boolean;
-  }[];
+  }>;
 }
 
 export interface FAQProps {
