@@ -1,5 +1,5 @@
 import DescriptionSection from "@/components/landing-page/description-section";
-import RegisterForm from "@/components/register-form";
+import RegisterForm from "@/components/features/auth/register-form";
 import React from "react";
 
 function RegisterPage() {

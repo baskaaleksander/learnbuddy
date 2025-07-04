@@ -143,6 +143,7 @@ export interface CurrentPlanData {
   planInterval: "MONTHLY" | "YEARLY";
   price: string;
   currency: string;
+  status: string;
   createdAt: string;
   nextBillingDate: string;
   tokensUsed: number;

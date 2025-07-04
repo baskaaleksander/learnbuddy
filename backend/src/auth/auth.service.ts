@@ -62,6 +62,7 @@ export class AuthService {
       id: res[0].id,
       role: res[0].role,
       firstName: res[0].firstName,
+      tokensUsed: res[0].tokensUsed,
     };
 
     await this.emailService.sendEmail(
@@ -83,6 +84,7 @@ export class AuthService {
       id: res[0].id,
       role: res[0].role,
       firstName: res[0].firstName,
+      tokensUsed: res[0].tokensUsed,
     };
   }
 
@@ -108,6 +110,7 @@ export class AuthService {
       id: existingUser[0].id,
       role: existingUser[0].role,
       firstName: existingUser[0].firstName,
+      tokensUsed: existingUser[0].tokensUsed,
     };
 
     return {
@@ -118,6 +121,7 @@ export class AuthService {
       id: payload.id,
       role: payload.role,
       firstName: payload.firstName,
+      tokensUsed: payload.tokensUsed,
     };
   }
 
@@ -299,6 +303,7 @@ export class AuthService {
       email: user.email,
       firstName: user.firstName,
       role: user.role,
+      tokensUsed: user.tokensUsed,
     };
 
     await this.redisService.set(key, result, 300);

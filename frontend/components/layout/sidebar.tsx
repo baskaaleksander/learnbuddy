@@ -95,9 +95,14 @@ function Sidebar({ paths, isOpen, toggle, isMobile = false }: SidebarProps) {
                   className="rounded-full"
                 />
                 {isOpen && (
-                  <p className="text-sm font-medium truncate max-w-[140px]">
-                    {user.firstName}
-                  </p>
+                  <div className="flex flex-col">
+                    <p className="text-sm font-medium truncate max-w-[140px]">
+                      {user.firstName}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {user.tokensUsed} tokens used
+                    </p>
+                  </div>
                 )}
               </div>
 
@@ -166,9 +171,14 @@ function Sidebar({ paths, isOpen, toggle, isMobile = false }: SidebarProps) {
                       height={32}
                       className="rounded-full"
                     />
-                    <p className="text-sm font-medium truncate max-w-[140px]">
-                      {user.firstName}
-                    </p>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium truncate max-w-[140px]">
+                        {user.firstName}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {user.tokensUsed} tokens used
+                      </p>
+                    </div>
                   </div>
                   <Button
                     variant="ghost"

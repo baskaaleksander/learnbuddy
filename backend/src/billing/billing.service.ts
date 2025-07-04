@@ -197,13 +197,14 @@ export class BillingService {
       .where(eq(users.id, userId));
 
     if (userSubscription.length === 0) {
-      throw new NotFoundException('User not found or no subscription exists');
+      return null;
     }
     return {
       planName: userSubscription[0].plans.name,
       planInterval: userSubscription[0].plans.interval,
       price: userSubscription[0].plans.price / 100,
       currency: 'USD',
+      status: userSubscription[0].subscriptions.status,
       createdAt: userSubscription[0].subscriptions.createdAt,
       nextBillingDate: userSubscription[0].subscriptions.currentPeriodEnd,
       tokensUsed: userSubscription[0].users.tokensUsed || 0,

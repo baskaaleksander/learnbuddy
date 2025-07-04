@@ -72,6 +72,12 @@ export class BillingController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('get-user-subscription')
+  async getUserSubscription(@CurrentUser() user: PayloadDto) {
+    return this.billingService.getUserSubscriptionData(user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Patch('update-subscription')
   async updateSubscription(
     @CurrentUser() user: PayloadDto,

@@ -9,13 +9,15 @@ import { Request } from 'express';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly configService: ConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([(req: Request) => {
-        const token = req?.cookies?.jwt;
-        if (!token) {
-          throw new UnauthorizedException('No token found');
-        }
-        return token;
-      }]),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: Request) => {
+          const token = req?.cookies?.jwt;
+          if (!token) {
+            throw new UnauthorizedException('No token found');
+          }
+          return token;
+        },
+      ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET'),
     });
