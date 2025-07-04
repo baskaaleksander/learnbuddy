@@ -53,17 +53,24 @@ function CurrentPlanInfo({ data }: { data?: CurrentPlanData }) {
           </p>
         </CardHeader>
         <CardContent className="text-center">
-          <Button size="sm" className="w-full">
-            <CreditCard className="h-4 w-4 mr-2" />
-            Subscribe Now
-          </Button>
+          <Link href="/dashboard/billing/purchase">
+            <Button size="sm" className="w-full">
+              <CreditCard className="h-4 w-4 mr-2" />
+              Subscribe Now
+            </Button>
+          </Link>
         </CardContent>
       </Card>
     );
   }
 
-  const tokenUsagePercentage = (data.tokensUsed / data.tokensLimit) * 100;
+  const isUnlimited = data.planName.toLowerCase() === "unlimited";
+  const tokenUsagePercentage = isUnlimited
+    ? 0
+    : (data.tokensUsed / data.tokensLimit) * 100;
+
   const getUsageBadgeVariant = () => {
+    if (isUnlimited) return "default";
     if (tokenUsagePercentage >= 90) return "destructive";
     if (tokenUsagePercentage >= 70) return "secondary";
     return "default";
@@ -143,25 +150,30 @@ function CurrentPlanInfo({ data }: { data?: CurrentPlanData }) {
               <span className="font-medium">Token Usage (current month)</span>
             </div>
             <Badge variant={getUsageBadgeVariant()} className="text-xs">
-              {tokenUsagePercentage.toFixed(0)}% used
+              {isUnlimited
+                ? "Unlimited"
+                : `${tokenUsagePercentage.toFixed(0)}% used`}
             </Badge>
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">
-                Used: {data.tokensUsed}
+                Used: {data.tokensUsed.toLocaleString()}
               </span>
               <span className="text-muted-foreground">
-                Limit: {data.tokensLimit}
+                Limit:{" "}
+                {isUnlimited ? "Unlimited" : data.tokensLimit.toLocaleString()}
               </span>
             </div>
-            <div className="w-full bg-muted rounded-full h-2">
-              <div
-                className="bg-primary h-2 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(tokenUsagePercentage, 100)}%` }}
-              />
-            </div>
+            {!isUnlimited && (
+              <div className="w-full bg-muted rounded-full h-2">
+                <div
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(tokenUsagePercentage, 100)}%` }}
+                />
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

@@ -4,120 +4,10 @@ import PricingCard from "./pricing-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { pricingPlans } from "@/lib/pricing-plans";
 
 function PricingSection() {
   const [isYearly, setIsYearly] = useState(false);
-
-  const pricingPlans = {
-    monthly: [
-      {
-        nameOfPlan: "Free",
-        price: "$0",
-        description: "Perfect for trying out LearnBuddy.",
-        tokenLimit: "12 tokens",
-        features: [
-          { name: "AI-generated summaries", isAvailable: true },
-          { name: "AI-generated quizzes", isAvailable: true },
-          { name: "AI-generated flashcards", isAvailable: true },
-          { name: "Premium support", isAvailable: false },
-          { name: "Export to PDF/other formats", isAvailable: false },
-        ],
-      },
-      {
-        nameOfPlan: "Tier 1",
-        price: "$4.99",
-        description: "Great for regular learners and students.",
-        tokenLimit: "100 tokens",
-        features: [
-          { name: "AI-generated summaries", isAvailable: true },
-          { name: "AI-generated quizzes", isAvailable: true },
-          { name: "AI-generated flashcards", isAvailable: true },
-          { name: "Priority support", isAvailable: true },
-          { name: "Export to PDF/other formats", isAvailable: false },
-        ],
-      },
-      {
-        nameOfPlan: "Tier 2",
-        price: "$9.99",
-        description: "Ideal for serious learners and professionals.",
-        tokenLimit: "300 tokens",
-        features: [
-          { name: "AI-generated summaries", isAvailable: true },
-          { name: "AI-generated quizzes", isAvailable: true },
-          { name: "AI-generated flashcards", isAvailable: true },
-          { name: "Priority support", isAvailable: true },
-          { name: "Export to PDF/other formats", isAvailable: true },
-        ],
-      },
-      {
-        nameOfPlan: "Unlimited",
-        price: "$19.99",
-        description: "Best for power users and organizations.",
-        tokenLimit: "Unlimited tokens",
-        features: [
-          { name: "AI-generated summaries", isAvailable: true },
-          { name: "AI-generated quizzes", isAvailable: true },
-          { name: "AI-generated flashcards", isAvailable: true },
-          { name: "Premium support", isAvailable: true },
-          { name: "Export to PDF/other formats", isAvailable: true },
-        ],
-      },
-    ],
-    yearly: [
-      {
-        nameOfPlan: "Free",
-        price: "$0",
-        description: "Perfect for trying out LearnBuddy.",
-        tokenLimit: "12 tokens",
-        features: [
-          { name: "AI-generated summaries", isAvailable: true },
-          { name: "AI-generated quizzes", isAvailable: true },
-          { name: "AI-generated flashcards", isAvailable: true },
-          { name: "Premium support", isAvailable: false },
-          { name: "Export to PDF/other formats", isAvailable: false },
-        ],
-      },
-      {
-        nameOfPlan: "Tier 1",
-        price: "$49",
-        description: "Great for regular learners and students.",
-        tokenLimit: "100 tokens",
-        features: [
-          { name: "AI-generated summaries", isAvailable: true },
-          { name: "AI-generated quizzes", isAvailable: true },
-          { name: "AI-generated flashcards", isAvailable: true },
-          { name: "Priority support", isAvailable: true },
-          { name: "Export to PDF/other formats", isAvailable: false },
-        ],
-      },
-      {
-        nameOfPlan: "Tier 2",
-        price: "$99",
-        description: "Ideal for serious learners and professionals.",
-        tokenLimit: "300 tokens",
-        features: [
-          { name: "AI-generated summaries", isAvailable: true },
-          { name: "AI-generated quizzes", isAvailable: true },
-          { name: "AI-generated flashcards", isAvailable: true },
-          { name: "Priority support", isAvailable: true },
-          { name: "Export to PDF/other formats", isAvailable: true },
-        ],
-      },
-      {
-        nameOfPlan: "Unlimited",
-        price: "$199",
-        description: "Best for power users and organizations.",
-        tokenLimit: "Unlimited tokens",
-        features: [
-          { name: "AI-generated summaries", isAvailable: true },
-          { name: "AI-generated quizzes", isAvailable: true },
-          { name: "AI-generated flashcards", isAvailable: true },
-          { name: "Premium support", isAvailable: true },
-          { name: "Export to PDF/other formats", isAvailable: true },
-        ],
-      },
-    ],
-  };
 
   const currentPricing = isYearly ? pricingPlans.yearly : pricingPlans.monthly;
 
@@ -132,7 +22,6 @@ function PricingSection() {
         Upgrade anytime as your learning needs grow.
       </p>
 
-      {/* Billing Toggle */}
       <div className="flex items-center justify-center mt-8 p-1 bg-muted rounded-lg relative">
         <Button
           variant={!isYearly ? "default" : "ghost"}

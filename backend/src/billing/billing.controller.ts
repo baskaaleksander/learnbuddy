@@ -9,6 +9,7 @@ import {
   UseGuards,
   Get,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { BillingService } from './billing.service';
@@ -62,12 +63,13 @@ export class BillingController {
   @Get('check-price-change')
   async checkPriceChange(
     @CurrentUser() user: PayloadDto,
-    @Body() body: NewPlanDto,
+    @Query('planName') planName: string,
+    @Query('planInterval') planInterval: string,
   ) {
     return this.billingService.checkPricechangeAfterSubChange(
       user.id,
-      body.planName,
-      body.planInterval,
+      planName,
+      planInterval,
     );
   }
 

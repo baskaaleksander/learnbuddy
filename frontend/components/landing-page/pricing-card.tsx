@@ -12,21 +12,44 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-function PricingCard(pricingCardProps: PricingCardProps) {
-  const isPopular = pricingCardProps.nameOfPlan?.toLowerCase().includes("2");
-  const isFree = pricingCardProps.nameOfPlan?.toLowerCase().includes("free");
-  const isUnlimited = pricingCardProps.nameOfPlan
-    ?.toLowerCase()
-    .includes("unlimited");
+interface ExtendedPricingCardProps extends PricingCardProps {
+  isSelectable?: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
+}
+
+function PricingCard({
+  nameOfPlan,
+  price,
+  description,
+  tokenLimit,
+  features,
+  isSelectable = false,
+  isSelected = false,
+  onSelect,
+}: ExtendedPricingCardProps) {
+  const isPopular = nameOfPlan?.toLowerCase().includes("pro");
+  const isFree = nameOfPlan?.toLowerCase().includes("free");
+  const isUnlimited = nameOfPlan?.toLowerCase().includes("unlimited");
+
+  const handleCardClick = () => {
+    if (isSelectable && onSelect) {
+      onSelect();
+    }
+  };
 
   return (
     <Card
       className={cn(
         "relative flex flex-col h-full shadow-sm hover:shadow-md transition-all duration-200",
-        isPopular && "border-primary ring-1 ring-primary/20"
+        isPopular && "border-primary ring-1 ring-primary/20",
+        isSelectable && "cursor-pointer",
+        isSelected && "border-primary ring-2 ring-primary/30",
+        isSelectable && "hover:border-primary/50"
       )}
+      onClick={handleCardClick}
     >
-      {isPopular && (
+      {isPopular && !isSelectable && (
         <Badge
           variant="default"
           className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10"
@@ -35,7 +58,7 @@ function PricingCard(pricingCardProps: PricingCardProps) {
         </Badge>
       )}
 
-      {isUnlimited && (
+      {isUnlimited && !isSelectable && (
         <Badge
           variant="secondary"
           className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10 bg-gradient-to-r from-purple-500 to-blue-500 text-white"
@@ -44,10 +67,36 @@ function PricingCard(pricingCardProps: PricingCardProps) {
         </Badge>
       )}
 
+      {isSelected && (
+        <Badge
+          variant="default"
+          className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10"
+        >
+          Selected
+        </Badge>
+      )}
+
+      {isSelectable && (
+        <div className="absolute top-4 right-4">
+          <div
+            className={cn(
+              "w-5 h-5 rounded-full border-2 transition-all",
+              isSelected
+                ? "bg-primary border-primary"
+                : "border-gray-300 dark:border-gray-600"
+            )}
+          >
+            {isSelected && (
+              <Check className="w-3 h-3 text-white mx-auto mt-0.5" />
+            )}
+          </div>
+        </div>
+      )}
+
       <CardHeader className="text-center pb-4">
         <div className="space-y-3">
           <h3 className="text-xl font-semibold text-foreground">
-            {pricingCardProps.nameOfPlan}
+            {nameOfPlan}
           </h3>
 
           <div
@@ -55,7 +104,7 @@ function PricingCard(pricingCardProps: PricingCardProps) {
               "mx-auto w-fit px-3 py-1 rounded-full text-sm font-medium",
               isFree &&
                 "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-              pricingCardProps.nameOfPlan?.toLowerCase().includes("starter") &&
+              nameOfPlan?.toLowerCase().includes("starter") &&
                 "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
               isPopular && "bg-primary/10 text-primary",
               isUnlimited &&
@@ -64,29 +113,27 @@ function PricingCard(pricingCardProps: PricingCardProps) {
           >
             <div className="flex items-center gap-1">
               <Zap className="h-4 w-4" />
-              {pricingCardProps.tokenLimit}
+              {tokenLimit}
             </div>
           </div>
 
           <div className="space-y-1">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-              {pricingCardProps.price}
+              {price}
               {!isFree && (
                 <span className="text-base font-normal text-muted-foreground">
                   /month
                 </span>
               )}
             </h2>
-            <p className="text-sm text-muted-foreground">
-              {pricingCardProps.description}
-            </p>
+            <p className="text-sm text-muted-foreground">{description}</p>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="flex-1 space-y-4">
         <ul className="space-y-3">
-          {pricingCardProps.features.map((feature, index) => (
+          {features.map((feature, index) => (
             <li key={index} className="flex items-start gap-3">
               <div className="flex-shrink-0 mt-0.5">
                 {feature.isAvailable ? (
@@ -114,22 +161,42 @@ function PricingCard(pricingCardProps: PricingCardProps) {
         </ul>
       </CardContent>
 
-      <CardFooter className="pt-6">
-        <Button
-          asChild
-          className={cn(
-            "w-full",
-            isPopular && "bg-primary hover:bg-primary/90",
-            isUnlimited &&
-              "bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-          )}
-          variant={isFree ? "outline" : "default"}
-        >
-          <Link href="/register">
-            {isFree ? "Get Started Free" : "Get Started"}
-          </Link>
-        </Button>
-      </CardFooter>
+      {!isSelectable && (
+        <CardFooter className="pt-6">
+          <Button
+            asChild
+            className={cn(
+              "w-full",
+              isPopular && "bg-primary hover:bg-primary/90",
+              isUnlimited &&
+                "bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+            )}
+            variant={isFree ? "outline" : "default"}
+          >
+            <Link href="/register">
+              {isFree ? "Get Started Free" : "Get Started"}
+            </Link>
+          </Button>
+        </CardFooter>
+      )}
+
+      {isSelectable && (
+        <CardFooter className="pt-6">
+          <Button
+            className={cn(
+              "w-full",
+              isSelected && "bg-primary hover:bg-primary/90"
+            )}
+            variant={isSelected ? "default" : "outline"}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCardClick();
+            }}
+          >
+            {isSelected ? "Selected" : "Select Plan"}
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }

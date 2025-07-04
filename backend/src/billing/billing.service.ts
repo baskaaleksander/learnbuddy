@@ -242,7 +242,12 @@ export class BillingService {
     const plan = await this.drizzle
       .select()
       .from(plans)
-      .where(and(eq(plans.name, planName), eq(plans.interval, planInterval)));
+      .where(
+        and(
+          eq(plans.name, decodeURIComponent(planName)),
+          eq(plans.interval, planInterval),
+        ),
+      );
 
     const prorationInvoice = await this.stripe.invoices.createPreview({
       customer: stripeCustomerId as string,
@@ -255,6 +260,7 @@ export class BillingService {
           },
         ],
         proration_date: prorationDate,
+        proration_behavior: 'always_invoice',
       },
     });
 
@@ -327,7 +333,7 @@ export class BillingService {
             price: newPriceId,
           },
         ],
-        proration_behavior: 'create_prorations',
+        proration_behavior: 'always_invoice',
       },
     );
 
