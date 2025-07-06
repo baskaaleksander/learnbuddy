@@ -7,56 +7,56 @@ import { materials } from 'src/database/schema';
 
 @Injectable()
 export class UploadService {
-    private s3Client: S3Client;
-    private bucket: string;
-    private region: string;
+  private s3Client: S3Client;
+  private bucket: string;
+  private region: string;
 
-    constructor(
-        private configService: ConfigService,
-        @Inject('DRIZZLE') private drizzle: typeof db) {
-        this.region = this.configService.get('AWS_REGION') || '';
-        this.bucket = this.configService.get('AWS_S3_BUCKET_NAME') || '';
+  constructor(
+    private configService: ConfigService,
+    @Inject('DRIZZLE') private drizzle: typeof db,
+  ) {
+    this.region = this.configService.get('AWS_REGION') || '';
+    this.bucket = this.configService.get('AWS_S3_BUCKET_NAME') || '';
 
-        this.s3Client = new S3Client({
-            region: this.region,
-            credentials: {
-                accessKeyId: this.configService.get('AWS_ACCESS_KEY_ID') || '',
-                secretAccessKey: this.configService.get('AWS_SECRET_ACCESS_KEY') || '',
-            },
-        });
-    }
+    this.s3Client = new S3Client({
+      region: this.region,
+      credentials: {
+        accessKeyId: this.configService.get('AWS_ACCESS_KEY_ID') || '',
+        secretAccessKey: this.configService.get('AWS_SECRET_ACCESS_KEY') || '',
+      },
+    });
+  }
 
-    async uploadFile(file: Express.Multer.File, userId: string): Promise<any> {
-        const fileKey = `${uuid()}-${file.originalname}`;
+  async uploadFile(file: Express.Multer.File, userId: string): Promise<any> {
+    const fileKey = `${uuid()}-${file.originalname}`;
 
-        const command = new PutObjectCommand({
-            Bucket: this.bucket,
-            Key: fileKey,
-            Body: file.buffer,
-            ContentType: file.mimetype,
-        });
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: fileKey,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    });
 
-        await this.s3Client.send(command);
+    await this.s3Client.send(command);
 
-        const material = await this.drizzle
-            .insert(materials)
-            .values({
-                title: file.originalname,
-                userId: userId,
-                content: `https://${this.bucket}.s3.${this.region}.amazonaws.com/${fileKey}`,
-                status: 'pending'
-            })
-            .returning()
-            .catch((err) => {
-                throw new Error('Error creating material', err);
-            }
-        );
+    const material = await this.drizzle
+      .insert(materials)
+      .values({
+        title: file.originalname,
+        userId: userId,
+        content: `https://${this.bucket}.s3.${this.region}.amazonaws.com/${fileKey}`,
+        status: 'pending',
+      })
+      .returning()
+      .catch((err) => {
+        throw new Error('Error creating material', err);
+      });
 
-        return {
-            message: 'Material uploaded successfully',
-            filename: fileKey,
-            url: `https://${this.bucket}.s3.${this.region}.amazonaws.com/${fileKey}`,
-            materialId: material[0].id
-        };
-    }
+    return {
+      message: 'Material uploaded successfully',
+      filename: fileKey,
+      url: `https://${this.bucket}.s3.${this.region}.amazonaws.com/${fileKey}`,
+      materialId: material[0].id,
+    };
+  }
 }

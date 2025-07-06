@@ -18,4 +18,14 @@ export class ExportController {
   ) {
     return this.exportService.exportFlashcards(user.id, aiOutputId, res);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('summary/:aiOutputId')
+  async exportSummary(
+    @Param('aiOutputId') aiOutputId: string,
+    @Res() res: Response,
+    @CurrentUser() user: PayloadDto,
+  ) {
+    return this.exportService.exportSummary(user.id, aiOutputId, res);
+  }
 }
