@@ -4,6 +4,8 @@ import LoadingScreen from "@/components/common/loading-screen";
 import ResultQuestionCard from "@/components/features/quiz/result-question-card";
 import { QuizResult } from "@/lib/definitions";
 import { fetchGraphQL } from "@/utils/gql-axios";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import React, { use, useEffect, useState } from "react";
 
 function ResultPage({ params }: { params: Promise<{ id: string }> }) {
@@ -75,6 +77,13 @@ function ResultPage({ params }: { params: Promise<{ id: string }> }) {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-8">
+        <Link
+          href={`/dashboard/quizzes/${quiz?.id}`}
+          className="text-blue-600 hover:underline flex items-center mb-4 text-sm"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Quiz
+        </Link>
         <h1 className="text-3xl font-bold mb-4">Quiz Results</h1>
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="flex items-center justify-between mb-2">
