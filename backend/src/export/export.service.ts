@@ -7,7 +7,6 @@ import * as stringify from 'csv-stringify';
 import { Response } from 'express';
 import * as PDFDocument from 'pdfkit';
 import { join } from 'path';
-import { existsSync } from 'fs';
 
 @Injectable()
 export class ExportService {

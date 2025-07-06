@@ -200,7 +200,7 @@ function Settings() {
                 )}
               />
 
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col-reverse md:flex-row gap-4 md:justify-between md:items-center">
                 <ChangePasswordDialog
                   open={passwordDialogOpen}
                   onOpenChange={setPasswordDialogOpen}

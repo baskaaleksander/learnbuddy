@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SummaryData } from "@/lib/definitions";
+import api from "@/utils/axios";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import { ExternalLink, RefreshCw, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -125,6 +126,34 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
     }
   };
 
+  const onSummaryExport = async () => {
+    try {
+      const response = await api.get(`/export/summary/${id}`, {
+        responseType: "blob",
+        headers: {
+          Accept: "application/pdf",
+        },
+      });
+
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], { type: "application/pdf" })
+      );
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `summary-${id}.pdf`);
+
+      document.body.appendChild(link);
+      link.click();
+
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting summary:", error);
+      toast.error("Failed to export summary. Please try again later.");
+    }
+  };
+
   const markChapterAsKnown = async (chapterIndex: number) => {
     try {
       const currentChapter = summary?.content?.chapters[chapterIndex];
@@ -216,7 +245,9 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm">Export to PDF</Button>
+          <Button size="sm" onClick={onSummaryExport}>
+            Export to PDF
+          </Button>
           <GenerateAssetDialog
             isOpen={regenerateDialogOpen}
             setIsOpenAction={setRegenerateDialogOpen}

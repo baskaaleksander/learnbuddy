@@ -279,8 +279,8 @@ function MobileNavbar({
                 transition={{ duration: 0.3, delay: 0.3 }}
               >
                 {user ? (
-                  <>
-                    <div className="flex items-center mb-4">
+                  <div className="w-full">
+                    <div className="flex items-center p-4 border-t border-b border-gray-200 dark:border-gray-700">
                       <Image
                         src={defaultAvatar}
                         alt="User"
@@ -288,37 +288,46 @@ function MobileNavbar({
                         height={40}
                         className="rounded-full border border-gray-200 dark:border-gray-700 mr-3"
                       />
-                      <span className="font-semibold">{user.email}</span>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-sm">
+                          {user.firstName}
+                        </span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          {user.email}
+                        </span>
+                      </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      className="w-full text-base py-6"
-                      onClick={() => {
-                        setIsOpen(false);
-                      }}
-                    >
-                      Account Settings
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-full text-base py-6"
-                      onClick={() => {
-                        setIsOpen(false);
-                      }}
-                    >
-                      Billing
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      className="w-full text-base py-6"
-                      onClick={() => {
-                        logout();
-                        setIsOpen(false);
-                      }}
-                    >
-                      Logout
-                    </Button>
-                  </>
+                    <div className="flex flex-col w-full items-start p-2">
+                      <Link href="/dashboard/settings">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-base py-6"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          Account
+                        </Button>
+                      </Link>
+                      <Link href="/dashboard/billing">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-base py-6"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          Billing
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-base py-6 text-destructive"
+                        onClick={() => {
+                          logout();
+                          setIsOpen(false);
+                        }}
+                      >
+                        Logout
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
                   <>
                     <Button

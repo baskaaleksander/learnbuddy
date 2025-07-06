@@ -27,6 +27,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { use, useEffect, useState } from "react";
 import { toast } from "sonner";
+import api from "@/utils/axios";
 
 function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -189,6 +190,34 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
     }
   };
 
+  const onFlashcardsExport = async () => {
+    try {
+      const response = await api.get(`/export/flashcards/${id}`, {
+        responseType: "blob",
+        headers: {
+          Accept: "application/csv",
+        },
+      });
+
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], { type: "application/csv" })
+      );
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `flashcards-${id}.csv`);
+
+      document.body.appendChild(link);
+      link.click();
+
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting flashcards:", error);
+      toast.error("Failed to export flashcards. Please try again later.");
+    }
+  };
+
   return (
     <div className="p-4 space-y-6">
       {flashcardsSet && (
@@ -212,6 +241,9 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
               )}
             </div>
             <div className="flex items-center gap-2">
+              <Button size="sm" onClick={onFlashcardsExport}>
+                Export to CSV
+              </Button>
               <GenerateAssetDialog
                 isOpen={regenerateDialogOpen}
                 setIsOpenAction={setRegenerateDialogOpen}
