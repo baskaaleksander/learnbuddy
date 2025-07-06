@@ -14,7 +14,7 @@ import {
 import { toUserGraphQL } from './user.mapper';
 import { promisify } from 'util';
 import { randomBytes, scrypt as _scrypt } from 'crypto';
-import { RedisService } from 'src/redis/redis.service';
+import { RedisService } from '../redis/redis.service';
 const scrypt = promisify(_scrypt);
 
 @Injectable()

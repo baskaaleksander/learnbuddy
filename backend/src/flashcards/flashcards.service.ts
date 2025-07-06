@@ -250,8 +250,8 @@ export class FlashcardsService {
           .insert(flashcards)
           .values({
             aiOutputId: aiOutput[0].id,
-            question: flashcard.pytanie,
-            answer: flashcard.odpowiedz,
+            question: flashcard.question,
+            answer: flashcard.answer,
             createdAt: new Date(),
           })
           .returning();

@@ -151,40 +151,40 @@ export class OpenAiService {
     // Mock data for flashcard generation
     return [
       {
-        pytanie:
+        question:
           'Jakie są główne cele rozdziału dotyczącego idei pracy dyplomowej?',
-        odpowiedz:
+        answer:
           'Zrozumienie korzyści płynących z napisania pracy dyplomowej oraz zwiększenie motywacji wewnętrznej.',
       },
       {
-        pytanie: 'Dlaczego pisanie pracy dyplomowej jest obowiązkowe?',
-        odpowiedz:
+        question: 'Dlaczego pisanie pracy dyplomowej jest obowiązkowe?',
+        answer:
           "Ponieważ jest to wymóg ustawowy zgodny z ustawą 'Prawo o szkolnictwie wyższym i nauce'.",
       },
       {
-        pytanie: 'Czym jest praca dyplomowa według definicji?',
-        odpowiedz:
+        question: 'Czym jest praca dyplomowa według definicji?',
+        answer:
           'To samodzielne opracowanie zagadnienia naukowego, technicznego, artystycznego lub praktycznego, które pokazuje wiedzę i umiejętności studenta.',
       },
       {
-        pytanie: 'Jakie korzyści przynosi napisanie pracy dyplomowej?',
-        odpowiedz:
+        question: 'Jakie korzyści przynosi napisanie pracy dyplomowej?',
+        answer:
           'Rozwój umiejętności zarządzania, komunikacji, selekcji informacji, lepsza samoocena i przygotowanie do wyzwań zawodowych.',
       },
       {
-        pytanie: 'Jakie podejście do pracy dyplomowej rekomendują autorzy?',
-        odpowiedz:
+        question: 'Jakie podejście do pracy dyplomowej rekomendują autorzy?',
+        answer:
           'Nadanie pracy osobistego sensu, aby stała się wartościową przygodą, a nie tylko obowiązkiem.',
       },
       {
-        pytanie: 'Jakie umiejętności możesz rozwinąć dzięki pracy dyplomowej?',
-        odpowiedz:
+        question: 'Jakie umiejętności możesz rozwinąć dzięki pracy dyplomowej?',
+        answer:
           'Zarządzanie projektami, komunikacja, wyszukiwanie informacji, praca zespołowa, samoorganizacja.',
       },
       {
-        pytanie:
+        question:
           'Co możesz zyskać, traktując pracę dyplomową jako projekt osobisty?',
-        odpowiedz:
+        answer:
           'Lepszą motywację, większe zaangażowanie i rozwój osobisty oraz zawodowy.',
       },
     ];

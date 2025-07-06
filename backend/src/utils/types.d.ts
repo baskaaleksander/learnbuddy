@@ -22,3 +22,10 @@ export interface SummaryAiOutputContent {
     isImportant: boolean;
   }>;
 }
+
+export interface FlashcardContent {
+  flashcards: Array<{
+    question: string;
+    answer: string;
+  }>;
+}

@@ -20,6 +20,7 @@ import { RedisModule } from './redis/redis.module';
 import { QueueModule } from './queue/queue.module';
 import { LoggerModule } from 'nestjs-pino';
 import { BillingModule } from './billing/billing.module';
+import { ExportModule } from './export/export.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { BillingModule } from './billing/billing.module';
     RedisModule,
     QueueModule,
     BillingModule,
+    ExportModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,6 +1,5 @@
 "use client";
-import { useAuth } from "@/providers/auth-provider";
-import api from "@/utils/axios";
+import { useAuth, UserData } from "@/providers/auth-provider";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import * as z from "zod";
@@ -125,7 +124,9 @@ function Settings() {
         `);
       setSuccess("Profile updated successfully");
 
-      setUserData((prev) => (prev ? { ...prev, ...data } : undefined));
+      setUserData((prev: UserData) =>
+        prev ? { ...prev, ...data } : undefined
+      );
     } catch (err) {
       console.error("Error updating profile:", err);
       setError("Failed to update profile");
