@@ -2,7 +2,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import {
   FlashcardProgressStatus,
   FlashcardStats,
-} from './flashcard-progress.graphql';
+} from '../graphql/flashcard-progress.graphql';
 import { MaterialType } from 'src/materials/materials.graphql';
 
 @ObjectType()

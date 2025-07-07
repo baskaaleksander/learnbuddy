@@ -4,12 +4,15 @@ import { PayloadDto } from 'src/auth/dtos/payload.dto';
 import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
 import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
 import { QuizService } from './quiz.service';
-import { PaginatedQuizResultType, QuizResultType } from './quiz-result.graphql';
+import {
+  PaginatedQuizResultType,
+  QuizResultType,
+} from './graphql/quiz-result.graphql';
 import {
   QuizOutputType,
   PaginatedQuizResponse,
   QuizWithPartialOutputType,
-} from './quiz.graphql';
+} from './graphql/quiz.graphql';
 import { QuestionAndAnswer, QuizPartialInput } from './dtos/quiz-partial.input';
 
 @Resolver(() => QuizOutputType)

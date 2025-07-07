@@ -5,6 +5,6 @@ import { OpenAiModule } from 'src/open-ai/open-ai.module';
 
 @Module({
   providers: [FlashcardsService, FlashcardsResolver],
-  imports: [OpenAiModule]
+  imports: [OpenAiModule],
 })
 export class FlashcardsModule {}

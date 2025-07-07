@@ -16,14 +16,14 @@ import {
 import { toAIOutputGraphQL } from 'src/mappers/ai-output.mapper';
 import { toMaterialGraphQL } from 'src/materials/materials.mapper';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
-import { toQuizResultGraphQl } from './quiz-result.mapper';
+import { toQuizResultGraphQl } from './graphql/quiz-result.mapper';
 import { QuizResponse } from 'src/utils/types';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { RedisService } from '../redis/redis.service';
 import { QuizPartialInput } from './dtos/quiz-partial.input';
 import { Logger } from 'nestjs-pino';
-import { toQuizResponseGraphQl } from './quiz-response.mapper';
+import { toQuizResponseGraphQl } from './graphql/quiz-response.mapper';
 import { Quiz } from 'src/utils/types';
 
 @Injectable()

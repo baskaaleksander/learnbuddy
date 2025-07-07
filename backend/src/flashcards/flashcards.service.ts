@@ -13,8 +13,8 @@ import {
   materials,
 } from 'src/database/schema';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
-import { toFlashcardGraphQL } from './flashcard.mapper';
-import { FlashcardProgressStatus } from './flashcard-progress.graphql';
+import { toFlashcardGraphQL } from './graphql/flashcard.mapper';
+import { FlashcardProgressStatus } from './graphql/flashcard-progress.graphql';
 import { toAIOutputGraphQL } from '../mappers/ai-output.mapper';
 import { toMaterialGraphQL } from '../materials/materials.mapper';
 

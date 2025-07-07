@@ -5,12 +5,12 @@ import { AIOutputType } from 'src/graphql/ai-output.graphql';
 import { FlashcardsService } from './flashcards.service';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
-import { FlashcardProgressStatus } from './flashcard-progress.graphql';
+import { FlashcardProgressStatus } from './graphql/flashcard-progress.graphql';
 import {
   FlashcardType,
   PaginatedFlashcardsWithStatsResponse,
-} from './flashcard.graphql';
-import { FlashcardWithProgressAndStatsType } from './flashcard-with-progress.graphql';
+} from './graphql/flashcard.graphql';
+import { FlashcardWithProgressAndStatsType } from './graphql/flashcard-with-progress.graphql';
 
 @Resolver(() => AIOutputType)
 export class FlashcardsResolver {

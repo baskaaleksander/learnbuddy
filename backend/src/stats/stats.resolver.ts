@@ -2,10 +2,10 @@ import { Args, Query, Resolver } from '@nestjs/graphql';
 import { StatsService } from './stats.service';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../guards/gql-auth.guard';
-import { FlashcardStats } from '../flashcards/flashcard-progress.graphql';
+import { FlashcardStats } from '../flashcards/graphql/flashcard-progress.graphql';
 import { CurrentUser } from '../decorators/gql-current-user.decorator';
 import { PayloadDto } from '../auth/dtos/payload.dto';
-import { UserStats } from './stats.graphql';
+import { UserStats } from './graphql/stats.graphql';
 
 @Resolver()
 export class StatsResolver {

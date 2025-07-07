@@ -9,7 +9,7 @@ import {
   quizPartials,
   quizResults,
 } from 'src/database/schema';
-import { FlashcardProgressStatus } from 'src/flashcards/flashcard-progress.graphql';
+import { FlashcardProgressStatus } from 'src/flashcards/graphql/flashcard-progress.graphql';
 
 @Injectable()
 export class StatsService {
