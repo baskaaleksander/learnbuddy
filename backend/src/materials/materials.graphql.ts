@@ -1,4 +1,5 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { AIOutputType } from 'src/graphql/ai-output.graphql';
 import { PaginatedResponse } from 'src/graphql/pagination.graphql';
 
 export enum MaterialStatus {
@@ -39,4 +40,13 @@ export class MaterialType {
 export class PaginatedMaterialsResponse extends PaginatedResponse {
   @Field(() => [MaterialType])
   data: MaterialType[];
+}
+
+@ObjectType()
+export class MaterialWithAiOutputType {
+  @Field(() => MaterialType)
+  material: MaterialType;
+
+  @Field(() => [AIOutputType])
+  ai_outputs: AIOutputType[];
 }

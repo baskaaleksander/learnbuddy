@@ -5,10 +5,7 @@ import { AIOutputType } from 'src/graphql/ai-output.graphql';
 import { FlashcardsService } from './flashcards.service';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
-import {
-  FlashcardProgressStatus,
-  FlashcardStats,
-} from './flashcard-progress.graphql';
+import { FlashcardProgressStatus } from './flashcard-progress.graphql';
 import {
   FlashcardType,
   PaginatedFlashcardsWithStatsResponse,
@@ -79,15 +76,6 @@ export class FlashcardsResolver {
     @CurrentUser() user: PayloadDto,
   ) {
     return this.flashcardsService.updateFlashcardStatus(id, user.id, status);
-  }
-
-  @UseGuards(GqlAuthGuard)
-  @Query(() => FlashcardStats)
-  async getFlashcardStatsByMaterial(
-    @Args('materialId') materialId: string,
-    @CurrentUser() user: PayloadDto,
-  ) {
-    return this.flashcardsService.getFlashcardStats(materialId, user.id);
   }
 
   @UseGuards(GqlAuthGuard)

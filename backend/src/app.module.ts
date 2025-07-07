@@ -21,6 +21,7 @@ import { QueueModule } from './queue/queue.module';
 import { LoggerModule } from 'nestjs-pino';
 import { BillingModule } from './billing/billing.module';
 import { ExportModule } from './export/export.module';
+import { StatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { ExportModule } from './export/export.module';
     QueueModule,
     BillingModule,
     ExportModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
