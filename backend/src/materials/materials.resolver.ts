@@ -1,5 +1,8 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { MaterialType, PaginatedMaterialsResponse } from './materials.graphql';
+import {
+  MaterialType,
+  PaginatedMaterialsResponse,
+} from './graphql/materials.graphql';
 import { MaterialsService } from './materials.service';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from 'src/guards/gql-auth.guard';

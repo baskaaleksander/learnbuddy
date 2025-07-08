@@ -1,5 +1,5 @@
 import { Field, ID, InterfaceType, registerEnumType } from '@nestjs/graphql';
-import { MaterialType } from 'src/materials/materials.graphql';
+import { MaterialType } from 'src/materials/graphql/materials.graphql';
 import GraphQLJSON from 'graphql-type-json';
 
 export enum AIOutputEnum {

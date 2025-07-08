@@ -150,3 +150,25 @@ export interface CurrentPlanData {
   tokensUsed: number;
   tokensLimit: number;
 }
+
+export interface UserStats {
+  materialsCount: number;
+
+  quizzesCount: number;
+
+  flashcardsCount: number;
+
+  summariesCount: number;
+
+  totalQuizResults: number;
+
+  totalFlashcardsKnown: number;
+
+  totalFlashcardsToReview: number;
+
+  recentlyCreatedAiOutputs: any[];
+
+  recentlyCreatedMaterials: MaterialData[];
+
+  quizPartialsIds: string[];
+}

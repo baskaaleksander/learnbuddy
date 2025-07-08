@@ -14,7 +14,7 @@ import {
   quizPartials,
   quizResults,
 } from 'src/database/schema';
-import { toMaterialGraphQL } from './materials.mapper';
+import { toMaterialGraphQL } from './graphql/materials.mapper';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { CreateMaterialInput } from './dtos/create-material.input';
 

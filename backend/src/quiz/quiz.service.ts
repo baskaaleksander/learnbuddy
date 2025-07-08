@@ -13,8 +13,8 @@ import {
   quizResults,
 } from 'src/database/schema';
 // import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
-import { toAIOutputGraphQL } from 'src/mappers/ai-output.mapper';
-import { toMaterialGraphQL } from 'src/materials/materials.mapper';
+import { toAIOutputGraphQL } from '../mappers/ai-output.mapper';
+import { toMaterialGraphQL } from '../materials/graphql/materials.mapper';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
 import { toQuizResultGraphQl } from './graphql/quiz-result.mapper';
 import { QuizResponse } from 'src/utils/types';

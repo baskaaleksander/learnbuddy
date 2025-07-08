@@ -4,12 +4,12 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { and, desc, eq, is, sql } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
 import { aiOutputs, materials } from 'src/database/schema';
 import { toAIOutputGraphQL } from 'src/mappers/ai-output.mapper';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
-import { toMaterialGraphQL } from '../materials/materials.mapper';
+import { toMaterialGraphQL } from '../materials/graphql/materials.mapper';
 import { SummaryAiOutputContent } from '../utils/types';
 
 @Injectable()

@@ -10,6 +10,8 @@ import {
   quizResults,
 } from 'src/database/schema';
 import { FlashcardProgressStatus } from 'src/flashcards/graphql/flashcard-progress.graphql';
+import { toAIOutputGraphQL } from 'src/mappers/ai-output.mapper';
+import { toMaterialGraphQL } from 'src/materials/graphql/materials.mapper';
 
 @Injectable()
 export class StatsService {
@@ -91,6 +93,14 @@ export class StatsService {
       this.getQuizPartialsCount(userId),
     ]);
 
+    console.log({
+      ...materialsCounts,
+      ...quizStats,
+      ...flashcardStats,
+      ...recentActivity,
+      quizPartialsCount,
+    });
+
     return {
       ...materialsCounts,
       ...quizStats,
@@ -170,19 +180,13 @@ export class StatsService {
       .slice(0, 5);
 
     return {
-      recentlyCreatedAiOutputs: recentlyCreated.map((m) => ({
-        id: m.ai_outputs.id,
-        type: m.ai_outputs.type,
-        createdAt: m.ai_outputs.createdAt,
-        materialId: m.ai_outputs.materialId,
-      })),
-      recentlyCreatedMaterials: recentlyCreated.map((m) => ({
-        id: m.materials.id,
-        title: m.materials.title,
-        createdAt: m.materials.createdAt,
-        content: m.materials.content,
-        status: m.materials.status,
-      })),
+      //fix that
+      recentlyCreatedAiOutputs: recentlyCreated.map((m) =>
+        toAIOutputGraphQL(m.ai_outputs),
+      ),
+      recentlyCreatedMaterials: recentlyCreated.map((m) =>
+        toMaterialGraphQL(m.materials),
+      ),
     };
   }
 
