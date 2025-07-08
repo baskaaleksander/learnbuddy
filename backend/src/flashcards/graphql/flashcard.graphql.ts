@@ -1,5 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { AIOutputType } from '../../graphql/ai-output.graphql';
+import { AIOutputInterface } from '../../graphql/ai-output.graphql';
 import { PaginatedResponse } from '../../graphql/pagination.graphql';
 
 @ObjectType()
@@ -21,7 +21,7 @@ export class FlashcardType {
 }
 
 @ObjectType()
-export class FlashcardsWithStatsType extends AIOutputType {
+export class FlashcardsWithStatsType extends AIOutputInterface {
   @Field()
   total: number;
 

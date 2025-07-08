@@ -166,9 +166,19 @@ export interface UserStats {
 
   totalFlashcardsToReview: number;
 
-  recentlyCreatedAiOutputs: any[];
+  recentlyCreatedAiOutputs: AiOutputData[];
 
   recentlyCreatedMaterials: MaterialData[];
 
   quizPartialsIds: string[];
+}
+
+export interface AiOutputData {
+  id: string;
+  materialId: string;
+  type: "FLASHCARDS" | "SUMMARY" | "QUIZ";
+  content: string;
+  createdAt: string;
+  errorMessage?: string;
+  material: MaterialData;
 }

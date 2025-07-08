@@ -1,5 +1,5 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
 import {
   aiOutputs,
@@ -89,7 +89,7 @@ export class StatsService {
       this.getMaterialsCounts(materialsData),
       this.getQuizStats(userId),
       this.getFlashcardUserStats(userId),
-      this.getRecentActivity(materialsData),
+      this.getRecentActivity(userId),
       this.getQuizPartialsCount(userId),
     ]);
 
@@ -171,22 +171,33 @@ export class StatsService {
     };
   }
 
-  private getRecentActivity(materialsData: any[]) {
-    const recentlyCreated = materialsData
-      .sort(
-        (a, b) =>
-          b.ai_outputs.createdAt.getTime() - a.ai_outputs.createdAt.getTime(),
-      )
-      .slice(0, 5);
+  private async getRecentActivity(userId: string) {
+    const recentAiOutputs = await this.drizzle
+      .select()
+      .from(aiOutputs)
+      .innerJoin(materials, eq(materials.id, aiOutputs.materialId))
+      .where(eq(materials.userId, userId))
+      .orderBy(desc(aiOutputs.createdAt))
+      .limit(5);
+
+    const recentMaterials = await this.drizzle
+      .select()
+      .from(materials)
+      .where(eq(materials.userId, userId))
+      .orderBy(desc(materials.createdAt))
+      .limit(5);
+
+    const recentAiOutputsGraphQL = recentAiOutputs.map((output) =>
+      toAIOutputGraphQL(output.ai_outputs),
+    );
+
+    const recentMaterialsGraphQL = recentMaterials.map((material) =>
+      toMaterialGraphQL(material),
+    );
 
     return {
-      //fix that
-      recentlyCreatedAiOutputs: recentlyCreated.map((m) =>
-        toAIOutputGraphQL(m.ai_outputs),
-      ),
-      recentlyCreatedMaterials: recentlyCreated.map((m) =>
-        toMaterialGraphQL(m.materials),
-      ),
+      recentlyCreatedAiOutputs: recentAiOutputsGraphQL,
+      recentlyCreatedMaterials: recentMaterialsGraphQL,
     };
   }
 

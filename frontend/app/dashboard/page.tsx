@@ -1,4 +1,9 @@
 "use client";
+import ErrorComponent from "@/components/common/error-component";
+import LoadingScreen from "@/components/common/loading-screen";
+import AssetsStats from "@/components/features/dashboard/assets-stats";
+import RecentlyCreatedAiOutputs from "@/components/features/dashboard/recently-created-ai-outputs";
+import RecentlyCreatedMaterials from "@/components/features/dashboard/recently-created-materials";
 import { UserStats } from "@/lib/definitions";
 import { useAuth } from "@/providers/auth-provider";
 import { fetchGraphQL } from "@/utils/gql-axios";
@@ -35,12 +40,18 @@ function DashboardPage() {
                     userId
                     title
                     description
-                    content
                     status
                     createdAt
                 }
+                recentlyCreatedAiOutputs {
+                  id
+                  materialId
+                  type
+                  createdAt
+                  errorMessage
+              }
             }
-        }
+          }
           `);
 
         if (response.getUserStats) {
@@ -55,11 +66,35 @@ function DashboardPage() {
     };
     fetchUserStats();
   }, [user]);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  if (error) {
+    return <ErrorComponent message={error} />;
+  }
   return (
     <div className="p-6 space-y-4">
-      <h1 className="text-xl md:text-2xl lg:text-3xl font-medium">
-        Welcome, {user?.firstName}
+      <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">
+        Welcome back, {user?.firstName}!
       </h1>
+      <AssetsStats
+        materialsCount={userStats?.materialsCount || 0}
+        quizzesCount={userStats?.quizzesCount || 0}
+        flashcardsCount={userStats?.flashcardsCount || 0}
+        summariesCount={userStats?.summariesCount || 0}
+        totalFlashcardsKnown={userStats?.totalFlashcardsKnown || 0}
+        totalFlashcardsToReview={userStats?.totalFlashcardsToReview || 0}
+      />
+      <div className="flex flex-col md:flex-row gap-4">
+        <RecentlyCreatedMaterials
+          recentlyCreatedMaterials={userStats?.recentlyCreatedMaterials || []}
+        />
+        <RecentlyCreatedAiOutputs
+          aiOutputsData={userStats?.recentlyCreatedAiOutputs || []}
+        />
+      </div>
     </div>
   );
 }

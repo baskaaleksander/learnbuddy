@@ -1,4 +1,10 @@
-import { Field, ID, InterfaceType, registerEnumType } from '@nestjs/graphql';
+import {
+  Field,
+  ID,
+  InterfaceType,
+  ObjectType,
+  registerEnumType,
+} from '@nestjs/graphql';
 import { MaterialType } from 'src/materials/graphql/materials.graphql';
 import GraphQLJSON from 'graphql-type-json';
 
@@ -14,7 +20,7 @@ registerEnumType(AIOutputEnum, {
 });
 
 @InterfaceType()
-export abstract class AIOutputType {
+export abstract class AIOutputInterface {
   @Field(() => ID)
   id: string;
 
@@ -35,4 +41,12 @@ export abstract class AIOutputType {
 
   @Field(() => MaterialType, { nullable: true })
   material?: MaterialType;
+}
+
+@ObjectType({ implements: AIOutputInterface })
+export class AIOutputType extends AIOutputInterface {
+  constructor(partial: Partial<AIOutputType>) {
+    super();
+    Object.assign(this, partial);
+  }
 }
