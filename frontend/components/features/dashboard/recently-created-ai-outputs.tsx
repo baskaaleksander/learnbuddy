@@ -1,10 +1,11 @@
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { AiOutputData } from "@/lib/definitions";
 import {
   Book,
   BookText,
   Calendar,
-  FileQuestion,
+  ExternalLink,
   MessageCircleQuestion,
   Zap,
 } from "lucide-react";
@@ -16,12 +17,17 @@ function RecentlyCreatedAiOutputs({
 }: {
   aiOutputsData: AiOutputData[];
 }) {
+  const handleMaterialClick = (materialId: string) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    window.location.href = `/dashboard/materials/${materialId}`;
+  };
   console.log("RecentlyCreatedAiOutputs", aiOutputsData);
   return (
     <Card className="p-4 w-full">
       <CardHeader>
         <h2 className="text-base md:text-lg lg:text-xl font-semibold">
-          Recently Learning Outputs
+          Recent Learning Outputs
         </h2>
       </CardHeader>
       <CardContent>
@@ -57,6 +63,18 @@ function RecentlyCreatedAiOutputs({
                         {aiOutput.type.charAt(0) +
                           aiOutput.type.slice(1).toLowerCase()}
                       </span>
+                      <Badge
+                        variant="secondary"
+                        className="text-xs w-fit flex items-center gap-1"
+                      >
+                        <button
+                          onClick={handleMaterialClick(aiOutput.material.id)}
+                          className="flex items-center gap-1 text-xs hover:underline"
+                        >
+                          <ExternalLink className="inline w-3 h-3" />
+                          {aiOutput.material.title}
+                        </button>
+                      </Badge>
                     </div>
 
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">

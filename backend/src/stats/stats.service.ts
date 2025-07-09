@@ -187,10 +187,12 @@ export class StatsService {
       .orderBy(desc(materials.createdAt))
       .limit(5);
 
-    const recentAiOutputsGraphQL = recentAiOutputs.map((output) =>
-      toAIOutputGraphQL(output.ai_outputs),
-    );
-
+    const recentAiOutputsGraphQL = recentAiOutputs.map((output) => {
+      return {
+        ...toAIOutputGraphQL(output.ai_outputs),
+        material: toMaterialGraphQL(output.materials),
+      };
+    });
     const recentMaterialsGraphQL = recentMaterials.map((material) =>
       toMaterialGraphQL(material),
     );

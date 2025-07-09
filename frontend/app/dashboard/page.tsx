@@ -49,6 +49,10 @@ function DashboardPage() {
                   type
                   createdAt
                   errorMessage
+                  material {
+                    id
+                    title
+                  }
               }
             }
           }
