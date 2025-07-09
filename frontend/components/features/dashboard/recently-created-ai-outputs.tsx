@@ -29,6 +29,10 @@ function RecentlyCreatedAiOutputs({
         <h2 className="text-base md:text-lg lg:text-xl font-semibold">
           Recent Learning Outputs
         </h2>
+        <p className="text-sm text-muted-foreground">
+          Here are the AI-generated outputs based on your learning materials.
+          Click on any item to view or edit it.
+        </p>
       </CardHeader>
       <CardContent>
         <ul className="flex flex-col gap-3">

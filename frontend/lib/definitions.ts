@@ -170,7 +170,7 @@ export interface UserStats {
 
   recentlyCreatedMaterials: MaterialData[];
 
-  quizPartialsIds: string[];
+  quizPartials: QuizPartialData[];
 }
 
 export interface AiOutputData {
@@ -181,4 +181,14 @@ export interface AiOutputData {
   createdAt: string;
   errorMessage?: string;
   material: MaterialData;
+}
+
+export interface QuizPartialData {
+  id: string;
+  userId: string;
+  quizId: string;
+  answers?: JSON;
+  currentQuestionIndex: number;
+  lastUpdated: string;
+  createdAt: string;
 }

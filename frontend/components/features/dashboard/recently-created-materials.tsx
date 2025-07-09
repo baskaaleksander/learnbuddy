@@ -24,6 +24,10 @@ function RecentlyCreatedMaterials({
         <h2 className="text-base md:text-lg lg:text-xl font-semibold">
           Recently Created Materials
         </h2>
+        <p className="text-sm text-muted-foreground">
+          Here are the materials you have created recently. Click on any item to
+          view or edit it.
+        </p>
       </CardHeader>
       <CardContent>
         <ul className="flex flex-col gap-3">

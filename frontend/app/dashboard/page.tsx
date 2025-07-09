@@ -2,6 +2,7 @@
 import ErrorComponent from "@/components/common/error-component";
 import LoadingScreen from "@/components/common/loading-screen";
 import AssetsStats from "@/components/features/dashboard/assets-stats";
+import QuizPartials from "@/components/features/dashboard/quiz-partials";
 import RecentlyCreatedAiOutputs from "@/components/features/dashboard/recently-created-ai-outputs";
 import RecentlyCreatedMaterials from "@/components/features/dashboard/recently-created-materials";
 import { UserStats } from "@/lib/definitions";
@@ -33,7 +34,6 @@ function DashboardPage() {
                 summariesCount
                 totalQuizResults
                 totalFlashcardsToReview
-                quizPartialsIds
                 totalFlashcardsKnown
                 recentlyCreatedMaterials {
                     id
@@ -53,6 +53,14 @@ function DashboardPage() {
                     id
                     title
                   }
+                }
+                quizPartials {
+                  id
+                  userId
+                  quizId
+                  currentQuestionIndex
+                  lastUpdated
+                  createdAt
               }
             }
           }
@@ -97,6 +105,12 @@ function DashboardPage() {
         />
         <RecentlyCreatedAiOutputs
           aiOutputsData={userStats?.recentlyCreatedAiOutputs || []}
+        />
+      </div>
+      <div className="flex flex-col md:flex-row gap-4">
+        <QuizPartials
+          quizPartialsData={userStats?.quizPartials || []}
+          totalQuizResults={userStats?.totalQuizResults || 0}
         />
       </div>
     </div>

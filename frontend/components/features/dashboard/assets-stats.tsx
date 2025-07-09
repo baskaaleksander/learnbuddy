@@ -82,6 +82,10 @@ function AssetsStats({
         <h2 className="text-base md:text-lg lg:text-xl font-semibold">
           Your statistics
         </h2>
+        <p className="text-sm text-muted-foreground">
+          Here are your current statistics across all learning assets. Click on
+          any item to view more details.
+        </p>
       </CardHeader>
       <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <TooltipProvider>

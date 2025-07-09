@@ -1,6 +1,7 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { AIOutputType } from 'src/graphql/ai-output.graphql';
 import { MaterialType } from 'src/materials/graphql/materials.graphql';
+import { QuizPartialType } from 'src/quiz/graphql/quiz-partial.graphql';
 
 @ObjectType()
 export class UserStats {
@@ -31,6 +32,6 @@ export class UserStats {
   @Field(() => [MaterialType], { nullable: true })
   recentlyCreatedMaterials: MaterialType[];
 
-  @Field(() => [String], { nullable: true })
-  quizPartialsIds: string[];
+  @Field(() => [QuizPartialType], { nullable: true })
+  quizPartials: QuizPartialType[];
 }

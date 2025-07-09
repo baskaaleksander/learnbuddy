@@ -12,6 +12,7 @@ import {
 import { FlashcardProgressStatus } from 'src/flashcards/graphql/flashcard-progress.graphql';
 import { toAIOutputGraphQL } from 'src/mappers/ai-output.mapper';
 import { toMaterialGraphQL } from 'src/materials/graphql/materials.mapper';
+import { toQuizPartialGraphQL } from 'src/quiz/graphql/quiz-partial.mapper';
 
 @Injectable()
 export class StatsService {
@@ -84,29 +85,21 @@ export class StatsService {
       quizStats,
       flashcardStats,
       recentActivity,
-      quizPartialsCount,
+      quizPartials,
     ] = await Promise.all([
       this.getMaterialsCounts(materialsData),
       this.getQuizStats(userId),
       this.getFlashcardUserStats(userId),
       this.getRecentActivity(userId),
-      this.getQuizPartialsCount(userId),
+      this.getQuizPartials(userId),
     ]);
-
-    console.log({
-      ...materialsCounts,
-      ...quizStats,
-      ...flashcardStats,
-      ...recentActivity,
-      quizPartialsCount,
-    });
 
     return {
       ...materialsCounts,
       ...quizStats,
       ...flashcardStats,
       ...recentActivity,
-      quizPartialsCount,
+      ...quizPartials,
     };
   }
 
@@ -203,12 +196,18 @@ export class StatsService {
     };
   }
 
-  private async getQuizPartialsCount(userId: string) {
-    const quizPartialsIds = await this.drizzle
-      .select({ id: quizPartials.id })
+  private async getQuizPartials(userId: string) {
+    const quizPartialsData = await this.drizzle
+      .select()
       .from(quizPartials)
       .where(eq(quizPartials.userId, userId));
 
-    return quizPartialsIds;
+    const partials = quizPartialsData.map((partial) =>
+      toQuizPartialGraphQL(partial),
+    );
+
+    return {
+      quizPartials: partials,
+    };
   }
 }
