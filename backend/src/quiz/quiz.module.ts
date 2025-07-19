@@ -6,6 +6,7 @@ import { QueueModule } from '../queue/queue.module';
 import { BullModule } from '@nestjs/bullmq';
 import { QuizProcessor } from './quiz.processor';
 import { RedisService } from '../redis/redis.service';
+import { BillingModule } from 'src/billing/billing.module';
 
 @Module({
   providers: [QuizService, QuizResolver, QuizProcessor, RedisService],
@@ -15,6 +16,7 @@ import { RedisService } from '../redis/redis.service';
     BullModule.registerQueue({
       name: 'quizProgress',
     }),
+    BillingModule,
   ],
 })
 export class QuizModule {}

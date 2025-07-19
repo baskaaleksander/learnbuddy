@@ -25,6 +25,7 @@ import { QuizPartialInput } from './dtos/quiz-partial.input';
 import { Logger } from 'nestjs-pino';
 import { toQuizResponseGraphQl } from './graphql/quiz-response.mapper';
 import { Quiz } from 'src/utils/types';
+import { BillingService } from 'src/billing/billing.service';
 
 @Injectable()
 export class QuizService {
@@ -34,6 +35,7 @@ export class QuizService {
     @InjectQueue('quizProgress') private quizProgressQueue: Queue,
     private redis: RedisService,
     private readonly logger: Logger,
+    private readonly billingService: BillingService,
   ) {}
 
   async getQuizesByMaterial(materialId: string, userId: string) {
@@ -380,6 +382,12 @@ export class QuizService {
 
     if (existingQuiz.length > 0) {
       throw new Error('Quiz already exists for this material');
+    }
+
+    const tokensCharged = await this.billingService.useTokens(userId, 2);
+
+    if (!tokensCharged) {
+      throw new Error('Insufficient tokens to generate quiz');
     }
 
     // const pdfContent = await parsePublicPdfFromS3(material[0].content);

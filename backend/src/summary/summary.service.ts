@@ -11,12 +11,14 @@ import { toAIOutputGraphQL } from 'src/mappers/ai-output.mapper';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
 import { toMaterialGraphQL } from '../materials/graphql/materials.mapper';
 import { SummaryAiOutputContent } from '../utils/types';
+import { BillingService } from 'src/billing/billing.service';
 
 @Injectable()
 export class SummaryService {
   constructor(
     @Inject('DRIZZLE') private drizzle: typeof db,
     private readonly openAiService: OpenAiService,
+    private readonly billingService: BillingService,
   ) {}
 
   async getSummaryByMaterial(materialId: string, userId: string) {
@@ -263,6 +265,12 @@ export class SummaryService {
 
     if (existingSummary.length > 0) {
       throw new Error('Summary already exists for this material');
+    }
+
+    const tokensCharged = await this.billingService.useTokens(userId, 2);
+
+    if (!tokensCharged) {
+      throw new Error('Insufficient tokens to generate summary');
     }
 
     // const pdfContent = await parsePublicPdfFromS3(material[0].content);

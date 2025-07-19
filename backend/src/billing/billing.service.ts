@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { and, eq } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
 import { plans, subscriptions, users } from 'src/database/schema';
+import { RedisService } from 'src/redis/redis.service';
 import Stripe from 'stripe';
 
 @Injectable()
@@ -16,6 +17,7 @@ export class BillingService {
 
   constructor(
     private configService: ConfigService,
+    private redisService: RedisService,
     @Inject('DRIZZLE') private drizzle: typeof db,
   ) {
     const stripeSecretKey = configService.get<string>('STRIPE_SECRET_KEY');
@@ -375,6 +377,8 @@ export class BillingService {
         })
         .where(eq(users.id, userId));
 
+      await this.redisService.delete(`auth:me:${userId}`);
+
       return true;
     }
 
@@ -391,6 +395,8 @@ export class BillingService {
         tokensUsed: user[0].tokensUsed + tokenAmount,
       })
       .where(eq(users.id, userId));
+
+    await this.redisService.delete(`auth:me:${userId}`);
 
     return true;
   }

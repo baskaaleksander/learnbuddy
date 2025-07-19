@@ -17,12 +17,14 @@ import { toFlashcardGraphQL } from './graphql/flashcard.mapper';
 import { FlashcardProgressStatus } from './graphql/flashcard-progress.graphql';
 import { toAIOutputGraphQL } from '../mappers/ai-output.mapper';
 import { toMaterialGraphQL } from '../materials/graphql/materials.mapper';
+import { BillingService } from 'src/billing/billing.service';
 
 @Injectable()
 export class FlashcardsService {
   constructor(
     @Inject('DRIZZLE') private drizzle: typeof db,
     private readonly openAiService: OpenAiService,
+    private readonly billingService: BillingService,
   ) {}
 
   async getFlashcardsByMaterial(materialId: string, userId: string) {
@@ -226,6 +228,12 @@ export class FlashcardsService {
       throw new NotFoundException(
         'Flashcards already generated for this material',
       );
+    }
+
+    const tokensCharged = await this.billingService.useTokens(userId, 2);
+
+    if (!tokensCharged) {
+      throw new Error('Insufficient tokens to generate summary');
     }
 
     const generatedFlashcards =
