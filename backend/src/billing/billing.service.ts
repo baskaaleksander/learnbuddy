@@ -346,4 +346,65 @@ export class BillingService {
 
     return updatedSubscription;
   }
+
+  async useTokens(userId: string, tokenAmount: number) {
+    const user = await this.drizzle
+      .select()
+      .from(users)
+      .where(eq(users.id, userId));
+
+    if (user.length === 0) {
+      throw new NotFoundException('User not found');
+    }
+
+    const subscription = await this.drizzle
+      .select()
+      .from(subscriptions)
+      .innerJoin(plans, eq(subscriptions.planId, plans.id))
+      .where(eq(subscriptions.userId, userId));
+
+    if (subscription.length === 0) {
+      if (user[0].tokensUsed + tokenAmount > 12) {
+        return false;
+      }
+
+      await this.drizzle
+        .update(users)
+        .set({
+          tokensUsed: user[0].tokensUsed + tokenAmount,
+        })
+        .where(eq(users.id, userId));
+
+      return true;
+    }
+
+    if (
+      user[0].tokensUsed + tokenAmount >
+      subscription[0].plans.tokens_monthly
+    ) {
+      return false;
+    }
+
+    await this.drizzle
+      .update(users)
+      .set({
+        tokensUsed: user[0].tokensUsed + tokenAmount,
+      })
+      .where(eq(users.id, userId));
+
+    return true;
+  }
+
+  async getUserUsedTokens(userId: string) {
+    const user = await this.drizzle
+      .select()
+      .from(users)
+      .where(eq(users.id, userId));
+
+    if (user.length === 0) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user[0].tokensUsed;
+  }
 }

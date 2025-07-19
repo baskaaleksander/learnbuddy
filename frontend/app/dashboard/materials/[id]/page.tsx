@@ -33,6 +33,7 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
                             id
                             title
                             content
+                            status
                             description
                             createdAt
                         }
@@ -55,6 +56,12 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
   useEffect(() => {
     fetchMaterial();
   }, [id]);
+
+  useEffect(() => {
+    if (material && material.status === "PENDING") {
+      router.push(`/dashboard/materials/upload/${id}/`);
+    }
+  }, [material]);
 
   const handleDeleteMaterial = async () => {
     try {

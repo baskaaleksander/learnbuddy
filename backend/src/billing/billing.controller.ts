@@ -91,4 +91,10 @@ export class BillingController {
       body.planInterval,
     );
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('get-user-used-tokens')
+  async getUserUsedTokens(@CurrentUser() user: PayloadDto) {
+    return this.billingService.getUserUsedTokens(user.id);
+  }
 }

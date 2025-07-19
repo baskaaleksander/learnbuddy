@@ -163,8 +163,6 @@ export class WebhookService {
     await this.drizzle
       .delete(subscriptions)
       .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
-
-    console.log(`Subscription with ID ${subscriptionId} deleted successfully`);
   }
 
   async handleInvoicePaid(event: Stripe.Invoice) {
