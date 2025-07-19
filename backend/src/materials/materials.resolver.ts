@@ -9,6 +9,7 @@ import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
 import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
 import { PayloadDto } from 'src/auth/dtos/payload.dto';
 import { CreateMaterialInput } from './dtos/create-material.input';
+import { EditMaterialInput } from './dtos/edit-material.input';
 
 @Resolver(() => MaterialType)
 export class MaterialsResolver {
@@ -63,5 +64,14 @@ export class MaterialsResolver {
     @Args('id') id: string,
   ) {
     return await this.materialsService.deleteMaterial(user.id, id);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Boolean)
+  async updateMaterial(
+    @CurrentUser() user: PayloadDto,
+    @Args('input') input: EditMaterialInput,
+  ) {
+    return await this.materialsService.updateMaterial(user.id, input);
   }
 }

@@ -17,6 +17,7 @@ import {
 import { toMaterialGraphQL } from './graphql/materials.mapper';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { CreateMaterialInput } from './dtos/create-material.input';
+import { EditMaterialInput } from './dtos/edit-material.input';
 
 @Injectable()
 export class MaterialsService {
@@ -213,6 +214,34 @@ export class MaterialsService {
       .where(eq(quizResults.materialId, id));
 
     await this.drizzle.delete(materials).where(eq(materials.id, id));
+
+    return true;
+  }
+
+  async updateMaterial(userId: string, input: EditMaterialInput) {
+    const material = await this.drizzle
+      .select()
+      .from(materials)
+      .where(eq(materials.id, input.id));
+
+    if (material.length === 0) {
+      throw new NotFoundException('Material not found');
+    }
+
+    if (material[0].userId !== userId) {
+      throw new UnauthorizedException(
+        'You do not have permission to update this material',
+      );
+    }
+
+    await this.drizzle
+      .update(materials)
+      .set({
+        title: input.title,
+        description: input.description,
+      })
+      .where(eq(materials.id, input.id))
+      .returning();
 
     return true;
   }
