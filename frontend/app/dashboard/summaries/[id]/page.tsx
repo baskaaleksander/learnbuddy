@@ -8,9 +8,9 @@ import TableOfContents from "@/components/features/summaries/table-of-contents";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SummaryData, UserTokens } from "@/lib/definitions";
-import { useAuth } from "@/providers/auth-provider";
+import { SummaryData, UserSubscription } from "@/lib/definitions";
 import api from "@/utils/axios";
+import { getUserSubscription } from "@/utils/get-user-subscription";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import { ExternalLink, RefreshCw, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -28,8 +28,8 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
     useState<boolean>(false);
   const [submittingDelete, setSubmittingDelete] = useState<boolean>(false);
   const [hideKnownChapters, setHideKnownChapters] = useState<boolean>(false);
-  const [userTokens, setUserTokens] = useState<UserTokens | null>(null);
-  const { getUserTokens } = useAuth();
+  const [userSubscription, setUserSubscription] =
+    useState<UserSubscription | null>(null);
 
   const resolvedParams = use(params);
   const { id } = resolvedParams;
@@ -72,17 +72,19 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
       setLoading(false);
     }
   };
+
   useEffect(() => {
-    const fetchUserTokens = async () => {
+    const fetchUserSubscription = async () => {
       try {
-        const tokens = await getUserTokens();
-        setUserTokens(tokens);
+        const subscriptionResponse = await getUserSubscription();
+        setUserSubscription(subscriptionResponse.data);
       } catch (error) {
-        console.error("Failed to fetch user tokens:", error);
+        console.error("Failed to fetch user subscription:", error);
+        setError("Failed to fetch user subscription. Please try again later.");
       }
     };
 
-    fetchUserTokens();
+    fetchUserSubscription();
   }, []);
 
   useEffect(() => {
@@ -234,6 +236,10 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
     (chapter) => !hideKnownChapters || !chapter.isKnown
   );
 
+  const exportAvailable =
+    userSubscription?.planName === "Tier 2" ||
+    userSubscription?.planName === "Unlimited";
+
   if (loading) {
     return <LoadingScreen />;
   }
@@ -261,9 +267,11 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" onClick={onSummaryExport}>
-            Export to PDF
-          </Button>
+          {exportAvailable && (
+            <Button size="sm" onClick={onSummaryExport}>
+              Export to PDF
+            </Button>
+          )}
           <GenerateAssetDialog
             isOpen={regenerateDialogOpen}
             setIsOpenAction={setRegenerateDialogOpen}
@@ -276,7 +284,9 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
             submitting={submittingRegenerate}
             triggerText="Regenerate"
             availableTokens={
-              userTokens ? userTokens.tokensLimit - userTokens.tokensUsed : 0
+              userSubscription
+                ? userSubscription.tokensLimit - userSubscription.tokensUsed
+                : 0
             }
           />
           <Button

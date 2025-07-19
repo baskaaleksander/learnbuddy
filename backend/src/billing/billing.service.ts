@@ -199,7 +199,7 @@ export class BillingService {
       .where(eq(users.id, userId));
 
     if (userSubscription.length === 0) {
-      return null;
+      return { planName: 'Free' };
     }
     return {
       planName: userSubscription[0].plans.name,

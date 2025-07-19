@@ -137,7 +137,11 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
           <Button size="sm" variant="default">
             <Link href={material.content}>Download material</Link>
           </Button>
-          <Button size="sm" variant="outline">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => router.push(`/dashboard/materials/${id}/edit`)}
+          >
             Edit
           </Button>
           <DeleteAssetDialog

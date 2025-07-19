@@ -77,7 +77,17 @@ export class StatsService {
     const materialsData = await this.getMaterialsWithAiOutputs(userId);
 
     if (materialsData.length === 0) {
-      return null;
+      return {
+        materialsCount: 0,
+        quizzesCount: 0,
+        flashcardsCount: 0,
+        summariesCount: 0,
+        totalQuizResults: 0,
+        totalFlashcardsKnown: 0,
+        totalFlashcardsToReview: 0,
+        recentlyCreatedAiOutputs: [],
+        recentlyCreatedMaterials: [],
+      };
     }
 
     const [

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MaterialData, PaginationProps } from "@/lib/definitions";
+import { useRouter } from "next/navigation";
 
 function MaterialsPage() {
   const [materials, setMaterials] =
@@ -32,6 +33,7 @@ function MaterialsPage() {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
+  const router = useRouter();
 
   useEffect(() => {
     try {

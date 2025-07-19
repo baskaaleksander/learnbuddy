@@ -55,6 +55,7 @@ function FlashcardsPage() {
 				  }
 
       			`);
+
       if (flashcardsResponse.getFlashcardsSetsByUser) {
         setFlashcards(flashcardsResponse.getFlashcardsSetsByUser);
         setTotalPages(flashcardsResponse.getFlashcardsSetsByUser.totalPages);

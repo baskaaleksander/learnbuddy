@@ -21,7 +21,6 @@ interface MaterialCardProps {
   createdAt: string;
   className?: string;
   onDelete?: () => void;
-  onEdit?: () => void;
 }
 
 function MaterialCard({
@@ -30,9 +29,7 @@ function MaterialCard({
   id,
   className,
   description,
-  onDelete,
   createdAt,
-  onEdit,
 }: MaterialCardProps) {
   const [submittingDelete, setSubmittingDelete] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
@@ -54,6 +51,11 @@ function MaterialCard({
         ? `/dashboard/materials/upload/${id}`
         : `/dashboard/materials/${id}`
     );
+  };
+
+  const onEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push(`/dashboard/materials/${id}/edit`);
   };
 
   return (
@@ -104,7 +106,10 @@ function MaterialCard({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onEdit} className="text-sm">
+                <DropdownMenuItem
+                  onClick={(e) => onEdit(e)}
+                  className="text-sm"
+                >
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem

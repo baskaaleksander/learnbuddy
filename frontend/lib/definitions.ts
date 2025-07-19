@@ -197,3 +197,15 @@ export interface UserTokens {
   tokensLimit: number;
   tokensUsed: number;
 }
+
+export interface UserSubscription {
+  planName: string;
+  planInterval: "MONTHLY" | "YEARLY";
+  price: string;
+  currency: string;
+  status: string;
+  createdAt: string;
+  nextBillingDate: string;
+  tokensUsed: number;
+  tokensLimit: number;
+}

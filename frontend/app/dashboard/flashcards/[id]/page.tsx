@@ -12,7 +12,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { MaterialData, UserTokens } from "@/lib/definitions";
+import { MaterialData, UserSubscription } from "@/lib/definitions";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import {
   Calendar,
@@ -28,7 +28,7 @@ import { useRouter } from "next/navigation";
 import React, { use, useEffect, useState } from "react";
 import { toast } from "sonner";
 import api from "@/utils/axios";
-import { useAuth } from "@/providers/auth-provider";
+import { getUserSubscription } from "@/utils/get-user-subscription";
 
 function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -44,8 +44,8 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
     useState<boolean>(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] =
     useState<boolean>(false);
-  const [userTokens, setUserTokens] = useState<UserTokens | null>(null);
-  const { getUserTokens } = useAuth();
+  const [userSubscription, setUserSubscription] =
+    useState<UserSubscription | null>(null);
 
   const router = useRouter();
 
@@ -102,16 +102,17 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
   };
 
   useEffect(() => {
-    const fetchUserTokens = async () => {
+    const fetchUserSubscription = async () => {
       try {
-        const tokens = await getUserTokens();
-        setUserTokens(tokens);
+        const subscriptionResponse = await getUserSubscription();
+        setUserSubscription(subscriptionResponse.data);
       } catch (error) {
-        console.error("Failed to fetch user tokens:", error);
+        console.error("Failed to fetch user subscription:", error);
+        setError("Failed to fetch user subscription. Please try again later.");
       }
     };
 
-    fetchUserTokens();
+    fetchUserSubscription();
   }, []);
 
   useEffect(() => {
@@ -121,6 +122,10 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
   const knowledgeRate = flashcardsStats
     ? ((flashcardsStats.known / flashcardsStats.total) * 100).toFixed(0)
     : 0;
+
+  const exportAvailable =
+    userSubscription?.planName === "Tier 2" ||
+    userSubscription?.planName === "Unlimited";
 
   if (loading) {
     return <LoadingScreen />;
@@ -258,9 +263,11 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <Button size="sm" onClick={onFlashcardsExport}>
-                Export to CSV
-              </Button>
+              {exportAvailable && (
+                <Button size="sm" onClick={onFlashcardsExport}>
+                  Export to CSV
+                </Button>
+              )}
               <GenerateAssetDialog
                 isOpen={regenerateDialogOpen}
                 setIsOpenAction={setRegenerateDialogOpen}
@@ -273,8 +280,8 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
                 submitting={submittingRegenerate}
                 triggerText="Regenerate"
                 availableTokens={
-                  userTokens
-                    ? userTokens.tokensLimit - userTokens.tokensUsed
+                  userSubscription
+                    ? userSubscription.tokensLimit - userSubscription.tokensUsed
                     : 0
                 }
               />
