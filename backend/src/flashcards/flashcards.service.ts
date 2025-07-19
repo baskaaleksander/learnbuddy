@@ -230,11 +230,7 @@ export class FlashcardsService {
       );
     }
 
-    const tokensCharged = await this.billingService.useTokens(userId, 2);
-
-    if (!tokensCharged) {
-      throw new Error('Insufficient tokens to generate summary');
-    }
+    await this.billingService.useTokens(userId, 2);
 
     const generatedFlashcards =
       this.openAiService.generateFlashcards(materialId);

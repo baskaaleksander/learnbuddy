@@ -192,3 +192,8 @@ export interface QuizPartialData {
   lastUpdated: string;
   createdAt: string;
 }
+
+export interface UserTokens {
+  tokensLimit: number;
+  tokensUsed: number;
+}

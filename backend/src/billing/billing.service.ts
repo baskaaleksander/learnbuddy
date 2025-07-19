@@ -367,7 +367,9 @@ export class BillingService {
 
     if (subscription.length === 0) {
       if (user[0].tokensUsed + tokenAmount > 12) {
-        return false;
+        throw new ConflictException(
+          'Insufficient tokens available for this operation',
+        );
       }
 
       await this.drizzle
@@ -386,7 +388,9 @@ export class BillingService {
       user[0].tokensUsed + tokenAmount >
       subscription[0].plans.tokens_monthly
     ) {
-      return false;
+      throw new ConflictException(
+        'Insufficient tokens available for this operation',
+      );
     }
 
     await this.drizzle
@@ -401,7 +405,7 @@ export class BillingService {
     return true;
   }
 
-  async getUserUsedTokens(userId: string) {
+  async getUserTokens(userId: string) {
     const user = await this.drizzle
       .select()
       .from(users)
@@ -411,6 +415,15 @@ export class BillingService {
       throw new NotFoundException('User not found');
     }
 
-    return user[0].tokensUsed;
+    const subscription = await this.drizzle
+      .select()
+      .from(subscriptions)
+      .innerJoin(plans, eq(subscriptions.planId, plans.id))
+      .where(eq(subscriptions.userId, userId));
+
+    return {
+      tokensUsed: user[0].tokensUsed || 0,
+      tokensLimit: subscription[0].plans.tokens_monthly || 12,
+    };
   }
 }

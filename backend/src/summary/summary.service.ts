@@ -267,11 +267,7 @@ export class SummaryService {
       throw new Error('Summary already exists for this material');
     }
 
-    const tokensCharged = await this.billingService.useTokens(userId, 2);
-
-    if (!tokensCharged) {
-      throw new Error('Insufficient tokens to generate summary');
-    }
+    await this.billingService.useTokens(userId, 2);
 
     // const pdfContent = await parsePublicPdfFromS3(material[0].content);
 

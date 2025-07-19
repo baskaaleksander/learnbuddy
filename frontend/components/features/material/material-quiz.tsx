@@ -20,6 +20,8 @@ import Link from "next/link";
 import { GenerateAssetDialog } from "@/components/common/generate-asset";
 import DeleteAssetDialog from "@/components/common/delete-asset-dialog";
 import { toast } from "sonner";
+import { useAuth } from "@/providers/auth-provider";
+import { UserTokens } from "@/lib/definitions";
 
 function MaterialQuiz({
   id,
@@ -40,6 +42,8 @@ function MaterialQuiz({
   const [submittingRegenerate, setSubmittingRegenerate] = useState(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] =
     useState<boolean>(false);
+  const [userTokens, setUserTokens] = useState<UserTokens | null>(null);
+  const { getUserTokens } = useAuth();
 
   useEffect(() => {
     const fetchQuizData = async () => {
@@ -75,6 +79,19 @@ function MaterialQuiz({
 
     fetchQuizData();
   }, [id, quizzes?.id]);
+
+  useEffect(() => {
+    const fetchUserTokens = async () => {
+      try {
+        const tokens = await getUserTokens();
+        setUserTokens(tokens);
+      } catch (error) {
+        console.error("Failed to fetch user tokens:", error);
+      }
+    };
+
+    fetchUserTokens();
+  }, []);
 
   const assetData = {
     title: "Quiz",
@@ -195,6 +212,9 @@ function MaterialQuiz({
               onGenerateAction={handleGenerateQuiz}
               assetData={assetData}
               submitting={submittingGenerate}
+              availableTokens={
+                userTokens ? userTokens.tokensLimit - userTokens.tokensUsed : 0
+              }
             />
           </div>
         ) : (
@@ -317,6 +337,11 @@ function MaterialQuiz({
                   onGenerateAction={handleRegenerateQuiz}
                   submitting={submittingRegenerate}
                   triggerText="Regenerate"
+                  availableTokens={
+                    userTokens
+                      ? userTokens.tokensLimit - userTokens.tokensUsed
+                      : 0
+                  }
                 />
                 <Button
                   size="sm"

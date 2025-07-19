@@ -89,7 +89,7 @@ function QuizPartials({
             <Button
               className="mt-2"
               variant="default"
-              onClick={() => (window.location.href = "/dashboard/quizzes/new")}
+              onClick={() => (window.location.href = "/dashboard/quizzes/")}
             >
               Start New Quiz
             </Button>

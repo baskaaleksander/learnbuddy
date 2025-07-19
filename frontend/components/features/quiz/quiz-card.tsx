@@ -94,11 +94,6 @@ function QuizCard({
     }
   };
 
-  const onRegenerate = () => {
-    setDropdownOpen(false);
-    window.location.href = `/dashboard/quizzes/${quizData.id}/edit`;
-  };
-
   return (
     <>
       <Link href={`/dashboard/quizzes/${quizData.id}`}>
@@ -146,9 +141,6 @@ function QuizCard({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onRegenerate}>
-                  Regenerate
-                </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-destructive"
                   onClick={(e) => {

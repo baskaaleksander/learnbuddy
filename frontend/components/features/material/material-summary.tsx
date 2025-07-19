@@ -10,6 +10,8 @@ import { fetchGraphQL } from "@/utils/gql-axios";
 import { GenerateAssetDialog } from "@/components/common/generate-asset";
 import DeleteAssetDialog from "@/components/common/delete-asset-dialog";
 import { toast } from "sonner";
+import { useAuth } from "@/providers/auth-provider";
+import { UserTokens } from "@/lib/definitions";
 
 interface SummaryData {
   id: string;
@@ -42,6 +44,8 @@ function MaterialSummary({
   const [submittingRegenerate, setSubmittingRegenerate] = useState(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] =
     useState<boolean>(false);
+  const [userTokens, setUserTokens] = useState<UserTokens | null>(null);
+  const { getUserTokens } = useAuth();
 
   useEffect(() => {
     const fetchSummaryData = async () => {
@@ -72,6 +76,19 @@ function MaterialSummary({
     fetchSummaryData();
   }, [id]);
 
+  useEffect(() => {
+    const fetchUserTokens = async () => {
+      try {
+        const tokens = await getUserTokens();
+        setUserTokens(tokens);
+      } catch (error) {
+        console.error("Failed to fetch user tokens:", error);
+      }
+    };
+
+    fetchUserTokens();
+  }, []);
+
   const assetData = {
     title: "Summary",
     description: "Generate a summary for this material",
@@ -87,6 +104,7 @@ function MaterialSummary({
             createSummary(materialId: "${id}")
         }
       `);
+
       toast("Summary generated successfully", {
         icon: <Check className="h-4 w-4" />,
         duration: 3000,
@@ -189,6 +207,9 @@ function MaterialSummary({
               assetData={assetData}
               onGenerateAction={handleGenerateSummary}
               submitting={submittingGenerate}
+              availableTokens={
+                userTokens ? userTokens.tokensLimit - userTokens.tokensUsed : 0
+              }
             />
           </div>
         ) : (
@@ -253,6 +274,11 @@ function MaterialSummary({
                   onGenerateAction={handleRegenerateSummary}
                   submitting={submittingRegenerate}
                   triggerText="Regenerate"
+                  availableTokens={
+                    userTokens
+                      ? userTokens?.tokensLimit - userTokens?.tokensUsed
+                      : 0
+                  }
                 />
                 <Button
                   size="sm"

@@ -8,7 +8,8 @@ import TableOfContents from "@/components/features/summaries/table-of-contents";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SummaryData } from "@/lib/definitions";
+import { SummaryData, UserTokens } from "@/lib/definitions";
+import { useAuth } from "@/providers/auth-provider";
 import api from "@/utils/axios";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import { ExternalLink, RefreshCw, Trash } from "lucide-react";
@@ -27,6 +28,9 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
     useState<boolean>(false);
   const [submittingDelete, setSubmittingDelete] = useState<boolean>(false);
   const [hideKnownChapters, setHideKnownChapters] = useState<boolean>(false);
+  const [userTokens, setUserTokens] = useState<UserTokens | null>(null);
+  const { getUserTokens } = useAuth();
+
   const resolvedParams = use(params);
   const { id } = resolvedParams;
   const router = useRouter();
@@ -68,6 +72,18 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    const fetchUserTokens = async () => {
+      try {
+        const tokens = await getUserTokens();
+        setUserTokens(tokens);
+      } catch (error) {
+        console.error("Failed to fetch user tokens:", error);
+      }
+    };
+
+    fetchUserTokens();
+  }, []);
 
   useEffect(() => {
     fetchSummary();
@@ -259,6 +275,9 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
             onGenerateAction={handleRegenerateSummary}
             submitting={submittingRegenerate}
             triggerText="Regenerate"
+            availableTokens={
+              userTokens ? userTokens.tokensLimit - userTokens.tokensUsed : 0
+            }
           />
           <Button
             size="sm"

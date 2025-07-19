@@ -24,6 +24,9 @@ import {
 import useMediaQuery from "@/app/hooks/use-media-query";
 import { AssetData } from "@/lib/definitions";
 import { Coins, Loader2 } from "lucide-react";
+import api from "@/utils/axios";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export function GenerateAssetDialog({
   onGenerateAction,
@@ -32,6 +35,7 @@ export function GenerateAssetDialog({
   assetData,
   submitting,
   triggerText = "Generate",
+  availableTokens,
 }: {
   onGenerateAction: () => void;
   isOpen: boolean;
@@ -39,8 +43,14 @@ export function GenerateAssetDialog({
   assetData: AssetData;
   submitting: boolean;
   triggerText?: string;
+  availableTokens: number;
 }) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
+  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
+
+  useEffect(() => {
+    setButtonDisabled(availableTokens < assetData.cost);
+  }, [availableTokens, assetData.cost]);
 
   if (isDesktop) {
     return (
@@ -60,14 +70,23 @@ export function GenerateAssetDialog({
             <DialogTitle>
               {triggerText} {assetData.title.toLowerCase()}
             </DialogTitle>
-            <DialogDescription>
-              {assetData.description}, it will cost you {assetData.cost}{" "}
-              <Coins className="w-4 h-4 text-yellow-500 inline" /> unless you
-              have a unlimited plan.
+            <DialogDescription className="flex flex-col gap-2">
+              <span>
+                {assetData.description}, it will cost you {assetData.cost}{" "}
+                <Coins className="w-4 h-4 text-yellow-500 inline" /> unless you
+                have a unlimited plan.
+              </span>
+              {buttonDisabled && (
+                <span className="text-red-500 text-sm">
+                  You do not have enough tokens to generate this asset.
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={onGenerateAction}>{triggerText}</Button>
+            <Button disabled={buttonDisabled} onClick={onGenerateAction}>
+              {triggerText}
+            </Button>
             <DialogTrigger asChild>
               <Button variant="outline">Cancel</Button>
             </DialogTrigger>
@@ -92,13 +111,22 @@ export function GenerateAssetDialog({
           </DrawerDescription>
         </DrawerHeader>
         <DrawerFooter className="pt-2">
+          {buttonDisabled && (
+            <span className="text-red-500 text-sm mb-2 text-center">
+              You do not have enough tokens to generate this asset.
+            </span>
+          )}
           {submitting ? (
             <Button disabled={true} variant="outline">
               <Loader2 className="h-4 w-4 animate-spin" />
               {triggerText} {assetData.title.toLowerCase()}
             </Button>
           ) : (
-            <Button variant="outline" onClick={onGenerateAction}>
+            <Button
+              disabled={buttonDisabled}
+              variant="outline"
+              onClick={onGenerateAction}
+            >
               {triggerText} {assetData.title.toLowerCase()}
             </Button>
           )}

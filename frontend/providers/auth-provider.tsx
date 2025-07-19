@@ -13,6 +13,7 @@ interface AuthContextType {
     password: string,
     firstName: string
   ) => Promise<void>;
+  getUserTokens: () => Promise<any>;
 }
 
 export interface UserData {
@@ -122,9 +123,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const getUserTokens = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get("/billing/get-user-tokens");
+      return response.data;
+    } catch (error) {
+      setError(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, error, login, logout, register }}
+      value={{ user, loading, error, login, logout, register, getUserTokens }}
     >
       {children}
     </AuthContext.Provider>

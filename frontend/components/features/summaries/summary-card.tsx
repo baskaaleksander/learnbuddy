@@ -74,10 +74,6 @@ function SummaryCard({
     }
   };
 
-  const onRegenerate = () => {
-    setDropdownOpen(false);
-    window.location.href = `/dashboard/quizzes/${summaryData.id}/edit`;
-  };
   return (
     <>
       <Link href={`/dashboard/summaries/${summaryData.id}`}>
@@ -100,9 +96,6 @@ function SummaryCard({
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={onRegenerate}>
-                    Edit
-                  </DropdownMenuItem>
                   <DropdownMenuItem
                     className="text-destructive"
                     onClick={(e) => {

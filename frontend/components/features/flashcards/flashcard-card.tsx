@@ -81,10 +81,6 @@ function FlashcardCard({
     }
   };
 
-  const onRegenerate = () => {
-    setDropdownOpen(false);
-    window.location.href = `/dashboard/quizzes/${flashcardData.id}/edit`;
-  };
   return (
     <>
       <Link href={`/dashboard/flashcards/${flashcardData.id}`}>
@@ -130,7 +126,6 @@ function FlashcardCard({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onRegenerate}>Edit</DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-destructive"
                   onClick={(e) => {

@@ -93,8 +93,8 @@ export class BillingController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('get-user-used-tokens')
-  async getUserUsedTokens(@CurrentUser() user: PayloadDto) {
-    return this.billingService.getUserUsedTokens(user.id);
+  @Get('get-user-tokens')
+  async getUserTokens(@CurrentUser() user: PayloadDto) {
+    return this.billingService.getUserTokens(user.id);
   }
 }

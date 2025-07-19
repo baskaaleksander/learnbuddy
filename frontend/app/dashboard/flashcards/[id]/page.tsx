@@ -12,7 +12,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { MaterialData } from "@/lib/definitions";
+import { MaterialData, UserTokens } from "@/lib/definitions";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import {
   Calendar,
@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import React, { use, useEffect, useState } from "react";
 import { toast } from "sonner";
 import api from "@/utils/axios";
+import { useAuth } from "@/providers/auth-provider";
 
 function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -43,6 +44,9 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
     useState<boolean>(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] =
     useState<boolean>(false);
+  const [userTokens, setUserTokens] = useState<UserTokens | null>(null);
+  const { getUserTokens } = useAuth();
+
   const router = useRouter();
 
   const fetchFlashcardsSet = async () => {
@@ -96,6 +100,19 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
       toast.error("Material not found or not linked to this flashcard set.");
     }
   };
+
+  useEffect(() => {
+    const fetchUserTokens = async () => {
+      try {
+        const tokens = await getUserTokens();
+        setUserTokens(tokens);
+      } catch (error) {
+        console.error("Failed to fetch user tokens:", error);
+      }
+    };
+
+    fetchUserTokens();
+  }, []);
 
   useEffect(() => {
     fetchFlashcardsSet();
@@ -255,6 +272,11 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
                 onGenerateAction={handleRegenerateFlashcards}
                 submitting={submittingRegenerate}
                 triggerText="Regenerate"
+                availableTokens={
+                  userTokens
+                    ? userTokens.tokensLimit - userTokens.tokensUsed
+                    : 0
+                }
               />
               <Button
                 size="sm"
