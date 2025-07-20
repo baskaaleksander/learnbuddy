@@ -3,13 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CurrentPlanData } from "@/lib/definitions";
 import { pricingPlans } from "@/lib/pricing-plans";
-import {
-  Loader2,
-  CreditCard,
-  TrendingUp,
-  TrendingDown,
-  ArrowRight,
-} from "lucide-react";
+import { Loader2, CreditCard, TrendingUp, ArrowRight } from "lucide-react";
 import React, { useState } from "react";
 import api from "@/utils/axios";
 import { toast } from "sonner";
@@ -46,14 +40,14 @@ function PurchaseSummary({
   const isSameTier = selectedPlanTier === currentPlanTier;
 
   const hasExactPlan =
-    isSameTier &&
+    currentPlanData?.planName?.toLowerCase() === selectedPlan.toLowerCase() &&
     currentPlanData?.planInterval?.toLowerCase() === selectedInterval;
 
   const isSwitchingInterval =
     isSameTier &&
     currentPlanData?.planInterval?.toLowerCase() !== selectedInterval;
 
-  const isValidChange = isUpgrade || isSwitchingInterval;
+  const isValidChange = isUpgrade || isSwitchingInterval || isDowngrade;
   const isSelectingFreeWithNoPlan = !currentPlanData && selectedPlan === "Free";
 
   const handleCheckout = async () => {
@@ -104,7 +98,7 @@ function PurchaseSummary({
   const getButtonText = () => {
     if (isSelectingFreeWithNoPlan || hasExactPlan) return "Current Plan";
     if (selectedPlan === "Free") return "Downgrade to Free";
-    if (isDowngrade) return "Downgrade Not Allowed";
+    if (isDowngrade) return "Downgrade Plan";
     if (currentPlanData?.status === "active") {
       return isUpgrade ? "Upgrade Plan" : "Switch Billing";
     }
@@ -112,7 +106,7 @@ function PurchaseSummary({
   };
 
   const isButtonDisabled =
-    isProcessing || isSelectingFreeWithNoPlan || hasExactPlan || isDowngrade;
+    isProcessing || isSelectingFreeWithNoPlan || hasExactPlan;
 
   return (
     <Card className="sticky top-6">
@@ -120,7 +114,7 @@ function PurchaseSummary({
         <h2 className="text-lg font-semibold">Purchase Summary</h2>
       </CardHeader>
       <CardContent className="space-y-4">
-        {currentPlanData ? (
+        {currentPlanData && currentPlanData.planName !== "Free" ? (
           <div className="space-y-2 text-sm">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Current Plan:</span>
@@ -192,16 +186,6 @@ function PurchaseSummary({
           </div>
         )}
 
-        {isDowngrade && (
-          <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-md p-3 text-sm text-red-800 dark:text-red-200">
-            <strong>Downgrade Not Allowed</strong>
-            <p className="mt-1">
-              You can only upgrade to a higher tier plan or switch billing
-              cycles for the same tier.
-            </p>
-          </div>
-        )}
-
         {hasExactPlan && (
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md p-3 text-sm text-blue-800 dark:text-blue-200">
             <strong>Current Plan</strong>
@@ -226,6 +210,28 @@ function PurchaseSummary({
             </p>
           </div>
         )}
+
+        {isDowngrade && selectedPlan !== "Free" && (
+          <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md p-3 text-sm text-blue-800 dark:text-blue-200">
+            <strong>Downgrade Information</strong>
+            <p className="mt-1">
+              You'll receive a prorated refund for the unused portion of your
+              current billing period.
+            </p>
+          </div>
+        )}
+
+        {selectedPlan === "Free" &&
+          currentPlanData &&
+          currentPlanData.planName !== "Free" && (
+            <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-md p-3 text-sm text-orange-800 dark:text-orange-200">
+              <strong>Downgrade to Free</strong>
+              <p className="mt-1">
+                Your subscription will be cancelled and you'll receive a full
+                refund for the unused portion of your billing period.
+              </p>
+            </div>
+          )}
 
         <Button
           onClick={handleCheckout}

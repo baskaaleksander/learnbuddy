@@ -19,6 +19,10 @@ function BillingPage() {
         const response = await api.get<CurrentPlanData>(
           "/billing/get-user-subscription"
         );
+        if (response.data.planName === "Free") {
+          setPlanData(null);
+          return;
+        }
         setPlanData(response.data);
       } catch (error) {
         console.error("Failed to fetch plan data:", error);

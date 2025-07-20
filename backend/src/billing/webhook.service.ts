@@ -199,11 +199,16 @@ export class WebhookService {
       throw new Error(`Subscription with ID ${subscriptionId} not found`);
     }
 
+    const stripeSubscription =
+      await this.stripe.subscriptions.retrieve(subscriptionId);
+
     await this.drizzle
       .update(subscriptions)
       .set({
         status: 'active',
-        currentPeriodEnd: new Date(event.lines.data[0].period.end * 1000),
+        currentPeriodEnd: new Date(
+          stripeSubscription.items.data[0].current_period_end * 1000,
+        ),
         updatedAt: new Date(),
       })
       .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
@@ -242,16 +247,21 @@ export class WebhookService {
       throw new Error('Plan details not found for the updated subscription');
     }
 
-    //planID changed but currentPeriodEnd is the same
-    await this.drizzle
+    console.log('Current period end:', currentPeriodEnd);
+    console.log('Subscription before update:', subscription[0]);
+
+    const updatedRows = await this.drizzle
       .update(subscriptions)
       .set({
         planId: planDetails[0].id,
         status: 'active',
-        currentPeriodEnd: currentPeriodEnd,
+        currentPeriodEnd, // ES6 shorthand - same as currentPeriodEnd: currentPeriodEnd
         updatedAt: new Date(),
       })
-      .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
+      .where(eq(subscriptions.stripeSubscriptionId, subscriptionId))
+      .returning(); // Add returning() to see what was actually updated
+
+    console.log('Updated subscription:', updatedRows);
   }
 
   async handleInvoicePaymentFailed(event: Stripe.Invoice) {

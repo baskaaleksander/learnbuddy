@@ -15,6 +15,7 @@ import { toUserGraphQL } from './user.mapper';
 import { promisify } from 'util';
 import { randomBytes, scrypt as _scrypt } from 'crypto';
 import { RedisService } from '../redis/redis.service';
+import { BillingService } from 'src/billing/billing.service';
 const scrypt = promisify(_scrypt);
 
 @Injectable()
@@ -22,6 +23,7 @@ export class UserService {
   constructor(
     @Inject('DRIZZLE') private drizzle: typeof db,
     private redisService: RedisService,
+    private billingService: BillingService,
   ) {}
 
   async getCurrentUser(id: string) {
@@ -61,6 +63,10 @@ export class UserService {
     if (user.length === 0) {
       throw new Error('User not found');
     }
+
+    await this.billingService.cancelSubscription(id);
+
+    await this.redisService.delete(`auth:me:${id}`);
 
     await this.drizzle
       .delete(flashcardProgress)

@@ -225,10 +225,24 @@ export class BillingService {
       .innerJoin(users, eq(subscriptions.userId, users.id))
       .where(eq(subscriptions.userId, userId));
 
+    const plan = await this.drizzle
+      .select()
+      .from(plans)
+      .where(
+        and(
+          eq(plans.name, decodeURIComponent(planName)),
+          eq(plans.interval, planInterval),
+        ),
+      );
+
     const prorationDate = Math.floor(Date.now() / 1000);
 
     if (subscription.length === 0) {
-      throw new NotFoundException('Subscription not found for this user');
+      return {
+        totalChange: plan[0]?.price / 100,
+        currency: 'USD',
+        prorationDate: new Date(prorationDate * 1000),
+      };
     }
 
     const subscriptionId = subscription[0]?.subscriptions.stripeSubscriptionId;
@@ -240,16 +254,6 @@ export class BillingService {
     if (!subscriptionStripe) {
       throw new NotFoundException('Subscription not found');
     }
-
-    const plan = await this.drizzle
-      .select()
-      .from(plans)
-      .where(
-        and(
-          eq(plans.name, decodeURIComponent(planName)),
-          eq(plans.interval, planInterval),
-        ),
-      );
 
     const prorationInvoice = await this.stripe.invoices.createPreview({
       customer: stripeCustomerId as string,
