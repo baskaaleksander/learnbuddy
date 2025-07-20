@@ -70,7 +70,7 @@ function PurchaseSummary({
         );
         window.location.href = response.data;
       }
-    } catch (error: any) {
+    } catch (error) {
       toast.error(
         error.response?.data?.message ||
           "Failed to process request. Please try again."
@@ -197,7 +197,7 @@ function PurchaseSummary({
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md p-3 text-sm text-blue-800 dark:text-blue-200">
             <strong>Free Plan</strong>
             <p className="mt-1">
-              You're currently on the Free plan with basic features.
+              You&apos;re currently on the Free plan with basic features.
             </p>
           </div>
         )}
@@ -215,8 +215,8 @@ function PurchaseSummary({
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md p-3 text-sm text-blue-800 dark:text-blue-200">
             <strong>Downgrade Information</strong>
             <p className="mt-1">
-              You'll receive a prorated refund for the unused portion of your
-              current billing period.
+              You&apos;ll receive a prorated refund for the unused portion of
+              your current billing period.
             </p>
           </div>
         )}
@@ -227,8 +227,8 @@ function PurchaseSummary({
             <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-md p-3 text-sm text-orange-800 dark:text-orange-200">
               <strong>Downgrade to Free</strong>
               <p className="mt-1">
-                Your subscription will be cancelled and you'll receive a full
-                refund for the unused portion of your billing period.
+                Your subscription will be cancelled and you&apos;ll receive a
+                full refund for the unused portion of your billing period.
               </p>
             </div>
           )}

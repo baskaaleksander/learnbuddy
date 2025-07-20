@@ -38,6 +38,21 @@ export interface FlashcardData {
   material: ShortMaterialType;
 }
 
+export interface Flashcard {
+  flashcardId: string;
+  question: string;
+  answer: string;
+  status: string;
+  statusUpdatedAt: Date;
+}
+
+export interface FlashcardsStats {
+  total: number;
+  known: number;
+  review: number;
+  lastUpdated: string;
+}
+
 export interface PaginationProps<T> {
   data: T[];
   totalItems: number;
@@ -92,7 +107,8 @@ export interface MaterialData {
   id: string;
   title: string;
   status: "PROCESSED" | "FAILED" | "PENDING";
-  description: string;
+  content: string;
+  description?: string;
   createdAt: string;
 }
 

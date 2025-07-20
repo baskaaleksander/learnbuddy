@@ -11,9 +11,10 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import DeleteAssetDialog from "@/components/common/delete-asset-dialog";
 import { useRouter } from "next/navigation";
+import { MaterialData } from "@/lib/definitions";
 
 function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
-  const [material, setMaterial] = useState<any>(null);
+  const [material, setMaterial] = useState<MaterialData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);

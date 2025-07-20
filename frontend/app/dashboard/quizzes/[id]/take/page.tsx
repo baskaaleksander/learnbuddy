@@ -84,7 +84,7 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
         } else {
           setError("Quiz not found");
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error("Error fetching quiz:", error);
         setError("Failed to load quiz. Please try again later.");
       } finally {
@@ -124,7 +124,7 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
         } else {
           setError("Failed to fetch quiz result.");
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error("Error fetching quiz result:", error);
         setError("Failed to fetch quiz result. Please try again later.");
       } finally {

@@ -164,7 +164,9 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
       document.body.appendChild(link);
       link.click();
 
-      link.parentNode.removeChild(link);
+      if (link.parentNode) {
+        link.parentNode.removeChild(link);
+      }
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error exporting summary:", error);

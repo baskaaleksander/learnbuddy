@@ -12,7 +12,12 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { MaterialData, UserSubscription } from "@/lib/definitions";
+import {
+  Flashcard,
+  FlashcardsStats,
+  MaterialData,
+  UserSubscription,
+} from "@/lib/definitions";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import {
   Calendar,
@@ -33,11 +38,14 @@ import { getUserSubscription } from "@/utils/get-user-subscription";
 function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const { id } = resolvedParams;
-  const [flashcardsSet, setFlashcardsSet] = useState<any>(null);
+  const [flashcardsSet, setFlashcardsSet] = useState<Array<Flashcard> | null>(
+    null
+  );
   const [material, setMaterial] = useState<Partial<MaterialData> | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [flashcardsStats, setFlashcardsStats] = useState<any>(null);
+  const [flashcardsStats, setFlashcardsStats] =
+    useState<FlashcardsStats | null>(null);
   const [submittingDelete, setSubmittingDelete] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [submittingRegenerate, setSubmittingRegenerate] =
@@ -232,7 +240,9 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
       document.body.appendChild(link);
       link.click();
 
-      link.parentNode.removeChild(link);
+      if (link.parentNode) {
+        link.parentNode.removeChild(link);
+      }
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error exporting flashcards:", error);
@@ -309,21 +319,27 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
                   <Check className="h-4 w-4 text-green-500" />
                   <span className="text-xs font-medium">Known</span>
                 </div>
-                <p className="text-lg font-bold">{flashcardsStats.known}</p>
+                <p className="text-lg font-bold">
+                  {flashcardsStats?.known || 0}
+                </p>
               </div>
               <div className="text-center p-2 bg-muted/50 rounded-lg">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <X className="h-4 w-4 text-red-500" />
                   <span className="text-xs font-medium">Review</span>
                 </div>
-                <p className="text-lg font-bold">{flashcardsStats.review}</p>
+                <p className="text-lg font-bold">
+                  {flashcardsStats?.review || 0}
+                </p>
               </div>
               <div className="text-center p-2 bg-muted/50 rounded-lg">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <ReceiptText className="h-4 w-4 text-blue-500" />
                   <span className="text-xs font-medium">Total</span>
                 </div>
-                <p className="text-lg font-bold">{flashcardsStats.total}</p>
+                <p className="text-lg font-bold">
+                  {flashcardsStats?.total || 0}
+                </p>
               </div>
               <div className="text-center p-2 bg-muted/50 rounded-lg">
                 <div className="flex items-center justify-center gap-1 mb-1">
@@ -336,7 +352,9 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Calendar className="h-3 w-3" />
                 Last update:{" "}
-                {new Date(flashcardsStats.lastUpdated).toLocaleDateString()}
+                {flashcardsStats?.lastUpdated
+                  ? new Date(flashcardsStats.lastUpdated).toLocaleDateString()
+                  : "N/A"}
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="outline" onClick={restartProgress}>
@@ -349,7 +367,7 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
             </CardFooter>
           </Card>
           <div className="mt-6 flex flex-col gap-4">
-            {flashcardsSet.map((flashcard: any) => (
+            {flashcardsSet.map((flashcard: Flashcard) => (
               <FlashcardQuestionCard
                 key={flashcard.flashcardId}
                 flashcardQuestionData={{

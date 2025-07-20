@@ -28,8 +28,8 @@ function HowItWorks() {
       <p className="mt-4 md:mt-6 text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-3xl text-center">
         LearnBuddy guides you step-by-step: set your learning goals, access
         curated resources, and track your progress—all in one place. Whether
-        you're mastering new skills or revising old ones, our platform adapts to
-        your needs, making learning efficient and enjoyable.
+        you&apos;re mastering new skills or revising old ones, our platform
+        adapts to your needs, making learning efficient and enjoyable.
       </p>
       <div className="pt-24">
         {steps.map((step, index) => (

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 /**
  * Custom hook that returns a boolean indicating if the provided media query matches.
@@ -17,7 +17,7 @@ function useMediaQuery(query: string): boolean {
   // Initialize state with the current match value or false on the server
   const [matches, setMatches] = useState<boolean>(() => {
     // Check if window is defined (client-side)
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       return window.matchMedia(query).matches;
     }
     return false;
@@ -25,7 +25,7 @@ function useMediaQuery(query: string): boolean {
 
   useEffect(() => {
     // Return early if window is not defined (SSR)
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
@@ -41,17 +41,17 @@ function useMediaQuery(query: string): boolean {
 
     // Modern browsers - addEventListener
     if (mediaQueryList.addEventListener) {
-      mediaQueryList.addEventListener('change', listener);
+      mediaQueryList.addEventListener("change", listener);
       return () => {
-        mediaQueryList.removeEventListener('change', listener);
+        mediaQueryList.removeEventListener("change", listener);
       };
     }
     // Legacy browsers - addListener (deprecated but included for backwards compatibility)
     else {
-      // @ts-ignore - Using deprecated API for older browsers
+      // @ts-expect-error - Using deprecated API for older browsers
       mediaQueryList.addListener(listener);
       return () => {
-        // @ts-ignore - Using deprecated API for older browsers
+        // @ts-expect-error - Using deprecated API for older browsers
         mediaQueryList.removeListener(listener);
       };
     }

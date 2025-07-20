@@ -2,8 +2,9 @@
 import ErrorComponent from "@/components/common/error-component";
 import LoadingScreen from "@/components/common/loading-screen";
 import { Button } from "@/components/ui/button";
+import { Flashcard } from "@/lib/definitions";
 import { fetchGraphQL } from "@/utils/gql-axios";
-import { Check, X } from "lucide-react";
+import { Check, X, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import React, { use, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -13,7 +14,7 @@ function FlashcardsPlayPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = resolvedParams;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [flashcardsSet, setFlashcardsSet] = useState<any>(null);
+  const [flashcardsSet, setFlashcardsSet] = useState<Array<Flashcard>>(null);
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -97,7 +98,7 @@ function FlashcardsPlayPage({ params }: { params: Promise<{ id: string }> }) {
             Congratulations!
           </h2>
           <p className="text-gray-600">
-            You've completed all flashcards in this set.
+            You&apos;ve completed all flashcards in this set.
           </p>
           <Link href={`/dashboard/flashcards/${id}`}>
             <Button className="mt-4">Back to Flashcards Set</Button>
@@ -113,6 +114,18 @@ function FlashcardsPlayPage({ params }: { params: Promise<{ id: string }> }) {
     <div className="min-h-screen p-4">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <Link href={`/dashboard/flashcards/${id}`}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Flashcards
+              </Button>
+            </Link>
+          </div>
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm text-gray-600">
               Card {currentFlashcardIndex + 1} of {flashcardsSet.length}

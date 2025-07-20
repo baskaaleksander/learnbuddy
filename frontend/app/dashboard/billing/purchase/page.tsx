@@ -1,4 +1,5 @@
 "use client";
+import ErrorComponent from "@/components/common/error-component";
 import LoadingScreen from "@/components/common/loading-screen";
 import PlanOptions from "@/components/features/billing/plan-options";
 import PurchaseSummary from "@/components/features/billing/purchase-summary";
@@ -83,6 +84,10 @@ function PurchasePage() {
 
   if (loading) {
     return <LoadingScreen />;
+  }
+
+  if (error) {
+    return <ErrorComponent message={error} />;
   }
 
   return (

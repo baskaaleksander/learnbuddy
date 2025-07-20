@@ -54,7 +54,7 @@ function PricingSection() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-16 md:pt-20 lg:pt-24">
-        {currentPricing.map((card, idx) => (
+        {currentPricing.map((card) => (
           <PricingCard
             key={`${card.nameOfPlan}-${isYearly ? "yearly" : "monthly"}`}
             {...card}
