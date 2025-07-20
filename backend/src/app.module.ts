@@ -22,6 +22,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { BillingModule } from './billing/billing.module';
 import { ExportModule } from './export/export.module';
 import { StatsModule } from './stats/stats.module';
+import { ScheduledTaskModule } from './scheduled-task/scheduled-task.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { StatsModule } from './stats/stats.module';
     BillingModule,
     ExportModule,
     StatsModule,
+    ScheduledTaskModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -74,6 +76,5 @@ import { StatsModule } from './stats/stats.module';
 export class AppModule implements NestModule {
   constructor() {}
 
-  configure(consumer: MiddlewareConsumer) {
-  }
+  configure(consumer: MiddlewareConsumer) {}
 }

@@ -16,6 +16,7 @@ import { UserRegisterDto } from './dtos/user-register.dto';
 import { UserService } from '../user/user.service';
 import { RedisService } from '../redis/redis.service';
 import { Logger } from 'nestjs-pino';
+import { ScheduledTaskService } from 'src/scheduled-task/scheduled-task.service';
 
 const scrypt = promisify(_scrypt);
 
@@ -29,6 +30,7 @@ export class AuthService {
     private userService: UserService,
     private redisService: RedisService,
     private logger: Logger,
+    private readonly scheduledTaskService: ScheduledTaskService,
   ) {}
 
   async register(user: UserRegisterDto) {
@@ -56,6 +58,12 @@ export class AuthService {
       .catch((err) => {
         throw new Error('Error creating user', err);
       });
+
+    await this.scheduledTaskService.scheduleTask(
+      res[0].id,
+      'reset-tokens',
+      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    );
 
     const payload = {
       email: res[0].email,

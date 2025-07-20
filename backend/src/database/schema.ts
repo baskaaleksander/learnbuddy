@@ -61,6 +61,18 @@ export const users = pgTable('users', {
   tokensUsed: integer('tokens_used').default(0).notNull(),
 });
 
+export const scheduledJobs = pgTable('scheduled_jobs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
+  type: text('type').notNull().default('reset-tokens'),
+  executeAt: timestamp('execute_at').notNull(),
+  isExecuted: boolean('is_executed').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 export const passwordResets = pgTable('password_resets', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id')
@@ -186,6 +198,13 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const passwordResetsRelations = relations(passwordResets, ({ one }) => ({
   user: one(users, {
     fields: [passwordResets.userId],
+    references: [users.id],
+  }),
+}));
+
+export const scheduledJobsRelations = relations(scheduledJobs, ({ one }) => ({
+  user: one(users, {
+    fields: [scheduledJobs.userId],
     references: [users.id],
   }),
 }));

@@ -7,6 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EmailModule } from 'src/email/email.module';
 import { RedisService } from '../redis/redis.service';
 import { UserService } from '../user/user.service';
+import { ScheduledTaskService } from 'src/scheduled-task/scheduled-task.service';
 
 @Module({
   imports: [
@@ -21,7 +22,13 @@ import { UserService } from '../user/user.service';
     }),
     EmailModule,
   ],
-  providers: [AuthService, JwtStrategy, RedisService, UserService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    RedisService,
+    UserService,
+    ScheduledTaskService,
+  ],
   controllers: [AuthController],
 })
 export class AuthModule {}

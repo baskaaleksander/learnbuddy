@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { and, eq } from 'drizzle-orm';
 import { db } from 'src/database/drizzle.module';
 import { plans, subscriptions, users } from 'src/database/schema';
+import { ScheduledTaskService } from 'src/scheduled-task/scheduled-task.service';
 import Stripe from 'stripe';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class WebhookService {
   constructor(
     private configService: ConfigService,
     @Inject('DRIZZLE') private drizzle: typeof db,
+    private readonly scheduledTaskService: ScheduledTaskService,
   ) {
     const stripeSecretKey = configService.get<string>('STRIPE_SECRET_KEY');
     if (!stripeSecretKey) {
@@ -142,6 +144,21 @@ export class WebhookService {
         })
         .where(eq(users.id, user[0].id));
     }
+
+    await this.drizzle
+      .update(users)
+      .set({
+        tokensUsed: 0,
+      })
+      .where(eq(users.id, user[0].id));
+
+    await this.scheduledTaskService.destroyTask(user[0].id, 'reset-tokens');
+
+    await this.scheduledTaskService.scheduleTask(
+      user[0].id,
+      'reset-tokens',
+      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    );
   }
 
   async handleCustomerSubscriptionDeleted(event: Stripe.Subscription) {
