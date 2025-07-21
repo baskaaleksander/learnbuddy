@@ -12,6 +12,7 @@ import { OpenAiService } from 'src/open-ai/open-ai.service';
 import { toMaterialGraphQL } from '../materials/graphql/materials.mapper';
 import { SummaryAiOutputContent } from '../utils/types';
 import { BillingService } from 'src/billing/billing.service';
+import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
 
 @Injectable()
 export class SummaryService {
@@ -269,13 +270,12 @@ export class SummaryService {
 
     await this.billingService.useTokens(userId, 2);
 
-    // const pdfContent = await parsePublicPdfFromS3(material[0].content);
+    const pdfContent = await parsePublicPdfFromS3(material[0].content);
 
-    // if (!pdfContent) {
-    //     throw new NotFoundException('PDF content not found');
-    // }
+    if (!pdfContent) {
+      throw new NotFoundException('PDF content not found');
+    }
 
-    const pdfContent = 'test';
     const summary = await this.openAiService.generateSummary(pdfContent);
 
     if (!summary) {

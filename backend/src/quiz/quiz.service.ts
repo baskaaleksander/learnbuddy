@@ -26,6 +26,7 @@ import { Logger } from 'nestjs-pino';
 import { toQuizResponseGraphQl } from './graphql/quiz-response.mapper';
 import { Quiz } from 'src/utils/types';
 import { BillingService } from 'src/billing/billing.service';
+import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
 
 @Injectable()
 export class QuizService {
@@ -386,14 +387,13 @@ export class QuizService {
 
     await this.billingService.useTokens(userId, 2);
 
-    // const pdfContent = await parsePublicPdfFromS3(material[0].content);
+    const pdfContent = await parsePublicPdfFromS3(material[0].content);
 
-    // if (!pdfContent) {
-    //     throw new NotFoundException('PDF content not found');
-    // }
+    if (!pdfContent) {
+      throw new NotFoundException('PDF content not found');
+    }
 
-    const pdfContent = 'test';
-    const quiz = this.openAiService.generateQuiz(pdfContent);
+    const quiz = await this.openAiService.generateQuiz(pdfContent);
 
     if (!quiz) {
       throw new Error('Failed to generate quiz');

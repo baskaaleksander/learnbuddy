@@ -18,6 +18,8 @@ import { FlashcardProgressStatus } from './graphql/flashcard-progress.graphql';
 import { toAIOutputGraphQL } from '../mappers/ai-output.mapper';
 import { toMaterialGraphQL } from '../materials/graphql/materials.mapper';
 import { BillingService } from 'src/billing/billing.service';
+import { FlashcardContent } from 'src/utils/types';
+import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
 
 @Injectable()
 export class FlashcardsService {
@@ -205,6 +207,7 @@ export class FlashcardsService {
     }));
   }
 
+  //fix this
   async createFlashcards(materialId: string, userId: string) {
     const materialAccess = await this.drizzle
       .select()
@@ -232,8 +235,15 @@ export class FlashcardsService {
 
     await this.billingService.useTokens(userId, 2);
 
+    const pdfContent = await parsePublicPdfFromS3(materialAccess[0].content);
+
+    if (!pdfContent) {
+      throw new NotFoundException('PDF content not found');
+    }
+
     const generatedFlashcards =
-      this.openAiService.generateFlashcards(materialId);
+      await this.openAiService.generateFlashcards(pdfContent);
+
     if (!generatedFlashcards) {
       throw new NotFoundException('No flashcards generated for this material');
     }
