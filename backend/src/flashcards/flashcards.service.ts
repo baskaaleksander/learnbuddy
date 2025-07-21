@@ -18,7 +18,6 @@ import { FlashcardProgressStatus } from './graphql/flashcard-progress.graphql';
 import { toAIOutputGraphQL } from '../mappers/ai-output.mapper';
 import { toMaterialGraphQL } from '../materials/graphql/materials.mapper';
 import { BillingService } from 'src/billing/billing.service';
-import { FlashcardContent } from 'src/utils/types';
 import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
 
 @Injectable()
@@ -248,6 +247,8 @@ export class FlashcardsService {
       throw new NotFoundException('No flashcards generated for this material');
     }
 
+    console.log('Generated Flashcards:', generatedFlashcards);
+
     const aiOutput = await this.drizzle
       .insert(aiOutputs)
       .values({
@@ -259,7 +260,7 @@ export class FlashcardsService {
       .returning();
 
     const dbFlashcards = await Promise.all(
-      generatedFlashcards.map(async (flashcard) => {
+      generatedFlashcards.flashcards.map(async (flashcard) => {
         const inserted = await this.drizzle
           .insert(flashcards)
           .values({

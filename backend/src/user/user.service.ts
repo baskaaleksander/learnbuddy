@@ -154,7 +154,7 @@ export class UserService {
 
     const userData = user[0];
 
-    const [salt, storedHash] = userData.passwordHash.split('.');
+    const [salt] = userData.passwordHash.split('.');
 
     const hash = (await scrypt(oldPassword, salt, 32)) as Buffer;
     const hashedOldPassword = salt + '.' + hash.toString('hex');

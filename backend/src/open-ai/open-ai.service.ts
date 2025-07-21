@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { OpenAI } from 'openai';
-import { FlashcardContent, SummaryAiOutputContent } from 'src/utils/types';
+import {
+  FlashcardContent,
+  Quiz,
+  SummaryAiOutputContent,
+} from 'src/utils/types';
 
 @Injectable()
 export class OpenAiService {
@@ -20,7 +24,7 @@ export class OpenAiService {
     return response.choices[0]?.message?.content ?? '';
   }
 
-  async generateQuiz(pdfContent: string) {
+  async generateQuiz(pdfContent: string): Promise<Array<Quiz>> {
     const prompt = `You are a quiz generator.
     
           Your task is to read the input text and generate a multiple-choice quiz based only on its content. Follow these rules strictly:
@@ -63,7 +67,7 @@ export class OpenAiService {
     const response = await this.generateContent(prompt);
 
     try {
-      return JSON.parse(response);
+      return JSON.parse(response) as Quiz[];
     } catch (error) {
       console.error('Failed to parse quiz response:', error);
       throw new Error('Failed to generate quiz');
@@ -103,6 +107,9 @@ export class OpenAiService {
       - Do not add, assume, or fabricate any information.
       - Identify the main sections of the text and group key points logically under them.
       - Each chapter should have a clear name and a list of bullet points (concise, informative).
+      - Bullet points should be short, capturing essential facts, definitions, reasons, benefits, or instructions.
+      - Ensure the summary is structured, easy to read, and follows the provided format.
+      - Let the number of chapters and bullet points be determined by the content of the text.
       - Use plain English and preserve the original meaning of the text.
       - Keep the structure strictly as shown above — valid JSON only, with no extra comments or explanations.
       - If the main title is not explicitly stated, generate one that captures the overall idea of the content.
@@ -137,72 +144,72 @@ export class OpenAiService {
     const response = await this.generateContent(prompt);
 
     try {
-      return JSON.parse(response);
+      return JSON.parse(response) as SummaryAiOutputContent;
     } catch (error) {
       console.error('Failed to parse quiz response:', error);
       throw new Error('Failed to generate quiz');
     }
   }
 
-  async generateFlashcards(pdfContent: string): Promise<
-    Array<{
-      question: string;
-      answer: string;
-    }>
-  > {
+  async generateFlashcards(pdfContent: string): Promise<FlashcardContent> {
+    const wordsCount = pdfContent.trim().split(/\s+/).length;
+    const minCards = 2;
+    const maxCards = 20;
+    let cardsCount = Math.ceil(wordsCount / 30);
+    if (cardsCount < minCards) cardsCount = minCards;
+    if (cardsCount > maxCards) cardsCount = maxCards;
     const prompt = `You are a flashcard generator.
 
-      Your task is to read the input text and generate a set of flashcards. Each flashcard must consist of a clear **question** and a concise **answer**, based only on the content of the text.
+        Your task is to carefully read the input text and return a JSON object with exactly ${cardsCount} flashcards in the following structure:
 
-      Instructions:
-      - Return the result strictly as a JavaScript array of objects in the following format:
-
-      [
         {
-          question: 'Your question here?',
-          answer: 'The correct answer here.'
-        },
-        ...
-      ]
-
-      Rules:
-      - Do not add any information that is not present in the original text.
-      - Rephrase content into a natural Q&A format.
-      - Cover all the main concepts, definitions, benefits, and recommendations from the text.
-      - Each flashcard should contain only **one** key idea.
-      - Avoid repeating the same point in multiple cards.
-      - Use simple, precise, and natural language.
-      - The structure and formatting must match the example exactly.
-
-      Example output:
-
-      [
-        {
-          question: 'What are the main objectives of the chapter about thesis writing?',
-          answer: 'Understanding the benefits of writing a thesis and increasing internal motivation.'
-        },
-        {
-          question: 'Why is writing a thesis mandatory?',
-          answer: "Because it is a legal requirement under the Polish Higher Education Law."
-        },
-        {
-          question: 'How is a thesis defined?',
-          answer: 'It is an independent study of a scientific, technical, artistic, or practical topic that demonstrates the student’s skills and knowledge.'
-        },
-        {
-          question: 'What are the key benefits of writing a thesis?',
-          answer: 'Improved project management, communication, information selection, self-confidence, and career readiness.'
+          "flashcards": [
+            {
+              "question": "Your question here?",
+              "answer": "The correct answer here."
+            },
+            {
+              "question": "Another question here?",
+              "answer": "The correct answer here."
+            },
+            ...
+          ]
         }
-      ]
 
-      Text:
-      """${pdfContent}"""
-      `;
+        Instructions:
+        - Use only the information from the provided text.
+        - Do not add, assume, or fabricate any information.
+        - Identify the key concepts, definitions, benefits, and recommendations from the text.
+        - Rephrase content into a clear and natural question-and-answer format.
+        - Each flashcard must reflect a single important idea from the text.
+        - Use plain, precise language.
+        - Do not repeat the same idea across multiple cards.
+        - Always return exactly ${cardsCount} flashcards.
+        - Keep the output strictly in the JSON format above — no extra text, comments, or formatting.
+
+        Example output:
+
+        {
+          "flashcards": [
+            {
+              "question": "What are the main objectives of the chapter about thesis writing?",
+              "answer": "Understanding the benefits of writing a thesis and increasing internal motivation."
+            },
+            {
+              "question": "Why is writing a thesis mandatory?",
+              "answer": "Because it is a legal requirement under the Polish Higher Education Law."
+            }
+          ]
+        }
+
+        Text:
+        """${pdfContent}"""
+      `.trim();
 
     const response = await this.generateContent(prompt);
 
     try {
-      return JSON.parse(response);
+      return JSON.parse(response) as FlashcardContent;
     } catch (error) {
       console.error('Failed to parse quiz response:', error);
       throw new Error('Failed to generate quiz');
