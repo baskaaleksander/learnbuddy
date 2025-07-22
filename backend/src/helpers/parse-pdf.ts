@@ -1,7 +1,7 @@
 import axios from 'axios';
 const pdfParse = require('pdf-parse');
 
-export async function parsePublicPdfFromS3(url): Promise<string> {
+export async function parsePublicPdfFromS3(url): Promise<string | null> {
   try {
     const response = await axios.get(url, { responseType: 'arraybuffer' });
     const buffer = Buffer.from(response.data, 'binary');
@@ -10,6 +10,6 @@ export async function parsePublicPdfFromS3(url): Promise<string> {
 
     return parsed.text;
   } catch (error) {
-    return `Error parsing PDF: ${error.message}`;
+    return null;
   }
 }

@@ -12,7 +12,6 @@ import {
   quizPartials,
   quizResults,
 } from '../database/schema';
-// import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
 import { toAIOutputGraphQL } from '../mappers/ai-output.mapper';
 import { toMaterialGraphQL } from '../materials/graphql/materials.mapper';
 import { OpenAiService } from '../open-ai/open-ai.service';
