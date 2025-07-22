@@ -10,7 +10,7 @@ import {
   boolean,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { generateBase58Uuid } from 'src/utils/generateEmailCode';
+import { generateBase58Uuid } from '../utils/generateEmailCode';
 
 // Enums
 export const userRoleEnum = pgEnum('user_role', ['user', 'admin']);

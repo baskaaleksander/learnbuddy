@@ -5,28 +5,28 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { and, desc, eq, sql } from 'drizzle-orm';
-import { db } from 'src/database/drizzle.module';
+import { db } from '../database/drizzle.module';
 import {
   aiOutputs,
   materials,
   quizPartials,
   quizResults,
-} from 'src/database/schema';
+} from '../database/schema';
 // import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
 import { toAIOutputGraphQL } from '../mappers/ai-output.mapper';
 import { toMaterialGraphQL } from '../materials/graphql/materials.mapper';
-import { OpenAiService } from 'src/open-ai/open-ai.service';
+import { OpenAiService } from '../open-ai/open-ai.service';
 import { toQuizResultGraphQl } from './graphql/quiz-result.mapper';
-import { QuizResponse } from 'src/utils/types';
+import { QuizResponse } from '../utils/types';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { RedisService } from '../redis/redis.service';
 import { QuizPartialInput } from './dtos/quiz-partial.input';
 import { Logger } from 'nestjs-pino';
 import { toQuizResponseGraphQl } from './graphql/quiz-response.mapper';
-import { Quiz } from 'src/utils/types';
-import { BillingService } from 'src/billing/billing.service';
-import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
+import { Quiz } from '../utils/types';
+import { BillingService } from '../billing/billing.service';
+import { parsePublicPdfFromS3 } from '../helpers/parse-pdf';
 
 @Injectable()
 export class QuizService {

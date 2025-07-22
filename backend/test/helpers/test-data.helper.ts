@@ -71,14 +71,13 @@ export const createQuizResult = () => {
     completedAt: new Date(),
   };
 };
-
-export const createMaterial = () => {};
-
 export const createMockMaterial = () => {
   return {
     id: 'material-1',
     userId: 'user-1',
     title: 'Test Material',
+    description: 'This is a test material',
+    status: 'processed',
     content: 'test-file.pdf',
     createdAt: new Date(),
   };
