@@ -30,6 +30,34 @@ export const createMockQuiz = () => {
   };
 };
 
+export const createMockQuizWithoutCorrectAnswers = () => {
+  return {
+    id: 'quiz-1',
+    materialId: 'material-1',
+    type: 'quiz',
+    content: [
+      {
+        answers: [
+          'Zaliczenie przedmiotu z historii literatury',
+          'Wykazanie umiejętności zdobytych podczas studiów',
+          'Przygotowanie się do egzaminu maturalnego',
+        ],
+        question:
+          'Jakie są główne cele napisania pracy dyplomowej według tekstu?',
+      },
+      {
+        answers: [
+          'Ponieważ uczelnia tego wymaga',
+          'Aby szybciej ją ukończyć',
+          'Ponieważ może to uczynić ją przygodą z wartościowymi wnioskami',
+        ],
+        question: 'Dlaczego warto nadać pracy dyplomowej osobisty sens?',
+      },
+    ],
+    createdAt: new Date(),
+    errorMessage: undefined,
+  };
+};
 export const createQuizPartial = () => {
   return {
     id: 'quiz-partial-1',

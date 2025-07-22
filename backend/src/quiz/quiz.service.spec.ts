@@ -8,6 +8,8 @@ import { getQueueToken } from '@nestjs/bullmq';
 import {
   createMockAIOutput,
   createMockMaterial,
+  createMockQuiz,
+  createMockQuizWithoutCorrectAnswers,
 } from '../../test/helpers/test-data.helper';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { parsePublicPdfFromS3 } from '../helpers/parse-pdf';
@@ -266,6 +268,123 @@ describe('QuizService', () => {
       await service.createQuiz(mockMaterial.id, 'user-1');
 
       expect(mockBillingService.useTokens).toHaveBeenCalledWith('user-1', 2);
+    });
+  });
+  describe('getQuizById', () => {
+    it('should return a quiz by ID while user owns it', async () => {
+      const mockAIOutput = createMockQuiz();
+      const mockMaterial = createMockMaterial();
+      const mockQuizResponse = createMockQuizWithoutCorrectAnswers();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([
+          {
+            materials: mockMaterial,
+            ai_outputs: { ...mockAIOutput, material: mockMaterial },
+          },
+        ]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      const result = await service.getQuizById(mockAIOutput.id, 'user-1');
+
+      expect(result).toEqual({ ...mockQuizResponse, material: mockMaterial });
+    });
+    it('should throw NotFoundException if quiz does not exist', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      await expect(
+        service.getQuizById('non-existing-id', 'user-1'),
+      ).rejects.toThrow(NotFoundException);
+    });
+    it('should throw UnauthorizedException if user does not own the quiz', async () => {
+      const mockAIOutput = createMockQuiz();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]), // No results when user-2 tries to access
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      await expect(
+        service.getQuizById(mockAIOutput.id, 'user-2'),
+      ).rejects.toThrow(NotFoundException);
+    });
+    it('should return redis cached quiz if available', async () => {
+      const mockAIOutput = createMockQuiz();
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([
+          {
+            materials: mockMaterial,
+            ai_outputs: { ...mockAIOutput, material: mockMaterial },
+          },
+        ]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      mockRedisService.get.mockResolvedValue(JSON.stringify(mockAIOutput));
+
+      await service.getQuizById(mockAIOutput.id, mockMaterial.userId);
+
+      expect(mockRedisService.get).toHaveBeenCalledWith(
+        `quizSession:${mockMaterial.userId}:${mockAIOutput.id}`,
+      );
+    });
+    it('should retrieve quiz from database if not in cache', async () => {
+      const mockAIOutput = createMockQuiz();
+      const mockMaterial = createMockMaterial();
+      const mockQuizResponse = createMockQuizWithoutCorrectAnswers();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([
+          {
+            materials: mockMaterial,
+            ai_outputs: mockAIOutput,
+          },
+        ]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      mockRedisService.get.mockResolvedValue(null);
+
+      const result = await service.getQuizById(
+        mockAIOutput.id,
+        mockMaterial.userId,
+      );
+
+      expect(result).toEqual({ ...mockQuizResponse, material: mockMaterial });
+    });
+    it('should return clear quiz if not found partial', async () => {
+      const mockAIOutput = createMockQuiz();
+      const mockMaterial = createMockMaterial();
+      const mockQuizResponse = createMockQuizWithoutCorrectAnswers();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([
+          {
+            materials: mockMaterial,
+            ai_outputs: mockAIOutput,
+          },
+        ]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      const result = await service.getQuizById(
+        mockAIOutput.id,
+        mockMaterial.userId,
+      );
+
+      expect(result).toEqual({ ...mockQuizResponse, material: mockMaterial });
     });
   });
 });
