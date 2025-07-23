@@ -201,3 +201,24 @@ export const createMockJob = () => {
     },
   };
 };
+
+export const createMockSummary = () => {
+  return {
+    id: 'summary-1',
+    materialId: 'material-1',
+    type: 'summary',
+    content: {
+      title: 'Test Summary',
+      chapters: [
+        {
+          name: 'Chapter 1',
+          bullet_points: ['Point 1', 'Point 2'],
+          isKnown: false,
+          isImportant: true,
+        },
+      ],
+    },
+    createdAt: new Date(),
+    errorMessage: undefined,
+  };
+};
