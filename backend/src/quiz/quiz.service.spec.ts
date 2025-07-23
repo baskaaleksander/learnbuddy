@@ -9,7 +9,9 @@ import {
   createMockAIOutput,
   createMockMaterial,
   createMockQuiz,
+  createMockQuizPartialInput,
   createMockQuizWithoutCorrectAnswers,
+  createMockUser,
 } from '../../test/helpers/test-data.helper';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { parsePublicPdfFromS3 } from '../helpers/parse-pdf';
@@ -315,7 +317,7 @@ describe('QuizService', () => {
         service.getQuizById(mockAIOutput.id, 'user-2'),
       ).rejects.toThrow(NotFoundException);
     });
-    it('should return redis cached quiz if available', async () => {
+    it('should retrieve redis cached quiz if available', async () => {
       const mockAIOutput = createMockQuiz();
       const mockMaterial = createMockMaterial();
 
@@ -385,6 +387,279 @@ describe('QuizService', () => {
       );
 
       expect(result).toEqual({ ...mockQuizResponse, material: mockMaterial });
+    });
+  });
+  describe('savePartialToDb', () => {
+    it('should save quiz partial to database', async () => {
+      const mockQuizPartial = createMockQuizPartialInput();
+      const mockQuiz = createMockQuiz();
+      const mockUser = createMockUser();
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockQuiz]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      mockDrizzle.insert.mockReturnValue({
+        values: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const result = await service.savePartialToDB(
+        mockUser.id,
+        mockQuiz.id,
+        mockQuizPartial,
+      );
+
+      expect(result).toBeNull();
+
+      expect(mockDrizzle.insert).toHaveBeenCalledWith(expect.any(Object));
+      expect(mockDrizzle.insert().values).toHaveBeenCalledWith({
+        userId: mockUser.id,
+        quizId: mockQuiz.id,
+        currentQuestionIndex: mockQuizPartial.currentQuestionIndex,
+        answers: expect.any(Array),
+        lastUpdated: expect.any(Date),
+      });
+    });
+
+    it('should return quiz result ID when quiz is completed', async () => {
+      const mockQuiz = createMockQuiz();
+      const mockUser = createMockUser();
+      const mockMaterial = createMockMaterial();
+
+      const completeQuizPartial = {
+        currentQuestionIndex: mockQuiz.content.length,
+        questionsAndAnswers: mockQuiz.content.map((_, index) => ({
+          question: index + 1,
+          answer: 'Test answer',
+        })),
+      };
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockQuiz]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      mockDrizzle.insert.mockReturnValue({
+        values: jest.fn().mockReturnValue({
+          returning: jest.fn().mockResolvedValue([{ id: 'quiz-result-1' }]),
+        }),
+      });
+
+      const result = await service.savePartialToDB(
+        mockUser.id,
+        mockQuiz.id,
+        completeQuizPartial,
+      );
+
+      expect(result).toBe('quiz-result-1');
+    });
+    it('should correctly count score', async () => {
+      const mockQuiz = createMockQuiz();
+      const mockUser = createMockUser();
+      const mockMaterial = createMockMaterial();
+
+      const completeQuizPartial = {
+        currentQuestionIndex: mockQuiz.content.length,
+        questionsAndAnswers: mockQuiz.content.map((_, index) => ({
+          question: index + 1,
+          answer: index % 2 === 0 ? 'Correct answer' : 'Wrong answer',
+        })),
+      };
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockQuiz]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      mockDrizzle.insert.mockReturnValue({
+        values: jest.fn().mockReturnValue({
+          returning: jest.fn().mockResolvedValue([{ id: 'quiz-result-1' }]),
+        }),
+      });
+
+      const result = await service.savePartialToDB(
+        mockUser.id,
+        mockQuiz.id,
+        completeQuizPartial,
+      );
+
+      expect(result).toBe('quiz-result-1');
+    });
+    it('should throw error if user does not have rights for material', async () => {
+      const mockQuiz = createMockQuiz();
+      const mockUser = createMockUser();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      await expect(
+        service.savePartialToDB(mockUser.id, mockQuiz.id, {
+          currentQuestionIndex: 1,
+          questionsAndAnswers: [],
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
+    it('should delete partial and redis cache if quiz is completed', async () => {
+      const mockQuiz = createMockQuiz();
+      const mockUser = createMockUser();
+      const mockMaterial = createMockMaterial();
+
+      const completeQuizPartial = {
+        currentQuestionIndex: mockQuiz.content.length,
+        questionsAndAnswers: mockQuiz.content.map((_, index) => ({
+          question: index + 1,
+          answer: 'Test answer',
+        })),
+      };
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockQuiz]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      mockDrizzle.insert.mockReturnValue({
+        values: jest.fn().mockReturnValue({
+          returning: jest.fn().mockResolvedValue([{ id: 'quiz-result-1' }]),
+        }),
+      });
+
+      await service.savePartialToDB(
+        mockUser.id,
+        mockQuiz.id,
+        completeQuizPartial,
+      );
+
+      expect(mockDrizzle.delete).toHaveBeenCalledWith(expect.any(Object));
+      expect(mockRedisService.delete).toHaveBeenCalledWith(
+        `quizSession:${mockUser.id}:${mockQuiz.id}`,
+      );
+    });
+  });
+  describe('getQuizzesByMaterial', () => {
+    it('should return quiz with statistics for a material', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockQuiz = createMockQuiz();
+      const mockUser = createMockUser();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnValue([mockQuiz]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnValue([]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnValue([]),
+      });
+
+      const result = await service.getQuizesByMaterial(
+        mockMaterial.id,
+        mockUser.id,
+      );
+
+      expect(result).toEqual({
+        ...mockQuiz,
+        material: mockMaterial,
+        averageScore: 0,
+        totalAttempts: 0,
+        averagePercentage: 0,
+        bestScore: 0,
+        latestResult: null,
+      });
+    });
+
+    it('should throw error if user does not have access to material', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockUser = createMockUser();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      await expect(
+        service.getQuizesByMaterial(mockMaterial.id, mockUser.id),
+      ).rejects.toThrow('Material not found or access denied');
+    });
+
+    it('should return null if no quiz exists for material', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockUser = createMockUser();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnValue([]),
+      });
+
+      const result = await service.getQuizesByMaterial(
+        mockMaterial.id,
+        mockUser.id,
+      );
+
+      expect(result).toBeNull();
     });
   });
 });

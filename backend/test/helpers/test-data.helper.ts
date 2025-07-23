@@ -26,7 +26,7 @@ export const createMockQuiz = () => {
       },
     ],
     createdAt: new Date(),
-    errorMessage: undefined,
+    errorMessage: null,
   };
 };
 
@@ -118,7 +118,7 @@ export const createMockAIOutput = () => {
     type: 'quiz',
     content: createMockQuiz().content,
     createdAt: new Date(),
-    errorMessage: null,
+    errorMessage: undefined,
   };
 };
 
