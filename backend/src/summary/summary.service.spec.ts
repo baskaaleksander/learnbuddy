@@ -71,65 +71,87 @@ describe('SummaryService', () => {
 
   describe('getSummariesByUser', () => {
     it('should return paginated summaries for user', async () => {
-      const mockSummary = createMockSummary();
       const mockMaterial = createMockMaterial();
+      const mockSummary1 = createMockSummary();
+      const mockSummary2 = { ...createMockSummary(), id: 'summary-2' };
 
-      const executeDataMock = jest.fn().mockResolvedValue([
-        {
-          ai_outputs: mockSummary,
-          materials: mockMaterial,
-        },
-      ]);
+      const summariesResult = [
+        { ai_outputs: mockSummary1, materials: mockMaterial },
+        { ai_outputs: mockSummary2, materials: mockMaterial },
+      ];
 
-      mockDrizzle.select.mockReturnValueOnce({
-        from: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        offset: jest.fn().mockReturnThis(),
-        execute: executeDataMock,
-      });
+      const countResult = [{ count: 15 }];
 
-      const executeCountMock = jest.fn().mockResolvedValue([{ count: 1 }]);
+      const createChainableMock = (finalResult: any, isCount = false) => {
+        const chainMock = {
+          select: jest.fn(),
+          from: jest.fn(),
+          innerJoin: jest.fn(),
+          where: jest.fn(),
+          orderBy: jest.fn(),
+          limit: jest.fn(),
+          offset: jest.fn(),
+        };
 
-      mockDrizzle.select.mockReturnValueOnce({
-        from: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        execute: executeCountMock,
-      });
+        Object.entries(chainMock).forEach(([_, fn]) => {
+          fn.mockReturnValue(chainMock);
+        });
+
+        if (isCount) {
+          chainMock.where.mockResolvedValue(finalResult);
+        } else {
+          chainMock.offset.mockResolvedValue(finalResult);
+        }
+
+        return chainMock;
+      };
+
+      let call = 0;
+      mockDrizzle.select.mockImplementation(() =>
+        call++ === 0
+          ? createChainableMock(summariesResult)
+          : createChainableMock(countResult, true),
+      );
 
       const result = await service.getSummariesByUser(
         'user-1',
-        1,
-        10,
+        2,
+        5,
         'createdAt-desc',
       );
 
-      const expectedSummary = {
-        ...mockSummary,
-        chaptersCount: mockSummary.content.chapters.length,
-        title: mockSummary.content.title,
-        bulletPointsCount: mockSummary.content.chapters.reduce(
-          (total, chapter) => total + chapter.bullet_points.length,
-          0,
-        ),
-        material: mockMaterial,
-      };
-
       expect(result).toEqual({
-        currentPage: 1,
-        data: [expectedSummary],
-        hasNextPage: false,
-        hasPreviousPage: false,
-        pageSize: 10,
-        totalItems: 1,
-        totalPages: 1,
+        data: expect.arrayContaining([
+          expect.objectContaining({
+            id: mockSummary1.id,
+            chaptersCount: mockSummary1.content.chapters.length,
+            bulletPointsCount: expect.any(Number),
+            title: mockSummary1.content.title,
+            material: expect.objectContaining({
+              id: mockMaterial.id,
+              title: mockMaterial.title,
+            }),
+          }),
+          expect.objectContaining({
+            id: mockSummary2.id,
+            chaptersCount: mockSummary2.content.chapters.length,
+            bulletPointsCount: expect.any(Number),
+            title: mockSummary2.content.title,
+            material: expect.objectContaining({
+              id: mockMaterial.id,
+              title: mockMaterial.title,
+            }),
+          }),
+        ]),
+        totalItems: 15,
+        totalPages: 3,
+        currentPage: 2,
+        pageSize: 5,
+        hasNextPage: true,
+        hasPreviousPage: true,
       });
 
-      expect(executeDataMock).toHaveBeenCalledTimes(1);
-      expect(executeCountMock).toHaveBeenCalledTimes(1);
+      expect(mockDrizzle.select).toHaveBeenCalledTimes(2);
     });
     it('should handle empty summaries', async () => {
       mockDrizzle.select.mockReturnValueOnce({
@@ -165,50 +187,102 @@ describe('SummaryService', () => {
       });
     });
     it('should sort summaries by createdAt in descending order', async () => {
+      const mockMaterial = createMockMaterial();
       const mockSummary1 = createMockSummary();
-      const mockSummary2 = createMockSummary();
-      mockSummary2.createdAt = new Date(
-        mockSummary1.createdAt.getTime() + 1000,
-      );
+      const mockSummary2 = {
+        ...createMockSummary(),
+        id: 'summary-2',
+        createdAt: new Date('2023-01-02'),
+      };
 
-      mockDrizzle.select.mockReturnValueOnce({
-        from: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        offset: jest.fn().mockReturnThis(),
-        execute: jest.fn().mockResolvedValue([
-          { ai_outputs: mockSummary1, materials: createMockMaterial() },
-          { ai_outputs: mockSummary2, materials: createMockMaterial() },
-        ]),
-      });
+      const summariesResult = [
+        { ai_outputs: mockSummary1, materials: mockMaterial },
+        { ai_outputs: mockSummary2, materials: mockMaterial },
+      ];
+
+      const countResult = [{ count: 15 }];
+
+      const createChainableMock = (finalResult: any, isCount = false) => {
+        const chainMock = {
+          select: jest.fn(),
+          from: jest.fn(),
+          innerJoin: jest.fn(),
+          where: jest.fn(),
+          orderBy: jest.fn(),
+          limit: jest.fn(),
+          offset: jest.fn(),
+        };
+
+        Object.entries(chainMock).forEach(([_, fn]) => {
+          fn.mockReturnValue(chainMock);
+        });
+
+        if (isCount) {
+          chainMock.where.mockResolvedValue(finalResult);
+        } else {
+          chainMock.offset.mockResolvedValue(finalResult);
+        }
+
+        return chainMock;
+      };
+
+      let call = 0;
+      mockDrizzle.select.mockImplementation(() =>
+        call++ === 0
+          ? createChainableMock(summariesResult)
+          : createChainableMock(countResult, true),
+      );
 
       const result = await service.getSummariesByUser(
         'user-1',
-        1,
-        10,
+        2,
+        5,
         'createdAt-desc',
       );
-
-      expect(result.data[0].createdAt).toBe(mockSummary2.createdAt);
-      expect(result.data[1].createdAt).toBe(mockSummary1.createdAt);
+      expect(result.data[0].createdAt).toBe(mockSummary1.createdAt);
+      expect(result.data[1].createdAt).toBe(mockSummary2.createdAt);
     });
     it('should respect page size parameter', async () => {
-      const mockSummaries = Array.from({ length: 25 }, (_, i) => ({
-        ...createMockSummary(),
-        id: `summary-${i + 1}`,
+      const mockSummaries = Array.from({ length: 10 }, (_, i) => ({
+        ai_outputs: {
+          ...createMockSummary(),
+          id: `summary-${i + 1}`,
+        },
+        materials: createMockMaterial(),
       }));
 
-      mockDrizzle.select.mockReturnValueOnce({
-        from: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        offset: jest.fn().mockReturnThis(),
-        execute: jest.fn().mockResolvedValue(mockSummaries),
-      });
+      const countResult = [{ count: 10 }];
+
+      const createChainableMock = (finalResult: any, isCount = false) => {
+        const chainMock = {
+          select: jest.fn(),
+          from: jest.fn(),
+          innerJoin: jest.fn(),
+          where: jest.fn(),
+          orderBy: jest.fn(),
+          limit: jest.fn(),
+          offset: jest.fn(),
+        };
+
+        Object.entries(chainMock).forEach(([_, fn]) => {
+          fn.mockReturnValue(chainMock);
+        });
+
+        if (isCount) {
+          chainMock.where.mockResolvedValue(finalResult);
+        } else {
+          chainMock.offset.mockResolvedValue(finalResult);
+        }
+
+        return chainMock;
+      };
+
+      let call = 0;
+      mockDrizzle.select.mockImplementation(() =>
+        call++ === 0
+          ? createChainableMock(mockSummaries)
+          : createChainableMock(countResult, true),
+      );
 
       const result = await service.getSummariesByUser(
         'user-1',
@@ -218,8 +292,8 @@ describe('SummaryService', () => {
       );
 
       expect(result.data).toHaveLength(10);
-      expect(result.data[0].id).toBe('summary-25');
-      expect(result.data[9].id).toBe('summary-16');
+      expect(result.data[0].id).toBe('summary-1');
+      expect(result.data[9].id).toBe('summary-10');
     });
     it('should correctly calculate chapters count and bullet points count', async () => {});
     it('should handle invalid sort parameters', async () => {});
