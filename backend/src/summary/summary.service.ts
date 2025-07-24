@@ -54,6 +54,15 @@ export class SummaryService {
     pageSize: number = 10,
     sortBy: string = 'createdAt-desc',
   ) {
+    if (
+      sortBy !== 'createdAt-desc' &&
+      sortBy !== 'createdAt-asc' &&
+      sortBy !== 'title-desc' &&
+      sortBy !== 'title-asc'
+    ) {
+      throw new NotFoundException('Invalid sortBy parameter');
+    }
+
     const summaries = await this.drizzle
       .select()
       .from(aiOutputs)

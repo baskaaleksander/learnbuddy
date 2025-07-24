@@ -7,6 +7,7 @@ import {
   createMockMaterial,
   createMockSummary,
 } from '../../test/helpers/test-data.helper';
+import { NotFoundException } from '@nestjs/common';
 
 jest.mock('../helpers/parse-pdf', () => ({
   parsePublicPdfFromS3: jest.fn(),
@@ -295,8 +296,73 @@ describe('SummaryService', () => {
       expect(result.data[0].id).toBe('summary-1');
       expect(result.data[9].id).toBe('summary-10');
     });
-    it('should correctly calculate chapters count and bullet points count', async () => {});
-    it('should handle invalid sort parameters', async () => {});
+    it('should correctly calculate chapters count and bullet points count', async () => {
+      const mockSummary = createMockSummary();
+      const mockMaterial = createMockMaterial();
+
+      const summariesResult = [
+        { ai_outputs: mockSummary, materials: mockMaterial },
+      ];
+
+      const countResult = [{ count: 1 }];
+
+      const createChainableMock = (finalResult: any, isCount = false) => {
+        const chainMock = {
+          select: jest.fn(),
+          from: jest.fn(),
+          innerJoin: jest.fn(),
+          where: jest.fn(),
+          orderBy: jest.fn(),
+          limit: jest.fn(),
+          offset: jest.fn(),
+        };
+
+        Object.entries(chainMock).forEach(([_, fn]) => {
+          fn.mockReturnValue(chainMock);
+        });
+
+        if (isCount) {
+          chainMock.where.mockResolvedValue(finalResult);
+        } else {
+          chainMock.offset.mockResolvedValue(finalResult);
+        }
+
+        return chainMock;
+      };
+
+      let call = 0;
+      mockDrizzle.select.mockImplementation(() =>
+        call++ === 0
+          ? createChainableMock(summariesResult)
+          : createChainableMock(countResult, true),
+      );
+
+      const result = await service.getSummariesByUser(
+        'user-1',
+        1,
+        10,
+        'createdAt-desc',
+      );
+
+      expect(result.data[0].chaptersCount).toBe(
+        mockSummary.content.chapters.length,
+      );
+      expect(result.data[0].bulletPointsCount).toBe(
+        mockSummary.content.chapters.reduce(
+          (acc, chapter) => acc + chapter.bullet_points.length,
+          0,
+        ),
+      );
+    });
+    it('should handle invalid sort parameters', async () => {
+      await expect(
+        service.getSummariesByUser('user-1', 1, 10, 'invalid-sort'),
+      ).rejects.toThrow(NotFoundException);
+
+      await expect(
+        service.getSummariesByUser('user-1', 1, 10, 'invalid-sort'),
+      ).rejects.toThrow('Invalid sortBy parameter');
+    });
   });
   describe('markChapterAsKnown', () => {
     it('should toggle chapter known status from false to true', async () => {});
