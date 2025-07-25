@@ -7,7 +7,7 @@ import {
   createMockMaterial,
   createMockSummary,
 } from '../../test/helpers/test-data.helper';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 
 jest.mock('../helpers/parse-pdf', () => ({
   parsePublicPdfFromS3: jest.fn(),
@@ -365,18 +365,218 @@ describe('SummaryService', () => {
     });
   });
   describe('markChapterAsKnown', () => {
-    it('should toggle chapter known status from false to true', async () => {});
-    it('should toggle chapter known status from true to false', async () => {});
-    it('should throw error for invalid chapter index', async () => {});
-    it('should throw error for negative chapter index', async () => {});
-    it('should throw error when user does not own the material', async () => {});
-    it('should verify if database operations are called correctly', async () => {});
+    it('should toggle chapter known status from false to true', async () => {
+      const mockSummary = createMockSummary();
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([
+          {
+            ai_outputs: mockSummary,
+            materials: mockMaterial,
+          },
+        ]),
+      });
+
+      const result = await service.markChapterAsKnown('summary-1', 0, 'user-1');
+
+      expect(result).toEqual(true);
+      expect(mockDrizzle.update).toHaveBeenCalledTimes(1);
+    });
+    it('should toggle chapter known status from true to false', async () => {
+      const mockSummary = createMockSummary();
+      mockSummary.content.chapters[0].isKnown = true;
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([
+          {
+            ai_outputs: mockSummary,
+            materials: mockMaterial,
+          },
+        ]),
+      });
+
+      mockDrizzle.update.mockReturnValue({
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const result = await service.markChapterAsKnown('summary-1', 0, 'user-1');
+
+      expect(result).toBe(true);
+      expect(mockDrizzle.update).toHaveBeenCalledTimes(1);
+      expect(mockDrizzle.update).toHaveBeenCalledWith(expect.any(Object));
+      expect(mockDrizzle.update().set).toHaveBeenCalledWith({
+        content: expect.objectContaining({
+          chapters: expect.arrayContaining([
+            expect.objectContaining({
+              isKnown: false,
+            }),
+          ]),
+        }),
+      });
+    });
+    it('should throw error for invalid chapter index', async () => {
+      const mockSummary = createMockSummary();
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([
+          {
+            ai_outputs: mockSummary,
+            materials: mockMaterial,
+          },
+        ]),
+      });
+
+      await expect(
+        service.markChapterAsKnown('summary-1', 3, 'user-1'),
+      ).rejects.toThrow(NotFoundException);
+    });
+    it('should throw error for negative chapter index', async () => {
+      const mockSummary = createMockSummary();
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([
+          {
+            ai_outputs: mockSummary,
+            materials: mockMaterial,
+          },
+        ]),
+      });
+
+      await expect(
+        service.markChapterAsKnown('summary-1', -1, 'user-1'),
+      ).rejects.toThrow(NotFoundException);
+    });
+    it('should throw error when user does not own the material', async () => {
+      const mockSummary = createMockSummary();
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      await expect(
+        service.markChapterAsKnown('summary-1', 0, 'user-2'),
+      ).rejects.toThrow(NotFoundException);
+    });
+    it('should verify if database operations are called correctly', async () => {
+      const mockSummary = createMockSummary();
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([
+          {
+            ai_outputs: mockSummary,
+            materials: mockMaterial,
+          },
+        ]),
+      });
+
+      await service.markChapterAsKnown('summary-1', 0, 'user-1');
+
+      expect(mockDrizzle.update).toHaveBeenCalledWith(expect.any(Object));
+      expect(mockDrizzle.update().set).toHaveBeenCalledWith({
+        content: expect.objectContaining({
+          chapters: expect.arrayContaining([
+            expect.objectContaining({
+              isKnown: true,
+            }),
+          ]),
+        }),
+      });
+    });
   });
   describe('getSummaryById', () => {
-    it('should return summary when user owns the material', async () => {});
-    it("should throw UnauthorizedException when user tries to access another user's material", async () => {});
-    it("should throw NotFoundException when material doesn't exist", async () => {});
-    it("should throw NotFoundException when summary doesn't exist", async () => {});
-    it('should correctly count chapters and bullet points', async () => {});
+    it('should return summary when user owns the material', async () => {
+      const mockSummary = createMockSummary();
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([
+          {
+            ai_outputs: mockSummary,
+            materials: mockMaterial,
+          },
+        ]),
+      });
+
+      const result = await service.getSummaryById('summary-1', 'user-1');
+
+      expect(result).toEqual({
+        ...mockSummary,
+        title: mockSummary.content.title,
+        chaptersCount: mockSummary.content.chapters.length,
+        bulletPointsCount: mockSummary.content.chapters.reduce(
+          (acc, chapter) => acc + chapter.bullet_points.length,
+          0,
+        ),
+        material: mockMaterial,
+      });
+    });
+    it("should throw UnauthorizedException when user tries to access another user's material", async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      await expect(
+        service.getSummaryById('summary-1', 'user-2'),
+      ).rejects.toThrow(NotFoundException);
+    });
+    it("should throw NotFoundException when material doesn't exist", async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      await expect(
+        service.getSummaryById('summary-1', 'user-1'),
+      ).rejects.toThrow(NotFoundException);
+    });
+    it('should correctly count chapters and bullet points', async () => {
+      const mockSummary = createMockSummary();
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([
+          {
+            ai_outputs: mockSummary,
+            materials: mockMaterial,
+          },
+        ]),
+      });
+
+      const result = await service.getSummaryById('summary-1', 'user-1');
+
+      expect(result.chaptersCount).toBe(mockSummary.content.chapters.length);
+      expect(result.bulletPointsCount).toBe(
+        mockSummary.content.chapters.reduce(
+          (acc, chapter) => acc + chapter.bullet_points.length,
+          0,
+        ),
+      );
+    });
   });
 });

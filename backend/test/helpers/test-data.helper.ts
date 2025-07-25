@@ -219,6 +219,6 @@ export const createMockSummary = () => {
       ],
     },
     createdAt: new Date(),
-    errorMessage: undefined,
+    errorMessage: null,
   };
 };
