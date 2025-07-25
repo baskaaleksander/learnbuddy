@@ -2,8 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { and, eq, lte } from 'drizzle-orm';
 import { Logger } from 'nestjs-pino';
-import { db } from 'src/database/drizzle.module';
-import { scheduledJobs, users } from 'src/database/schema';
+import { db } from '../database/drizzle.module';
+import { scheduledJobs, users } from '../database/schema';
 
 @Injectable()
 export class ScheduledTaskService {

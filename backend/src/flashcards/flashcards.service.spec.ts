@@ -6,10 +6,12 @@ import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import {
   createMockFlaschardsAiOutput,
   createMockFlashcard,
+  createMockFlashcardProgress,
   createMockMaterial,
 } from '../../test/helpers/test-data.helper';
 import { parsePublicPdfFromS3 } from '../helpers/parse-pdf';
 import { MockDrizzle } from '../utils/types';
+import { FlashcardProgressStatus } from './graphql/flashcard-progress.graphql';
 
 jest.mock('../helpers/parse-pdf', () => ({
   parsePublicPdfFromS3: jest.fn(),
@@ -1033,23 +1035,505 @@ describe('FlashcardsService', () => {
   });
 
   describe('getFlashcardsById', () => {
-    it('should return empty data when user does not own flashcard set', () => {});
-    it('should return all flashcards when no status filter provided', () => {});
-    it('should filter flashcards by status when provided', () => {});
-    it('should return correct progress statistics', () => {});
+    it('should return empty data when user does not own flashcard set', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      const result = await service.getFlashcardsById(
+        'flashcard-set-1',
+        'user-2',
+      );
+      expect(result.data).toEqual([]);
+      expect(result.total).toBe(0);
+      expect(result.known).toBe(0);
+      expect(result.review).toBe(0);
+    });
+    it('should return all flashcards when no status filter provided', async () => {
+      const mockFlashcards = createMockFlaschardsAiOutput();
+      const mockMaterial = createMockMaterial();
+      const mockFlashcardsWithProgress = [
+        {
+          flashcards: {
+            id: 'flashcard-1',
+            question: 'What is 2+2?',
+            answer: '4',
+            aiOutputId: mockFlashcards.id,
+          },
+          flashcard_progress: {
+            id: 'progress-1',
+            status: 'review',
+            updatedAt: new Date(),
+          },
+        },
+        {
+          flashcards: {
+            id: 'flashcard-2',
+            question: 'What is 3+3?',
+            answer: '6',
+            aiOutputId: mockFlashcards.id,
+          },
+          flashcard_progress: {
+            id: 'progress-2',
+            status: 'known',
+            updatedAt: new Date(),
+          },
+        },
+      ];
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest
+          .fn()
+          .mockReturnValue([
+            { ai_outputs: mockFlashcards, materials: mockMaterial },
+          ]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue(mockFlashcardsWithProgress),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue(mockFlashcardsWithProgress),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      const result = await service.getFlashcardsById(
+        mockFlashcards.id,
+        mockMaterial.userId,
+      );
+
+      expect(result.data).toEqual([
+        {
+          flashcardId: 'flashcard-1',
+          statusId: 'progress-1',
+          question: 'What is 2+2?',
+          answer: '4',
+          status: 'review',
+          statusUpdatedAt: expect.any(Date),
+        },
+        {
+          flashcardId: 'flashcard-2',
+          statusId: 'progress-2',
+          question: 'What is 3+3?',
+          answer: '6',
+          status: 'known',
+          statusUpdatedAt: expect.any(Date),
+        },
+      ]);
+      expect(result.total).toBe(2);
+      expect(result.known).toBe(1);
+      expect(result.review).toBe(1);
+    });
+    it('should filter flashcards by status when provided', async () => {
+      const mockFlashcards = createMockFlaschardsAiOutput();
+      const mockMaterial = createMockMaterial();
+      const mockFilteredFlashcards = [
+        {
+          flashcards: {
+            id: 'flashcard-1',
+            question: 'What is 2+2?',
+            answer: '4',
+            aiOutputId: mockFlashcards.id,
+          },
+          flashcard_progress: {
+            id: 'progress-1',
+            status: 'known',
+            updatedAt: new Date(),
+          },
+        },
+      ];
+      const mockAllFlashcards = [
+        {
+          flashcards: {
+            id: 'flashcard-1',
+            question: 'What is 2+2?',
+            answer: '4',
+            aiOutputId: mockFlashcards.id,
+          },
+          flashcard_progress: {
+            id: 'progress-1',
+            status: 'known',
+            updatedAt: new Date(),
+          },
+        },
+        {
+          flashcards: {
+            id: 'flashcard-2',
+            question: 'What is 3+3?',
+            answer: '6',
+            aiOutputId: mockFlashcards.id,
+          },
+          flashcard_progress: {
+            id: 'progress-2',
+            status: 'review',
+            updatedAt: new Date(),
+          },
+        },
+      ];
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest
+          .fn()
+          .mockReturnValue([
+            { ai_outputs: mockFlashcards, materials: mockMaterial },
+          ]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue(mockFilteredFlashcards),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue(mockAllFlashcards),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      const result = await service.getFlashcardsById(
+        mockFlashcards.id,
+        mockMaterial.userId,
+        'known',
+      );
+
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].status).toBe('known');
+      expect(result.total).toBe(2);
+      expect(result.known).toBe(1);
+      expect(result.review).toBe(1);
+    });
+    it('should return correct progress statistics', async () => {
+      const mockFlashcards = createMockFlaschardsAiOutput();
+      const mockMaterial = createMockMaterial();
+      const mockFlashcardsWithProgress = [
+        {
+          flashcards: {
+            id: 'flashcard-1',
+            question: 'What is 2+2?',
+            answer: '4',
+            aiOutputId: mockFlashcards.id,
+          },
+          flashcard_progress: {
+            id: 'progress-1',
+            status: 'known',
+            updatedAt: new Date(),
+          },
+        },
+        {
+          flashcards: {
+            id: 'flashcard-2',
+            question: 'What is 3+3?',
+            answer: '6',
+            aiOutputId: mockFlashcards.id,
+          },
+          flashcard_progress: {
+            id: 'progress-2',
+            status: 'known',
+            updatedAt: new Date(),
+          },
+        },
+        {
+          flashcards: {
+            id: 'flashcard-3',
+            question: 'What is 4+4?',
+            answer: '8',
+            aiOutputId: mockFlashcards.id,
+          },
+          flashcard_progress: {
+            id: 'progress-3',
+            status: 'review',
+            updatedAt: new Date(),
+          },
+        },
+      ];
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest
+          .fn()
+          .mockReturnValue([
+            { ai_outputs: mockFlashcards, materials: mockMaterial },
+          ]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue(mockFlashcardsWithProgress),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue(mockFlashcardsWithProgress),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      const result = await service.getFlashcardsById(
+        mockFlashcards.id,
+        mockMaterial.userId,
+      );
+
+      expect(result.total).toBe(3);
+      expect(result.known).toBe(2);
+      expect(result.review).toBe(1);
+      expect(result.material).toEqual(
+        expect.objectContaining({
+          id: mockMaterial.id,
+          title: mockMaterial.title,
+        }),
+      );
+    });
   });
 
   describe('updateFlashcardStatus', () => {
-    it('should update flashcard status successfully', () => {});
-    it('should throw NotFoundException when flashcard progress not found', () => {});
-    it('should throw NotFoundException when user does not own flashcard', () => {});
-    it('should accept all valid FlashcardProgressStatus values', () => {});
+    it('should update flashcard status successfully', async () => {
+      const mockFlashcardProgress = createMockFlashcardProgress('review');
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockFlashcardProgress]),
+      });
+
+      mockDrizzle.update.mockReturnValue({
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const result = await service.updateFlashcardStatus(
+        mockFlashcardProgress.flashcardId,
+        mockFlashcardProgress.userId,
+        FlashcardProgressStatus.known,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('should throw NotFoundException when flashcard progress not found', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      await expect(
+        service.updateFlashcardStatus(
+          'non-existent-id',
+          'user-1',
+          FlashcardProgressStatus.known,
+        ),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException when user does not own flashcard', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      await expect(
+        service.updateFlashcardStatus(
+          'flashcard-1',
+          'user-2',
+          FlashcardProgressStatus.known,
+        ),
+      ).rejects.toThrow(NotFoundException);
+    });
+    it('should accept all valid FlashcardProgressStatus values', async () => {
+      const mockFlashcardProgress = createMockFlashcardProgress('review');
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockFlashcardProgress]),
+      });
+
+      mockDrizzle.update.mockReturnValue({
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const result1 = await service.updateFlashcardStatus(
+        mockFlashcardProgress.flashcardId,
+        mockFlashcardProgress.userId,
+        FlashcardProgressStatus.known,
+      );
+
+      expect(result1).toBe(true);
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockFlashcardProgress]),
+      });
+
+      mockDrizzle.update.mockReturnValue({
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const result2 = await service.updateFlashcardStatus(
+        mockFlashcardProgress.flashcardId,
+        mockFlashcardProgress.userId,
+        FlashcardProgressStatus.review,
+      );
+
+      expect(result2).toBe(true);
+    });
   });
 
   describe('regenerateFlashcards', () => {
-    it('should delete existing flashcards before creating new ones', () => {});
-    it('should return false if deletion fails', () => {});
-    it('should create new flashcards after successful deletion', () => {});
-    it('should maintain data integrity throughout the process', () => {});
+    it('should delete existing flashcards before creating new ones', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockFlashcards]),
+      });
+
+      const deleteFlashcardsSpy = jest.spyOn(service, 'deleteFlashcards');
+      deleteFlashcardsSpy.mockResolvedValue(true);
+
+      const createFlashcardsSpy = jest.spyOn(service, 'createFlashcards');
+      createFlashcardsSpy.mockResolvedValue(true);
+
+      const result = await service.regenerateFlashcards(
+        mockMaterial.id,
+        mockMaterial.userId,
+      );
+
+      expect(result).toBe(true);
+      expect(deleteFlashcardsSpy).toHaveBeenCalledWith(
+        mockFlashcards.id,
+        mockMaterial.userId,
+      );
+      expect(createFlashcardsSpy).toHaveBeenCalledWith(
+        mockMaterial.id,
+        mockMaterial.userId,
+      );
+
+      deleteFlashcardsSpy.mockRestore();
+      createFlashcardsSpy.mockRestore();
+    });
+
+    it('should return false if deletion fails', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockFlashcards]),
+      });
+
+      const deleteFlashcardsSpy = jest.spyOn(service, 'deleteFlashcards');
+      deleteFlashcardsSpy.mockResolvedValue(false);
+
+      const createFlashcardsSpy = jest.spyOn(service, 'createFlashcards');
+
+      const result = await service.regenerateFlashcards(
+        mockMaterial.id,
+        mockMaterial.userId,
+      );
+
+      expect(result).toBe(false);
+      expect(deleteFlashcardsSpy).toHaveBeenCalledWith(
+        mockFlashcards.id,
+        mockMaterial.userId,
+      );
+      expect(createFlashcardsSpy).not.toHaveBeenCalled();
+
+      deleteFlashcardsSpy.mockRestore();
+      createFlashcardsSpy.mockRestore();
+    });
+
+    it('should create new flashcards after successful deletion', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockFlashcards]),
+      });
+
+      const deleteFlashcardsSpy = jest.spyOn(service, 'deleteFlashcards');
+      deleteFlashcardsSpy.mockResolvedValue(true);
+
+      const createFlashcardsSpy = jest.spyOn(service, 'createFlashcards');
+      createFlashcardsSpy.mockResolvedValue(true);
+
+      const result = await service.regenerateFlashcards(
+        mockMaterial.id,
+        mockMaterial.userId,
+      );
+
+      expect(result).toBe(true);
+      expect(createFlashcardsSpy).toHaveBeenCalledWith(
+        mockMaterial.id,
+        mockMaterial.userId,
+      );
+
+      deleteFlashcardsSpy.mockRestore();
+      createFlashcardsSpy.mockRestore();
+    });
+
+    it('should maintain data integrity throughout the process', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockFlashcards]),
+      });
+
+      const deleteFlashcardsSpy = jest.spyOn(service, 'deleteFlashcards');
+      deleteFlashcardsSpy.mockResolvedValue(true);
+
+      const createFlashcardsSpy = jest.spyOn(service, 'createFlashcards');
+      createFlashcardsSpy.mockResolvedValue(true);
+
+      const result = await service.regenerateFlashcards(
+        mockMaterial.id,
+        mockMaterial.userId,
+      );
+
+      expect(result).toBe(true);
+
+      expect(deleteFlashcardsSpy).toHaveBeenCalledTimes(1);
+      expect(createFlashcardsSpy).toHaveBeenCalledTimes(1);
+
+      expect(deleteFlashcardsSpy).toHaveBeenCalledWith(
+        mockFlashcards.id,
+        mockMaterial.userId,
+      );
+      expect(createFlashcardsSpy).toHaveBeenCalledWith(
+        mockMaterial.id,
+        mockMaterial.userId,
+      );
+
+      deleteFlashcardsSpy.mockRestore();
+      createFlashcardsSpy.mockRestore();
+    });
+
+    it('should handle case when no existing flashcards found', async () => {
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      await expect(
+        service.regenerateFlashcards(mockMaterial.id, mockMaterial.userId),
+      ).rejects.toThrow();
+    });
   });
 });

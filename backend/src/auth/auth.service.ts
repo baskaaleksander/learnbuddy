@@ -7,16 +7,16 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes, scrypt as _scrypt } from 'crypto';
 import { eq } from 'drizzle-orm';
-import { db } from 'src/database/drizzle.module';
-import { passwordResets, users } from 'src/database/schema';
+import { db } from '../database/drizzle.module';
+import { passwordResets, users } from '../database/schema';
 import { promisify } from 'util';
 import { UserCredentialsDto } from './dtos/user-credentials.dto';
-import { EmailService } from 'src/email/email.service';
+import { EmailService } from '../email/email.service';
 import { UserRegisterDto } from './dtos/user-register.dto';
 import { UserService } from '../user/user.service';
 import { RedisService } from '../redis/redis.service';
 import { Logger } from 'nestjs-pino';
-import { ScheduledTaskService } from 'src/scheduled-task/scheduled-task.service';
+import { ScheduledTaskService } from '../scheduled-task/scheduled-task.service';
 
 const scrypt = promisify(_scrypt);
 

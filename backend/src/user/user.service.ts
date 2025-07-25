@@ -10,12 +10,12 @@ import {
   materials,
   aiOutputs,
   flashcards,
-} from 'src/database/schema';
+} from '../database/schema';
 import { toUserGraphQL } from './user.mapper';
 import { promisify } from 'util';
 import { randomBytes, scrypt as _scrypt } from 'crypto';
 import { RedisService } from '../redis/redis.service';
-import { BillingService } from 'src/billing/billing.service';
+import { BillingService } from '../billing/billing.service';
 const scrypt = promisify(_scrypt);
 
 @Injectable()
