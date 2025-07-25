@@ -3,7 +3,12 @@ import { FlashcardsService } from './flashcards.service';
 import { OpenAiService } from '../open-ai/open-ai.service';
 import { BillingService } from '../billing/billing.service';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { createMockMaterial } from '../../test/helpers/test-data.helper';
+import {
+  createMockFlaschardsAiOutput,
+  createMockFlashcard,
+  createMockMaterial,
+} from '../../test/helpers/test-data.helper';
+import { parsePublicPdfFromS3 } from '../helpers/parse-pdf';
 
 jest.mock('../helpers/parse-pdf', () => ({
   parsePublicPdfFromS3: jest.fn(),
@@ -85,7 +90,34 @@ describe('FlashcardsService', () => {
         service.getFlashcardsByMaterial('non-existing-material', 'user-2'),
       ).rejects.toThrow(UnauthorizedException);
     });
-    it('should return flashcards when user owns material', () => {});
+    it('should return flashcards when user owns material', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+      const mockFlashcardCards = Array.from({ length: 2 }, (_, i) => ({
+        ...createMockFlashcard(),
+        id: `flashcard-${i + 1}`,
+      }));
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockFlashcards]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue(mockFlashcardCards),
+      });
+
+      const result = await service.getFlashcardsByMaterial(
+        mockMaterial.id,
+        mockMaterial.userId,
+      );
+      expect(result).toEqual(mockFlashcardCards);
+    });
     it('should throw NotFoundException when no flashcards exist for material', async () => {
       const mockMaterial = createMockMaterial();
 
@@ -103,26 +135,353 @@ describe('FlashcardsService', () => {
         service.getFlashcardsByMaterial(mockMaterial.id, mockMaterial.userId),
       ).rejects.toThrow(NotFoundException);
     });
-    it('should return mapped flashcards when found', () => {});
   });
 
   describe('getFlashcardProgressByMaterial', () => {
-    it('should throw UnauthorizedException when user does not own material', () => {});
-    it('should throw UnauthorizedException when material does not exist', () => {});
-    it('should return empty array when no AI output exists', () => {});
+    it('should throw UnauthorizedException when user does not own material', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+      await expect(
+        service.getFlashcardProgressByMaterial('material-1', 'user-2'),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+    it('should throw UnauthorizedException when material does not exist', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+      await expect(
+        service.getFlashcardProgressByMaterial(
+          'non-existing-material',
+          'user-2',
+        ),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+    it('should return empty array when no AI output exists', async () => {
+      const mockMaterial = createMockMaterial();
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      const result = await service.getFlashcardProgressByMaterial(
+        mockMaterial.id,
+        mockMaterial.userId,
+      );
+      expect(result).toEqual([]);
+    });
     it('should return flashcards with progress status when found', () => {});
   });
 
   describe('createFlashcards', () => {
-    it('should throw UnauthorizedException when user does not own material', () => {});
-    it('should throw UnauthorizedException when material does not exist', () => {});
-    it('should throw NotFoundException when flashcards already exist for material', () => {});
-    it('should bill user tokens before generation', () => {});
-    it('should not create flashcards if PDF parsing fails', () => {});
-    it('should not create flashcards if OpenAI generation fails', () => {});
-    it('should not bill user if OpenAI fails', () => {});
-    it('should create AI output, flashcards, and progress entries successfully', () => {});
-    it('should create progress entries for all generated flashcards', () => {});
+    it('should throw UnauthorizedException when user does not own material', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+      await expect(
+        service.createFlashcards('material-1', 'user-2'),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw UnauthorizedException when material does not exist', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+      await expect(
+        service.createFlashcards('non-existing-material', 'user-2'),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw NotFoundException when flashcards already exist for material', async () => {
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([createMockFlaschardsAiOutput()]),
+      });
+
+      await expect(
+        service.createFlashcards(mockMaterial.id, mockMaterial.userId),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should bill user tokens before generation', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockAiOutputId = 'ai-output-123';
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      mockBillingService.useTokens.mockResolvedValue(true);
+
+      (parsePublicPdfFromS3 as jest.Mock).mockResolvedValue(
+        'Parsed PDF content',
+      );
+
+      mockOpenAiService.generateFlashcards.mockResolvedValue({
+        flashcards: [{ question: 'Test question', answer: 'Test answer' }],
+      });
+
+      mockDrizzle.insert.mockReturnValueOnce({
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([{ id: mockAiOutputId }]),
+      });
+
+      mockDrizzle.insert.mockReturnValueOnce({
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([{ id: 'flashcard-123' }]),
+      });
+
+      mockDrizzle.insert.mockReturnValueOnce({
+        values: jest.fn().mockResolvedValue(undefined),
+      });
+
+      await service.createFlashcards(mockMaterial.id, mockMaterial.userId);
+
+      expect(mockBillingService.useTokens).toHaveBeenCalledWith(
+        mockMaterial.userId,
+        2,
+      );
+    });
+
+    it('should not create flashcards if PDF parsing fails', async () => {
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      (parsePublicPdfFromS3 as jest.Mock).mockRejectedValue(
+        new Error('PDF parsing failed'),
+      );
+
+      await expect(
+        service.createFlashcards(mockMaterial.id, mockMaterial.userId),
+      ).rejects.toThrow('PDF parsing failed');
+    });
+    it('should not create flashcards if OpenAI generation fails', async () => {
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      (parsePublicPdfFromS3 as jest.Mock).mockResolvedValue(
+        'Parsed PDF content',
+      );
+
+      mockOpenAiService.generateFlashcards.mockRejectedValue(
+        new Error('OpenAI generation failed'),
+      );
+
+      await expect(
+        service.createFlashcards(mockMaterial.id, mockMaterial.userId),
+      ).rejects.toThrow('OpenAI generation failed');
+    });
+    it('should not bill user if OpenAI fails', async () => {
+      const mockMaterial = createMockMaterial();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      (parsePublicPdfFromS3 as jest.Mock).mockResolvedValue(
+        'Parsed PDF content',
+      );
+
+      mockOpenAiService.generateFlashcards.mockRejectedValue(
+        new Error('OpenAI generation failed'),
+      );
+
+      await expect(
+        service.createFlashcards(mockMaterial.id, mockMaterial.userId),
+      ).rejects.toThrow('OpenAI generation failed');
+    });
+    it('should create progress entries for all generated flashcards', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockAiOutputId = 'ai-output-123';
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      mockBillingService.useTokens.mockResolvedValue(true);
+      (parsePublicPdfFromS3 as jest.Mock).mockResolvedValue(
+        'Parsed PDF content',
+      );
+
+      mockOpenAiService.generateFlashcards.mockResolvedValue({
+        flashcards: [
+          { question: 'Question 1', answer: 'Answer 1' },
+          { question: 'Question 2', answer: 'Answer 2' },
+        ],
+      });
+
+      mockDrizzle.insert.mockReturnValueOnce({
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([{ id: mockAiOutputId }]),
+      });
+
+      mockDrizzle.insert.mockReturnValueOnce({
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([{ id: 'flashcard-1' }]),
+      });
+
+      mockDrizzle.insert.mockReturnValueOnce({
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([{ id: 'flashcard-2' }]),
+      });
+
+      const mockProgressValues1 = jest.fn().mockResolvedValue(undefined);
+      const mockProgressValues2 = jest.fn().mockResolvedValue(undefined);
+
+      mockDrizzle.insert.mockReturnValueOnce({
+        values: mockProgressValues1,
+      });
+
+      mockDrizzle.insert.mockReturnValueOnce({
+        values: mockProgressValues2,
+      });
+
+      await service.createFlashcards(mockMaterial.id, mockMaterial.userId);
+
+      expect(mockProgressValues1).toHaveBeenCalledWith(
+        expect.objectContaining({
+          flashcardId: 'flashcard-1',
+          userId: mockMaterial.userId,
+          status: 'review',
+        }),
+      );
+
+      expect(mockProgressValues2).toHaveBeenCalledWith(
+        expect.objectContaining({
+          flashcardId: 'flashcard-2',
+          userId: mockMaterial.userId,
+          status: 'review',
+        }),
+      );
+
+      expect(mockDrizzle.insert).toHaveBeenCalledTimes(5);
+    });
+
+    it('should create AI output, flashcards, and progress entries successfully', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockAiOutputId = 'ai-output-123';
+      const mockFlashcardId = 'flashcard-123';
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      mockBillingService.useTokens.mockResolvedValue(true);
+
+      (parsePublicPdfFromS3 as jest.Mock).mockResolvedValue(
+        'Parsed PDF content',
+      );
+
+      mockOpenAiService.generateFlashcards.mockResolvedValue({
+        flashcards: [{ question: 'Test question', answer: 'Test answer' }],
+      });
+
+      const mockValuesMethod = jest.fn().mockReturnThis();
+      const mockReturningMethod = jest.fn();
+
+      mockDrizzle.insert.mockReturnValueOnce({
+        values: mockValuesMethod,
+        returning: mockReturningMethod.mockResolvedValue([
+          { id: mockAiOutputId },
+        ]),
+      });
+
+      mockDrizzle.insert.mockReturnValueOnce({
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([{ id: mockFlashcardId }]),
+      });
+
+      mockDrizzle.insert.mockReturnValueOnce({
+        values: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const result = await service.createFlashcards(
+        mockMaterial.id,
+        mockMaterial.userId,
+      );
+
+      expect(result).toBe(true);
+
+      expect(mockValuesMethod).toHaveBeenCalledWith(
+        expect.objectContaining({
+          materialId: mockMaterial.id,
+          type: 'flashcards',
+          content: {
+            flashcards: {
+              flashcards: [
+                { question: 'Test question', answer: 'Test answer' },
+              ],
+            },
+          },
+          createdAt: expect.any(Date),
+        }),
+      );
+
+      expect(mockBillingService.useTokens).toHaveBeenCalledWith(
+        mockMaterial.userId,
+        2,
+      );
+
+      expect(mockDrizzle.insert).toHaveBeenCalledTimes(3);
+    });
   });
 
   describe('deleteFlashcards', () => {

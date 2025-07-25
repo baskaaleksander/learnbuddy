@@ -222,3 +222,43 @@ export const createMockSummary = () => {
     errorMessage: null,
   };
 };
+
+export const createMockFlaschardsAiOutput = () => {
+  return {
+    id: 'flashcards-1',
+    materialId: 'material-1',
+    type: 'flashcards',
+    content: {
+      flashcards: [
+        {
+          question: 'What is the capital of France?',
+          answer: 'Paris',
+        },
+        {
+          question: 'What is the largest planet in our solar system?',
+          answer: 'Jupiter',
+        },
+      ],
+    },
+    createdAt: new Date(),
+    errorMessage: null,
+  };
+};
+export const createMockFlashcard = () => {
+  return {
+    id: 'flashcard-1',
+    aiOutputId: 'flashcards-1',
+    question: 'What is the capital of France?',
+    answer: 'Paris',
+    createdAt: new Date(),
+  };
+};
+export const createMockFlashcardProgress = (status: 'known' | 'review') => {
+  return {
+    id: 'flashcard-progress-1',
+    flashcardId: 'flashcard-1',
+    userId: 'user-1',
+    status: status,
+    updatedAt: new Date(),
+  };
+};
