@@ -29,3 +29,20 @@ export interface FlashcardContent {
     answer: string;
   }>;
 }
+
+export type MockDrizzle = {
+  select: jest.Mock;
+  insert: jest.Mock;
+  update: jest.Mock;
+  delete: jest.Mock;
+  from: jest.Mock;
+  where: jest.Mock;
+  innerJoin: jest.Mock;
+  orderBy: jest.Mock;
+  limit: jest.Mock;
+  offset: jest.Mock;
+  groupBy: jest.Mock;
+  returning: jest.Mock;
+  values: jest.Mock;
+  set: jest.Mock;
+};

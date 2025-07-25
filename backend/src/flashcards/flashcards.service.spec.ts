@@ -9,6 +9,7 @@ import {
   createMockMaterial,
 } from '../../test/helpers/test-data.helper';
 import { parsePublicPdfFromS3 } from '../helpers/parse-pdf';
+import { MockDrizzle } from '../utils/types';
 
 jest.mock('../helpers/parse-pdf', () => ({
   parsePublicPdfFromS3: jest.fn(),
@@ -16,9 +17,9 @@ jest.mock('../helpers/parse-pdf', () => ({
 
 describe('FlashcardsService', () => {
   let service: FlashcardsService;
-  let mockDrizzle: any;
-  let mockOpenAiService: any;
-  let mockBillingService: any;
+  let mockDrizzle: MockDrizzle;
+  let mockOpenAiService: { generateFlashcards: jest.Mock };
+  let mockBillingService: { useTokens: jest.Mock };
 
   beforeEach(async () => {
     mockDrizzle = {
@@ -485,36 +486,550 @@ describe('FlashcardsService', () => {
   });
 
   describe('deleteFlashcards', () => {
-    it('should throw UnauthorizedException when user does not own material', () => {});
-    it('should throw NotFoundException when no flashcards found', () => {});
-    it('should delete by AI output ID when provided', () => {});
-    it('should delete by material ID when AI output ID not found', () => {});
-    it('should call deleteFlashcardsByAiOutputId with correct ID', () => {});
+    it('should throw UnauthorizedException when user does not own material', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      await expect(
+        service.deleteFlashcards('material-1', 'user-2'),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw NotFoundException when no flashcards found', async () => {
+      const mockMaterial = createMockMaterial();
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      await expect(
+        service.deleteFlashcards(mockMaterial.id, mockMaterial.userId),
+      ).rejects.toThrow(NotFoundException);
+    });
+    it('should delete by AI output ID when provided', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+      const mockFlashcardCards = [
+        { id: 'flashcard-1', aiOutputId: mockFlashcards.id },
+        { id: 'flashcard-2', aiOutputId: mockFlashcards.id },
+      ];
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([
+          {
+            ai_outputs: mockFlashcards,
+            materials: mockMaterial,
+          },
+        ]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue(mockFlashcardCards),
+      });
+
+      mockDrizzle.delete.mockReturnValue({
+        where: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const result = await service.deleteFlashcards(
+        mockFlashcards.id,
+        mockMaterial.userId,
+      );
+
+      expect(result).toBe(true);
+      expect(mockDrizzle.delete).toHaveBeenCalledTimes(3);
+    });
+
+    it('should delete by material ID when AI output ID not found', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+      const mockFlashcardCards = [
+        { id: 'flashcard-1', aiOutputId: mockFlashcards.id },
+      ];
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockMaterial]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockFlashcards]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue(mockFlashcardCards),
+      });
+
+      mockDrizzle.delete.mockReturnValue({
+        where: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const result = await service.deleteFlashcards(
+        mockMaterial.id,
+        mockMaterial.userId,
+      );
+
+      expect(result).toBe(true);
+      expect(mockDrizzle.delete).toHaveBeenCalledTimes(3);
+    });
+
+    it('should call deleteFlashcardsByAiOutputId with correct ID', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+
+      const deleteFlashcardsSpy = jest.spyOn(
+        service as any,
+        'deleteFlashcardsByAiOutputId',
+      );
+      deleteFlashcardsSpy.mockResolvedValue(undefined);
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([
+          {
+            ai_outputs: mockFlashcards,
+            materials: mockMaterial,
+          },
+        ]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      await service.deleteFlashcards(mockFlashcards.id, mockMaterial.userId);
+
+      expect(deleteFlashcardsSpy).toHaveBeenCalledWith(mockFlashcards.id);
+
+      deleteFlashcardsSpy.mockRestore();
+    });
   });
 
   describe('deleteFlashcardsByAiOutputId', () => {
-    it('should throw NotFoundException when no flashcards found for AI output', () => {});
-    it('should delete progress entries before flashcards', () => {});
-    it('should delete flashcards before AI output', () => {});
-    it('should handle empty flashcard arrays', () => {});
+    it('should throw NotFoundException when no flashcards found for AI output', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      await expect(
+        (service as any).deleteFlashcardsByAiOutputId('non-existent-ai-output'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should delete progress entries before flashcards', async () => {
+      const mockFlashcardCards = [
+        { id: 'flashcard-1', aiOutputId: 'ai-output-1' },
+        { id: 'flashcard-2', aiOutputId: 'ai-output-1' },
+      ];
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue(mockFlashcardCards),
+      });
+
+      const mockDeleteWhere = jest.fn().mockResolvedValue(undefined);
+      mockDrizzle.delete.mockReturnValue({
+        where: mockDeleteWhere,
+      });
+
+      await (service as any).deleteFlashcardsByAiOutputId('ai-output-1');
+
+      expect(mockDrizzle.delete).toHaveBeenCalledTimes(3);
+      expect(mockDeleteWhere).toHaveBeenCalledTimes(3);
+    });
+
+    it('should delete flashcards before AI output', async () => {
+      const mockFlashcardCards = [
+        { id: 'flashcard-1', aiOutputId: 'ai-output-1' },
+      ];
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue(mockFlashcardCards),
+      });
+
+      const mockDeleteWhere = jest.fn().mockResolvedValue(undefined);
+      mockDrizzle.delete.mockReturnValue({
+        where: mockDeleteWhere,
+      });
+
+      await (service as any).deleteFlashcardsByAiOutputId('ai-output-1');
+
+      expect(mockDrizzle.delete).toHaveBeenCalledTimes(3);
+    });
+
+    it('should handle empty flashcard arrays', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      await expect(
+        (service as any).deleteFlashcardsByAiOutputId('ai-output-1'),
+      ).rejects.toThrow(NotFoundException);
+    });
   });
 
   describe('resetFlashcardProgress', () => {
-    it('should throw NotFoundException when flashcard set not found', () => {});
-    it('should throw NotFoundException when user does not own flashcard set', () => {});
-    it('should reset all flashcards in set to review status', () => {});
-    it('should handle empty flashcard sets', () => {});
+    it('should throw NotFoundException when flashcard set not found', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      await expect(
+        service.resetFlashcardProgress('non-existing-set', 'user-1'),
+      ).rejects.toThrow(NotFoundException);
+    });
+    it('should throw NotFoundException when user does not own flashcard set', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      await expect(
+        service.resetFlashcardProgress('set-1', 'user-2'),
+      ).rejects.toThrow(NotFoundException);
+    });
+    it('should reset all flashcards in set to review status', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest
+          .fn()
+          .mockReturnValue([
+            { ai_outputs: mockFlashcards, materials: mockMaterial },
+          ]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      mockDrizzle.update.mockReturnValue({
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const result = await service.resetFlashcardProgress(
+        mockFlashcards.id,
+        mockMaterial.userId,
+      );
+
+      expect(result).toBe(true);
+
+      expect(mockDrizzle.update).toHaveBeenCalledTimes(1);
+
+      expect(mockDrizzle.update().set).toHaveBeenCalledWith({
+        status: 'review',
+      });
+    });
+    it('should handle empty flashcard sets', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest
+          .fn()
+          .mockReturnValue([
+            { ai_outputs: mockFlashcards, materials: mockMaterial },
+          ]),
+        innerJoin: jest.fn().mockReturnThis(),
+      });
+
+      mockDrizzle.update.mockReturnValue({
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const result = await service.resetFlashcardProgress(
+        mockFlashcards.id,
+        mockMaterial.userId,
+      );
+
+      expect(result).toBe(true);
+      expect(mockDrizzle.update).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('getFlashcardsSetsByUser', () => {
-    it('should return empty result when user has no flashcards', () => {});
-    it('should calculate totalPages correctly', () => {});
-    it('should set hasNextPage correctly for first page', () => {});
-    it('should set hasPreviousPage correctly for last page', () => {});
-    it('should handle page beyond total pages', () => {});
-    it('should sort by createdAt-desc by default', () => {});
-    it('should sort by title when specified', () => {});
-    it('should return correct progress statistics', () => {});
+    it('should return empty result when user has no flashcards', async () => {
+      // Mock the count query - should return array with count property
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([{ count: 0 }]), // Fixed: return array
+      });
+
+      const result = await service.getFlashcardsSetsByUser('user-1');
+      expect(result.data).toEqual([]);
+      expect(result.totalItems).toBe(0);
+      expect(result.totalPages).toBe(0);
+    });
+    it('should calculate totalPages correctly', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([{ count: 25 }]),
+      });
+
+      const mockAiOutput = [
+        {
+          ai_outputs: createMockFlaschardsAiOutput(),
+          materials: createMockMaterial(),
+        },
+      ];
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        offset: jest.fn().mockReturnValue(mockAiOutput),
+      });
+
+      mockDrizzle.select.mockReturnValue({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      const result = await service.getFlashcardsSetsByUser('user-1');
+      expect(result.totalPages).toBe(3);
+      expect(result.totalItems).toBe(25);
+    });
+    it('should set hasNextPage correctly for first page', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([{ count: 25 }]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        offset: jest.fn().mockReturnValue([
+          {
+            ai_outputs: mockFlashcards,
+            materials: mockMaterial,
+          },
+        ]),
+      });
+
+      mockDrizzle.select.mockReturnValue({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      const result = await service.getFlashcardsSetsByUser('user-1', 1);
+      expect(result.hasNextPage).toBe(true);
+      expect(result.hasPreviousPage).toBe(false);
+    });
+    it('should set hasPreviousPage correctly for last page', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([{ count: 25 }]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        offset: jest.fn().mockReturnValue([
+          {
+            ai_outputs: mockFlashcards,
+            materials: mockMaterial,
+          },
+        ]),
+      });
+
+      mockDrizzle.select.mockReturnValue({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      const result = await service.getFlashcardsSetsByUser('user-1', 3);
+      expect(result.hasNextPage).toBe(false);
+      expect(result.hasPreviousPage).toBe(true);
+    });
+    it('should handle page beyond total pages', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([{ count: 25 }]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        offset: jest.fn().mockReturnValue([]),
+      });
+
+      const result = await service.getFlashcardsSetsByUser('user-1', 5);
+      expect(result.data).toEqual([]);
+      expect(result.totalPages).toBe(1);
+      expect(result.hasNextPage).toBe(false);
+      expect(result.hasPreviousPage).toBe(false);
+    });
+    it('should sort by createdAt-desc by default', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([{ count: 5 }]),
+      });
+
+      const mockOrderBy = jest.fn().mockReturnThis();
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: mockOrderBy,
+        limit: jest.fn().mockReturnThis(),
+        offset: jest.fn().mockReturnValue([
+          {
+            ai_outputs: mockFlashcards,
+            materials: mockMaterial,
+          },
+        ]),
+      });
+
+      mockDrizzle.select.mockReturnValue({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      await service.getFlashcardsSetsByUser('user-1');
+      expect(mockOrderBy).toHaveBeenCalled();
+    });
+    it('should sort by title when specified', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([{ count: 5 }]),
+      });
+
+      const mockOrderBy = jest.fn().mockReturnThis();
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: mockOrderBy,
+        limit: jest.fn().mockReturnThis(),
+        offset: jest.fn().mockReturnValue([
+          {
+            ai_outputs: mockFlashcards,
+            materials: mockMaterial,
+          },
+        ]),
+      });
+
+      mockDrizzle.select.mockReturnValue({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
+
+      await service.getFlashcardsSetsByUser('user-1', 1, 10, 'title-asc');
+      expect(mockOrderBy).toHaveBeenCalled();
+    });
+    it('should return correct progress statistics', async () => {
+      const mockMaterial = createMockMaterial();
+      const mockFlashcards = createMockFlaschardsAiOutput();
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([{ count: 1 }]),
+      });
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        offset: jest.fn().mockReturnValue([
+          {
+            ai_outputs: mockFlashcards,
+            materials: mockMaterial,
+          },
+        ]),
+      });
+
+      mockDrizzle.select.mockReturnValue({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([
+          {
+            flashcards: { id: 'fc-1' },
+            flashcard_progress: { status: 'known' },
+          },
+          {
+            flashcards: { id: 'fc-2' },
+            flashcard_progress: { status: 'review' },
+          },
+        ]),
+      });
+
+      const result = await service.getFlashcardsSetsByUser('user-1');
+      expect(result.data[0].total).toBe(2);
+      expect(result.data[0].known).toBe(1);
+      expect(result.data[0].review).toBe(1);
+    });
   });
 
   describe('getFlashcardsById', () => {
