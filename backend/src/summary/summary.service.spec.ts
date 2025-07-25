@@ -7,7 +7,7 @@ import {
   createMockMaterial,
   createMockSummary,
 } from '../../test/helpers/test-data.helper';
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 
 jest.mock('../helpers/parse-pdf', () => ({
   parsePublicPdfFromS3: jest.fn(),

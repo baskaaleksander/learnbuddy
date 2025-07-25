@@ -5,20 +5,20 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
-import { db } from 'src/database/drizzle.module';
+import { db } from '../database/drizzle.module';
 import {
   aiOutputs,
   flashcardProgress,
   flashcards,
   materials,
-} from 'src/database/schema';
-import { OpenAiService } from 'src/open-ai/open-ai.service';
+} from '../database/schema';
+import { OpenAiService } from '../open-ai/open-ai.service';
 import { toFlashcardGraphQL } from './graphql/flashcard.mapper';
 import { FlashcardProgressStatus } from './graphql/flashcard-progress.graphql';
 import { toAIOutputGraphQL } from '../mappers/ai-output.mapper';
 import { toMaterialGraphQL } from '../materials/graphql/materials.mapper';
-import { BillingService } from 'src/billing/billing.service';
-import { parsePublicPdfFromS3 } from 'src/helpers/parse-pdf';
+import { BillingService } from '../billing/billing.service';
+import { parsePublicPdfFromS3 } from '../helpers/parse-pdf';
 
 @Injectable()
 export class FlashcardsService {
