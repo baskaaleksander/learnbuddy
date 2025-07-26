@@ -5,43 +5,22 @@ import { RedisService } from '../redis/redis.service';
 
 jest.mock('stripe');
 import Stripe from 'stripe';
+import {
+  createMockSubPlan,
+  createMockUser,
+} from '../../test/helpers/test-data.helper';
+import { MockDrizzle } from '../utils/types';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 
 const mockConfigService = {
   get: jest.fn(),
 };
 
-const mockRedisService = {
-  delete: jest.fn(),
-};
-
-const mockDrizzle = {
-  select: jest.fn(),
-  update: jest.fn(),
-};
-
-const mockStripeCheckoutSessions = {
-  create: jest.fn(),
-};
-
-const mockStripeSubscriptions = {
-  retrieve: jest.fn(),
-  update: jest.fn(),
-};
-
-const mockStripeInvoices = {
-  createPreview: jest.fn(),
-};
-
-const mockStripe = {
-  checkout: {
-    sessions: mockStripeCheckoutSessions,
-  },
-  subscriptions: mockStripeSubscriptions,
-  invoices: mockStripeInvoices,
-};
-
 describe('BillingService', () => {
   let service: BillingService;
+  let mockDrizzle: MockDrizzle;
+  let mockRedisService: any;
+  let stripeMock: any;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -57,8 +36,52 @@ describe('BillingService', () => {
       }
     });
 
+    mockDrizzle = {
+      select: jest.fn().mockReturnThis(),
+      insert: jest.fn().mockReturnThis(),
+      update: jest.fn().mockReturnThis(),
+      delete: jest.fn().mockReturnThis(),
+      from: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      innerJoin: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      offset: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      returning: jest.fn().mockReturnThis(),
+      values: jest.fn().mockReturnThis(),
+      set: jest.fn().mockReturnThis(),
+    };
+
+    mockRedisService = {
+      get: jest.fn(),
+      set: jest.fn(),
+      delete: jest.fn(),
+    };
+
+    const mockStripeCheckoutSessions = {
+      create: jest.fn(),
+    };
+
+    const mockStripeSubscriptions = {
+      retrieve: jest.fn(),
+      update: jest.fn(),
+    };
+
+    const mockStripeInvoices = {
+      createPreview: jest.fn(),
+    };
+
+    stripeMock = {
+      checkout: {
+        sessions: mockStripeCheckoutSessions,
+      },
+      subscriptions: mockStripeSubscriptions,
+      invoices: mockStripeInvoices,
+    };
+
     (Stripe as jest.MockedClass<typeof Stripe>).mockImplementation(
-      () => mockStripe as any,
+      () => stripeMock,
     );
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -76,21 +99,270 @@ describe('BillingService', () => {
   });
 
   describe('createCheckoutSession', () => {
-    it('should create checkout session for valid user without subscription', async () => {});
+    it('should create checkout session for valid user without subscription', async () => {
+      const mockUser = createMockUser();
+      const mockPlan = createMockSubPlan();
 
-    it('should create checkout session using existing Stripe customer ID', async () => {});
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest
+          .fn()
+          .mockResolvedValue([{ ...mockUser, stripeCustomerId: 'test-id' }]),
+      };
 
-    it('should throw NotFoundException when user not found', async () => {});
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([]),
+      };
 
-    it('should throw ConflictException when user has active subscription', async () => {});
+      const mockPlanQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([mockPlan]),
+      };
 
-    it('should throw ConflictException when subscription not expired', async () => {});
+      const mockStripeSession = {
+        id: 'cs_test_123',
+        url: 'http://checkout.stripe.com/test-session',
+      };
 
-    it('should throw NotFoundException when plan not found', async () => {});
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockSubQuery)
+        .mockReturnValueOnce(mockPlanQuery);
 
-    it('should allow new checkout when subscription is expired', async () => {});
+      stripeMock.checkout.sessions.create.mockResolvedValue(mockStripeSession);
 
-    it('should handle missing plan price_id', async () => {});
+      const result = await service.createCheckoutSession(
+        mockUser.email,
+        mockPlan.name,
+        mockPlan.interval,
+      );
+
+      expect(result).toEqual(mockStripeSession.url);
+    });
+
+    it('should create checkout session using existing Stripe customer ID', async () => {
+      const mockUser = createMockUser();
+      const mockPlan = createMockSubPlan();
+
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest
+          .fn()
+          .mockResolvedValue([{ ...mockUser, stripeCustomerId: null }]),
+      };
+
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([]),
+      };
+
+      const mockPlanQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([mockPlan]),
+      };
+
+      const mockStripeSession = {
+        id: 'cs_test_123',
+        url: 'http://checkout.stripe.com/test-session',
+      };
+
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockSubQuery)
+        .mockReturnValueOnce(mockPlanQuery);
+
+      stripeMock.checkout.sessions.create.mockResolvedValue(mockStripeSession);
+
+      const result = await service.createCheckoutSession(
+        mockUser.email,
+        mockPlan.name,
+        mockPlan.interval,
+      );
+
+      expect(result).toEqual(mockStripeSession.url);
+    });
+
+    it('should throw NotFoundException when user not found', async () => {
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([]),
+      };
+
+      mockDrizzle.select.mockReturnValueOnce(mockUserQuery);
+
+      await expect(
+        service.createCheckoutSession(
+          'nonexistent@example.com',
+          'test-plan',
+          'monthly',
+        ),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ConflictException when user has active subscription', async () => {
+      const mockUser = createMockUser();
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([{ status: 'active' }]),
+      };
+
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest
+          .fn()
+          .mockResolvedValue([{ ...mockUser, stripeCustomerId: 'test-id' }]),
+      };
+
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockSubQuery);
+
+      await expect(
+        service.createCheckoutSession(mockUser.email, 'test-plan', 'monthly'),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw ConflictException when subscription not expired', async () => {
+      const mockUser = createMockUser();
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            status: 'active',
+            endsAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
+          },
+        ]),
+      };
+
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest
+          .fn()
+          .mockResolvedValue([{ ...mockUser, stripeCustomerId: 'test-id' }]),
+      };
+
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockSubQuery);
+
+      await expect(
+        service.createCheckoutSession(mockUser.email, 'test-plan', 'monthly'),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw NotFoundException when plan not found', async () => {
+      const mockUser = createMockUser();
+
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest
+          .fn()
+          .mockResolvedValue([{ ...mockUser, stripeCustomerId: null }]),
+      };
+
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([]),
+      };
+
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockSubQuery)
+        .mockReturnValueOnce({
+          from: jest.fn().mockReturnThis(),
+          where: jest.fn().mockResolvedValue([]),
+        });
+
+      await expect(
+        service.createCheckoutSession(
+          mockUser.email,
+          'nonexistent-plan',
+          'monthly',
+        ),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should allow new checkout when subscription is expired', async () => {
+      const mockUser = createMockUser();
+      const mockPlan = createMockSubPlan();
+
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest
+          .fn()
+          .mockResolvedValue([{ ...mockUser, stripeCustomerId: 'test-id' }]),
+      };
+
+      const mockPlanQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([mockPlan]),
+      };
+
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            status: 'past_due',
+            endsAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
+          },
+        ]),
+      };
+
+      const mockStripeSession = {
+        id: 'cs_test_123',
+        url: 'http://checkout.stripe.com/test-session',
+      };
+
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockSubQuery)
+        .mockReturnValueOnce(mockPlanQuery);
+
+      stripeMock.checkout.sessions.create.mockResolvedValue(mockStripeSession);
+
+      const result = await service.createCheckoutSession(
+        mockUser.email,
+        mockPlan.name,
+        mockPlan.interval,
+      );
+
+      expect(result).toEqual(mockStripeSession.url);
+    });
+
+    it('should handle missing plan price_id', async () => {
+      const mockUser = createMockUser();
+      const mockPlan = createMockSubPlan();
+
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest
+          .fn()
+          .mockResolvedValue([{ ...mockUser, stripeCustomerId: null }]),
+      };
+
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([]),
+      };
+
+      const mockPlanQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([{ ...mockPlan, price_id: null }]),
+      };
+
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockSubQuery)
+        .mockReturnValueOnce(mockPlanQuery);
+      await expect(
+        service.createCheckoutSession(
+          mockUser.email,
+          mockPlan.name,
+          mockPlan.interval,
+        ),
+      ).rejects.toThrow(NotFoundException);
+    });
   });
 
   describe('cancelSubscription', () => {

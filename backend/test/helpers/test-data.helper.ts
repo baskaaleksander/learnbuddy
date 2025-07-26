@@ -266,3 +266,15 @@ export const createMockFlashcardProgress = (status: 'known' | 'review') => {
     updatedAt: new Date(),
   };
 };
+
+export const createMockSubPlan = () => {
+  return {
+    id: 'plan_123',
+    name: 'Test Plan',
+    price: 1000,
+    interval: 'monthly',
+    price_id: 'price_123',
+    tokens_monthly: 120,
+    createdAt: '2023-01-01T00:00:00Z',
+  };
+};
