@@ -602,10 +602,7 @@ describe('BillingService', () => {
         .mockReturnValueOnce(mockUserQuery)
         .mockReturnValueOnce(mockSubQuery);
 
-      const result = await service.useTokens(
-        mockUser.id,
-        mockSubPlan.tokens_monthly,
-      );
+      await service.useTokens(mockUser.id, mockSubPlan.tokens_monthly);
 
       expect(mockRedisService.delete).toHaveBeenCalledWith(
         `auth:me:${mockUser.id}`,
@@ -614,38 +611,546 @@ describe('BillingService', () => {
   });
 
   describe('updateSubscriptionPlan', () => {
-    it('should successfully update to new plan', async () => {});
+    it('should successfully update to new plan', async () => {
+      const mockSubPlan = createMockSubPlan();
+      const mockUser = createMockUser();
 
-    it('should throw NotFoundException when user has no subscription', async () => {});
+      const mockUserSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            users: mockUser,
+            subscriptions: {
+              status: 'active',
+              stripeSubscriptionId: 'sub_test_123',
+              plan_id: 'price_321',
+            },
+          },
+        ]),
+      };
 
-    it('should throw ConflictException when subscription not active', async () => {});
+      const mockNewPlanQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([mockSubPlan]),
+      };
 
-    it('should throw NotFoundException when new plan not found', async () => {});
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserSubQuery)
+        .mockReturnValueOnce(mockNewPlanQuery);
 
-    it('should throw ConflictException when user already has the same plan', async () => {});
+      stripeMock.subscriptions.retrieve.mockResolvedValue({
+        id: 'sub_test_123',
+        status: 'active',
+        items: {
+          data: [
+            {
+              id: 'item_123',
+            },
+          ],
+        },
+      });
 
-    it('should handle missing new plan price_id', async () => {});
+      const result = await service.updateSubscriptionPlan(
+        mockUser.id,
+        mockSubPlan.id,
+        mockSubPlan.interval,
+      );
 
-    it('should handle Stripe subscription not found', async () => {});
+      expect(mockDrizzle.update).toHaveBeenCalledWith(expect.anything());
+      expect(mockDrizzle.update().set).toHaveBeenCalledWith({
+        planId: mockSubPlan.id,
+      });
+      expect(stripeMock.subscriptions.update).toHaveBeenCalledWith(
+        'sub_test_123',
+        {
+          items: [
+            {
+              id: 'item_123',
+              price: mockSubPlan.price_id,
+            },
+          ],
+          proration_behavior: 'always_invoice',
+        },
+      );
+    });
+
+    it('should throw NotFoundException when user has no subscription', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([]),
+      });
+
+      await expect(
+        service.updateSubscriptionPlan(
+          'nonexistent-user',
+          'plan_123',
+          'monthly',
+        ),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ConflictException when subscription not active', async () => {
+      const mockUser = createMockUser();
+
+      const mockUserSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            users: mockUser,
+            subscriptions: {
+              status: 'canceled',
+              stripeSubscriptionId: 'sub_test_123',
+              plan_id: 'price_321',
+            },
+          },
+        ]),
+      };
+      mockDrizzle.select.mockReturnValueOnce(mockUserSubQuery);
+
+      await expect(
+        service.updateSubscriptionPlan(mockUser.id, 'plan_123', 'monthly'),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw NotFoundException when new plan not found', async () => {
+      const mockUser = createMockUser();
+
+      const mockUserSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            users: mockUser,
+            subscriptions: {
+              status: 'active',
+              stripeSubscriptionId: 'sub_test_123',
+              plan_id: 'price_321',
+            },
+          },
+        ]),
+      };
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserSubQuery)
+        .mockReturnValueOnce({
+          from: jest.fn().mockReturnThis(),
+          where: jest.fn().mockResolvedValue([]),
+        });
+
+      await expect(
+        service.updateSubscriptionPlan(
+          mockUser.id,
+          'nonexistent-plan',
+          'monthly',
+        ),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ConflictException when user already has the same plan', async () => {
+      const mockUser = createMockUser();
+      const mockSubPlan = createMockSubPlan();
+
+      const mockUserSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            users: mockUser,
+            subscriptions: {
+              status: 'active',
+              stripeSubscriptionId: 'sub_test_123',
+              planId: mockSubPlan.price_id,
+            },
+          },
+        ]),
+      };
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserSubQuery)
+        .mockReturnValueOnce({
+          from: jest.fn().mockReturnThis(),
+          where: jest.fn().mockResolvedValue([mockSubPlan]),
+        });
+
+      await expect(
+        service.updateSubscriptionPlan(mockUser.id, mockSubPlan.id, 'monthly'),
+      ).rejects.toThrow(ConflictException);
+    });
+    it('should handle missing new plan price_id', async () => {
+      const mockUser = createMockUser();
+      const mockSubPlan = createMockSubPlan();
+
+      const mockUserSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            users: mockUser,
+            subscriptions: {
+              status: 'active',
+              stripeSubscriptionId: 'sub_test_123',
+              planId: mockSubPlan.price_id,
+            },
+          },
+        ]),
+      };
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserSubQuery)
+        .mockReturnValueOnce({
+          from: jest.fn().mockReturnThis(),
+          where: jest
+            .fn()
+            .mockResolvedValue([{ ...mockSubPlan, price_id: null }]),
+        });
+
+      await expect(
+        service.updateSubscriptionPlan(mockUser.id, mockSubPlan.id, 'monthly'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should handle Stripe subscription not found', async () => {
+      const mockSubPlan = createMockSubPlan();
+      const mockUser = createMockUser();
+
+      const mockUserSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            users: mockUser,
+            subscriptions: {
+              status: 'active',
+              stripeSubscriptionId: 'sub_test_123',
+              plan_id: 'price_321',
+            },
+          },
+        ]),
+      };
+
+      const mockNewPlanQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([mockSubPlan]),
+      };
+
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserSubQuery)
+        .mockReturnValueOnce(mockNewPlanQuery);
+
+      await expect(
+        service.updateSubscriptionPlan(
+          mockUser.id,
+          mockSubPlan.id,
+          mockSubPlan.interval,
+        ),
+      ).rejects.toThrow(NotFoundException);
+    });
   });
 
   describe('getUserSubscriptionData', () => {
-    it('should return subscription data for user with active subscription', async () => {});
+    it('should return subscription data for user with active subscription', async () => {
+      const mockUser = createMockUser();
+      const mockSubPlan = createMockSubPlan();
+      const mockSubscription = {
+        id: 'sub_test_123',
+        status: 'active',
+        currentPeriodEnd: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        plan: {
+          id: mockSubPlan.id,
+          amount: mockSubPlan.price,
+          interval: mockSubPlan.interval,
+        },
+      };
 
-    it('should return "Free" plan for user without subscription', async () => {});
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([mockUser]),
+      };
 
-    it('should handle null tokensUsed gracefully', async () => {});
+      const mockUserSubPlanQuery = {
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            users: mockUser,
+            subscriptions: mockSubscription,
+            plans: mockSubPlan,
+          },
+        ]),
+      };
 
-    it('should convert price from cents to dollars', async () => {});
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockUserSubPlanQuery);
+
+      const result = await service.getUserSubscriptionData(mockUser.id);
+
+      expect(result).toEqual({
+        planName: mockSubPlan.name,
+        price: mockSubPlan.price / 100,
+        planInterval: mockSubPlan.interval,
+        currency: 'USD',
+        status: mockSubscription.status,
+        nextBillingDate: mockSubscription.currentPeriodEnd,
+        tokensUsed: mockUser.tokensUsed,
+        tokensLimit: mockSubPlan.tokens_monthly,
+      });
+    });
+
+    it('should return "Free" plan for user without subscription', async () => {
+      const mockUser = createMockUser();
+      mockDrizzle.select
+        .mockReturnValueOnce({
+          from: jest.fn().mockReturnThis(),
+          where: jest.fn().mockResolvedValue([mockUser]),
+        })
+        .mockReturnValueOnce({
+          from: jest.fn().mockReturnThis(),
+          innerJoin: jest.fn().mockReturnThis(),
+          where: jest.fn().mockResolvedValue([]),
+        });
+
+      const result = await service.getUserSubscriptionData(mockUser.id);
+
+      expect(result).toEqual({
+        planName: 'Free',
+      });
+    });
+
+    it('should handle null tokensUsed gracefully', async () => {
+      const mockUser = createMockUser();
+      const mockSubPlan = createMockSubPlan();
+      const mockSubscription = {
+        id: 'sub_test_123',
+        status: 'active',
+        currentPeriodEnd: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        plan: {
+          id: mockSubPlan.id,
+          amount: mockSubPlan.price,
+          interval: mockSubPlan.interval,
+        },
+      };
+
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([mockUser]),
+      };
+
+      const mockUserSubPlanQuery = {
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            users: { ...mockUser, tokensUsed: null },
+            subscriptions: mockSubscription,
+            plans: mockSubPlan,
+          },
+        ]),
+      };
+
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockUserSubPlanQuery);
+
+      const result = await service.getUserSubscriptionData(mockUser.id);
+
+      expect(result).toEqual({
+        planName: mockSubPlan.name,
+        price: mockSubPlan.price / 100,
+        planInterval: mockSubPlan.interval,
+        currency: 'USD',
+        status: mockSubscription.status,
+        nextBillingDate: mockSubscription.currentPeriodEnd,
+        tokensUsed: mockUser.tokensUsed || 0,
+        tokensLimit: mockSubPlan.tokens_monthly,
+      });
+    });
+
+    it('should convert price from cents to dollars', async () => {
+      const mockUser = createMockUser();
+      const mockSubPlan = createMockSubPlan();
+      const mockSubscription = {
+        id: 'sub_test_123',
+        status: 'active',
+        currentPeriodEnd: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        plan: {
+          id: mockSubPlan.id,
+          amount: mockSubPlan.price,
+          interval: mockSubPlan.interval,
+        },
+      };
+
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([mockUser]),
+      };
+
+      const mockUserSubPlanQuery = {
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            users: mockUser,
+            subscriptions: mockSubscription,
+            plans: mockSubPlan,
+          },
+        ]),
+      };
+
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockUserSubPlanQuery);
+
+      const result = await service.getUserSubscriptionData(mockUser.id);
+
+      expect(result).toEqual({
+        planName: mockSubPlan.name,
+        price: mockSubPlan.price / 100, // Convert from cents to dollars
+        planInterval: mockSubPlan.interval,
+        currency: 'USD',
+        status: mockSubscription.status,
+        nextBillingDate: mockSubscription.currentPeriodEnd,
+        tokensUsed: mockUser.tokensUsed,
+        tokensLimit: mockSubPlan.tokens_monthly,
+      });
+    });
+
+    it('should throw NotFoundException when user not found', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([]),
+      });
+
+      await expect(
+        service.getUserSubscriptionData('nonexistent-user'),
+      ).rejects.toThrow(NotFoundException);
+    });
   });
 
   describe('getSubscriptionStatus', () => {
-    it('should return subscription status for active user', async () => {});
+    it('should return subscription status for active user', async () => {
+      const mockUser = createMockUser();
+      const mockSubPlan = createMockSubPlan();
+      const mockSubscription = {
+        id: 'sub_test_123',
+        status: 'active',
+        currentPeriodEnd: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        plan: {
+          id: mockSubPlan.id,
+          amount: mockSubPlan.price,
+          interval: mockSubPlan.interval,
+        },
+      };
 
-    it('should throw NotFoundException when user has no subscription', async () => {});
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            users: mockUser,
+            subscriptions: mockSubscription,
+          },
+        ]),
+      });
 
-    it('should throw ConflictException when subscription not active', async () => {});
+      stripeMock.subscriptions.retrieve.mockResolvedValue({
+        id: 'sub_test_123',
+        status: 'active',
+        days_until_due: 30,
+        items: {
+          data: [
+            {
+              id: 'item_123',
+              plan: {
+                nickname: mockSubPlan.name,
+              },
+            },
+          ],
+        },
+      });
 
-    it('should throw NotFoundException when Stripe subscription not found', async () => {});
+      const result = await service.getSubscriptionStatus(mockUser.id);
+
+      expect(result).toEqual({
+        id: 'sub_test_123',
+        status: 'active',
+        days_until_due: 30,
+        plan: mockSubPlan.name,
+      });
+    });
+
+    it('should throw NotFoundException when user has no subscription', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([]),
+      });
+
+      await expect(
+        service.getSubscriptionStatus('nonexistent-user'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ConflictException when subscription not active', async () => {
+      const mockUser = createMockUser();
+      const mockSubPlan = createMockSubPlan();
+      const mockSubscription = {
+        id: 'sub_test_123',
+        status: 'inactive',
+        currentPeriodEnd: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        plan: {
+          id: mockSubPlan.id,
+          amount: mockSubPlan.price,
+          interval: mockSubPlan.interval,
+        },
+      };
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            users: mockUser,
+            subscriptions: mockSubscription,
+          },
+        ]),
+      });
+
+      await expect(service.getSubscriptionStatus(mockUser.id)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it('should throw NotFoundException when Stripe subscription not found', async () => {
+      const mockUser = createMockUser();
+      const mockSubPlan = createMockSubPlan();
+      const mockSubscription = {
+        id: 'sub_test_123',
+        status: 'active',
+        currentPeriodEnd: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        plan: {
+          id: mockSubPlan.id,
+          amount: mockSubPlan.price,
+          interval: mockSubPlan.interval,
+        },
+      };
+
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            users: mockUser,
+            subscriptions: mockSubscription,
+          },
+        ]),
+      });
+
+      stripeMock.subscriptions.retrieve.mockResolvedValue(null);
+
+      await expect(service.getSubscriptionStatus(mockUser.id)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
   });
 });

@@ -191,6 +191,15 @@ export class BillingService {
   }
 
   async getUserSubscriptionData(userId: string) {
+    const user = await this.drizzle
+      .select()
+      .from(users)
+      .where(eq(users.id, userId));
+
+    if (user.length === 0) {
+      throw new NotFoundException('User not found');
+    }
+
     const userSubscription = await this.drizzle
       .select()
       .from(users)
