@@ -186,8 +186,12 @@ export const createMockQuizWithPartialOutputType = () => {
 
 export const createMockUser = () => {
   return {
-    id: 'user-1',
+    id: '123',
     email: 'test@example.com',
+    firstName: 'Test',
+    role: 'user',
+    tokensUsed: 0,
+    emailVerificationToken: 'verification-token',
   };
 };
 
