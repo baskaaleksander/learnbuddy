@@ -366,33 +366,251 @@ describe('BillingService', () => {
   });
 
   describe('cancelSubscription', () => {
-    it('should successfully cancel active subscription', async () => {});
+    it('should successfully cancel active subscription', async () => {
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            stripeSubscriptionId: 'sub_test_123',
+            status: 'active',
+            endsAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
+          },
+        ]),
+      };
 
-    it('should throw NotFoundException when subscription not found in DB', async () => {});
+      mockDrizzle.select.mockReturnValueOnce(mockSubQuery);
 
-    it('should throw NotFoundException when Stripe subscription not found', async () => {});
+      stripeMock.subscriptions.retrieve.mockResolvedValue({
+        id: 'sub_test_123',
+        status: 'active',
+      });
 
-    it('should throw ConflictException when subscription already canceled', async () => {});
+      stripeMock.subscriptions.update.mockResolvedValue({
+        id: 'sub_test_123',
+        status: 'canceled',
+      });
 
-    it('should handle Stripe API failures gracefully', async () => {});
+      const result = await service.cancelSubscription('user-1');
+
+      expect(mockDrizzle.update).toHaveBeenCalledWith(expect.anything());
+      expect(mockDrizzle.update().set).toHaveBeenCalledWith({
+        status: 'canceled',
+      });
+
+      expect(result).toEqual({
+        id: 'sub_test_123',
+        status: 'canceled',
+      });
+    });
+
+    it('should throw NotFoundException when subscription not found in DB', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([]),
+      });
+
+      await expect(service.cancelSubscription('user-1')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw NotFoundException when Stripe subscription not found', async () => {
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            stripeSubscriptionId: 'sub_test_123',
+            status: 'active',
+            endsAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
+          },
+        ]),
+      };
+
+      mockDrizzle.select.mockReturnValueOnce(mockSubQuery);
+
+      stripeMock.subscriptions.retrieve.mockResolvedValue(null);
+
+      await expect(service.cancelSubscription('user-1')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw ConflictException when subscription already canceled', async () => {
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            stripeSubscriptionId: 'sub_test_123',
+            status: 'active',
+            endsAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
+          },
+        ]),
+      };
+
+      mockDrizzle.select.mockReturnValueOnce(mockSubQuery);
+
+      stripeMock.subscriptions.retrieve.mockResolvedValue({
+        id: 'sub_test_123',
+        status: 'canceled',
+      });
+
+      await expect(service.cancelSubscription('user-1')).rejects.toThrow(
+        ConflictException,
+      );
+    });
   });
 
   describe('useTokens', () => {
-    it('should allow token usage for free user within 12 token limit', async () => {});
+    it('should allow token usage for free user within 12 token limit', async () => {
+      const mockUser = createMockUser();
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([mockUser]),
+      };
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([]),
+      };
 
-    it('should allow token usage for paid user within plan limit', async () => {});
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockSubQuery);
 
-    it('should throw NotFoundException when user not found', async () => {});
+      const result = await service.useTokens(mockUser.id, 12);
 
-    it('should throw ConflictException when free user exceeds 12 tokens', async () => {});
+      expect(result).toEqual(true);
+    });
 
-    it('should throw ConflictException when paid user exceeds plan limit', async () => {});
+    it('should allow token usage for paid user within plan limit', async () => {
+      const mockUser = createMockUser();
+      const mockSubPlan = createMockSubPlan();
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([mockUser]),
+      };
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            subscriptions: {
+              status: 'past_due',
+              endsAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
+            },
+            plans: mockSubPlan,
+          },
+        ]),
+      };
 
-    it('should handle exactly at the free limit (12 tokens)', async () => {});
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockSubQuery);
 
-    it('should handle exactly at paid plan limit', async () => {});
+      const result = await service.useTokens(
+        mockUser.id,
+        mockSubPlan.tokens_monthly,
+      );
 
-    it('should clear Redis cache after successful token usage', async () => {});
+      expect(result).toEqual(true);
+    });
+
+    it('should throw NotFoundException when user not found', async () => {
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([]),
+      });
+
+      await expect(service.useTokens('nonexistent-user', 5)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw ConflictException when free user exceeds 12 tokens', async () => {
+      const mockUser = createMockUser();
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([mockUser]),
+      };
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([]),
+      };
+
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockSubQuery);
+
+      await expect(service.useTokens(mockUser.id, 13)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it('should throw ConflictException when paid user exceeds plan limit', async () => {
+      const mockUser = createMockUser();
+      const mockSubPlan = createMockSubPlan();
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([mockUser]),
+      };
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            subscriptions: {
+              status: 'active',
+              endsAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
+            },
+            plans: mockSubPlan,
+          },
+        ]),
+      };
+
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockSubQuery);
+
+      await expect(
+        service.useTokens(mockUser.id, mockSubPlan.tokens_monthly + 1),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should clear Redis cache after successful token usage', async () => {
+      const mockUser = createMockUser();
+      const mockSubPlan = createMockSubPlan();
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([mockUser]),
+      };
+      const mockSubQuery = {
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockResolvedValue([
+          {
+            subscriptions: {
+              status: 'past_due',
+              endsAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
+            },
+            plans: mockSubPlan,
+          },
+        ]),
+      };
+
+      mockDrizzle.select
+        .mockReturnValueOnce(mockUserQuery)
+        .mockReturnValueOnce(mockSubQuery);
+
+      const result = await service.useTokens(
+        mockUser.id,
+        mockSubPlan.tokens_monthly,
+      );
+
+      expect(mockRedisService.delete).toHaveBeenCalledWith(
+        `auth:me:${mockUser.id}`,
+      );
+    });
   });
 
   describe('updateSubscriptionPlan', () => {
