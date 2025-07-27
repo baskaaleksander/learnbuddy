@@ -85,7 +85,7 @@ export class OpenAiService {
       });
 
       const content = response.choices[0]?.message?.content;
-      if (!content) {
+      if (!content || content.trim() === '') {
         throw new Error('No content received from OpenAI');
       }
       return content;
