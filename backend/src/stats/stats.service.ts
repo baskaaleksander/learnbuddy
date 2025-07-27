@@ -1,6 +1,6 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { and, desc, eq } from 'drizzle-orm';
-import { db } from 'src/database/drizzle.module';
+import { db } from '../database/drizzle.module';
 import {
   aiOutputs,
   flashcardProgress,
@@ -8,11 +8,11 @@ import {
   materials,
   quizPartials,
   quizResults,
-} from 'src/database/schema';
-import { FlashcardProgressStatus } from 'src/flashcards/graphql/flashcard-progress.graphql';
-import { toAIOutputGraphQL } from 'src/mappers/ai-output.mapper';
-import { toMaterialGraphQL } from 'src/materials/graphql/materials.mapper';
-import { toQuizPartialGraphQL } from 'src/quiz/graphql/quiz-partial.mapper';
+} from '../database/schema';
+import { FlashcardProgressStatus } from '../flashcards/graphql/flashcard-progress.graphql';
+import { toAIOutputGraphQL } from '../mappers/ai-output.mapper';
+import { toMaterialGraphQL } from '../materials/graphql/materials.mapper';
+import { toQuizPartialGraphQL } from '../quiz/graphql/quiz-partial.mapper';
 
 @Injectable()
 export class StatsService {

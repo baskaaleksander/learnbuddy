@@ -5,7 +5,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { db } from 'src/database/drizzle.module';
+import { db } from '../database/drizzle.module';
 import {
   aiOutputs,
   flashcardProgress,
@@ -13,7 +13,7 @@ import {
   materials,
   quizPartials,
   quizResults,
-} from 'src/database/schema';
+} from '../database/schema';
 import { toMaterialGraphQL } from './graphql/materials.mapper';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { CreateMaterialInput } from './dtos/create-material.input';
@@ -114,21 +114,6 @@ export class MaterialsService {
   }
 
   async createMaterial(userId: string, input: CreateMaterialInput) {
-    // await this.drizzle
-    //     .insert(materials)
-    //     .values({
-    //         userId: userId,
-    //         title: input.title,
-    //         content: input.content,
-    //         status: 'processed'
-    //     })
-    //     .catch((err) => {
-    //         throw new Error('Error creating material', err);
-    //     }
-    // );
-    //
-    // return true;
-
     const material = await this.drizzle
       .select()
       .from(materials)
