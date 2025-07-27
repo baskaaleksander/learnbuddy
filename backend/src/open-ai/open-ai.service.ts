@@ -15,13 +15,84 @@ export class OpenAiService {
       apiKey: process.env.OPENAI_API_KEY,
     });
   }
-  async generateContent(prompt: string): Promise<string> {
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: prompt }],
-    });
 
-    return response.choices[0]?.message?.content ?? '';
+  private validateQuizStructure(data: any): data is Quiz[] {
+    if (!Array.isArray(data)) {
+      return false;
+    }
+
+    return data.every(
+      (item) =>
+        typeof item === 'object' &&
+        item !== null &&
+        typeof item.question === 'string' &&
+        Array.isArray(item.answers) &&
+        item.answers.length === 3 &&
+        item.answers.every((answer: any) => typeof answer === 'string') &&
+        typeof item.correct_answer === 'string' &&
+        item.answers.includes(item.correct_answer),
+    );
+  }
+
+  private validateSummaryStructure(data: any): data is SummaryAiOutputContent {
+    if (typeof data !== 'object' || data === null) {
+      return false;
+    }
+
+    if (typeof data.title !== 'string') {
+      return false;
+    }
+
+    if (!Array.isArray(data.chapters)) {
+      return false;
+    }
+
+    return data.chapters.every(
+      (chapter: any) =>
+        typeof chapter === 'object' &&
+        chapter !== null &&
+        typeof chapter.name === 'string' &&
+        Array.isArray(chapter.bullet_points) &&
+        chapter.bullet_points.every((point: any) => typeof point === 'string'),
+    );
+  }
+
+  private validateFlashcardStructure(data: any): data is FlashcardContent {
+    if (typeof data !== 'object' || data === null) {
+      return false;
+    }
+
+    if (!Array.isArray(data.flashcards)) {
+      return false;
+    }
+
+    return data.flashcards.every(
+      (card: any) =>
+        typeof card === 'object' &&
+        card !== null &&
+        typeof card.question === 'string' &&
+        typeof card.answer === 'string',
+    );
+  }
+
+  async generateContent(prompt: string): Promise<string> {
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.3,
+        max_tokens: 4000,
+      });
+
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error('No content received from OpenAI');
+      }
+      return content;
+    } catch (error) {
+      console.error('OpenAI API error:', error);
+      throw new Error(`Failed to generate content: ${error.message}`);
+    }
   }
 
   async generateQuiz(pdfContent: string): Promise<Array<Quiz>> {
@@ -67,10 +138,17 @@ export class OpenAiService {
     const response = await this.generateContent(prompt);
 
     try {
-      return JSON.parse(response) as Quiz[];
+      const parsed = JSON.parse(response);
+
+      if (!this.validateQuizStructure(parsed)) {
+        console.error('Invalid quiz structure received:', parsed);
+        throw new Error('Response does not match expected Quiz structure');
+      }
+
+      return parsed;
     } catch (error) {
       console.error('Failed to parse quiz response:', error);
-      throw new Error('Failed to generate quiz');
+      throw new Error('Failed to generate quiz from OpenAI response');
     }
   }
 
@@ -144,10 +222,19 @@ export class OpenAiService {
     const response = await this.generateContent(prompt);
 
     try {
-      return JSON.parse(response) as SummaryAiOutputContent;
+      const parsed = JSON.parse(response);
+
+      if (!this.validateSummaryStructure(parsed)) {
+        console.error('Invalid summary structure received:', parsed);
+        throw new Error(
+          'Response does not match expected SummaryAiOutputContent structure',
+        );
+      }
+
+      return parsed;
     } catch (error) {
-      console.error('Failed to parse quiz response:', error);
-      throw new Error('Failed to generate quiz');
+      console.error('Failed to parse summary response:', error);
+      throw new Error('Failed to generate summary from OpenAI response');
     }
   }
 
@@ -209,10 +296,19 @@ export class OpenAiService {
     const response = await this.generateContent(prompt);
 
     try {
-      return JSON.parse(response) as FlashcardContent;
+      const parsed = JSON.parse(response);
+
+      if (!this.validateFlashcardStructure(parsed)) {
+        console.error('Invalid flashcard structure received:', parsed);
+        throw new Error(
+          'Response does not match expected FlashcardContent structure',
+        );
+      }
+
+      return parsed;
     } catch (error) {
-      console.error('Failed to parse quiz response:', error);
-      throw new Error('Failed to generate quiz');
+      console.error('Failed to parse flashcards response:', error);
+      throw new Error('Failed to generate flashcards from OpenAI response');
     }
   }
 }
