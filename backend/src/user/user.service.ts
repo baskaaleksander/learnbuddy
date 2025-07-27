@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { eq, inArray } from 'drizzle-orm';
-import { db } from 'src/database/drizzle.module';
+import { db } from '../database/drizzle.module';
 import {
   users,
   flashcardProgress,
