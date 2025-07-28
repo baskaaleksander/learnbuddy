@@ -8,6 +8,7 @@ import {
   materials,
   quizPartials,
   quizResults,
+  users,
 } from '../database/schema';
 import { FlashcardProgressStatus } from '../flashcards/graphql/flashcard-progress.graphql';
 import { toAIOutputGraphQL } from '../mappers/ai-output.mapper';
@@ -74,6 +75,15 @@ export class StatsService {
   }
 
   async getUserStats(userId: string) {
+    const isUserExists = await this.drizzle
+      .select()
+      .from(users)
+      .where(eq(users.id, userId));
+
+    if (isUserExists.length === 0) {
+      throw new UnauthorizedException('User does not exist');
+    }
+
     const materialsData = await this.getMaterialsWithAiOutputs(userId);
 
     if (materialsData.length === 0) {

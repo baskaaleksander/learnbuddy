@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import { Logger } from 'nestjs-pino';
-import { setupBullBoard } from 'src/utils/setupBullBoard';
+import { setupBullBoard } from './utils/setupBullBoard';
 import { getQueueToken } from '@nestjs/bullmq';
 
 async function bootstrap() {

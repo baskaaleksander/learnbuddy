@@ -1,6 +1,6 @@
 import { UserType, UserRole } from './user.graphql';
 import { InferModel } from 'drizzle-orm';
-import { users } from '../database/schema';
+import { users } from '../../database/schema';
 
 export type UserDb = InferModel<typeof users>;
 

@@ -247,8 +247,6 @@ export class FlashcardsService {
       throw new NotFoundException('No flashcards generated for this material');
     }
 
-    console.log('Generated Flashcards:', generatedFlashcards);
-
     const aiOutput = await this.drizzle
       .insert(aiOutputs)
       .values({

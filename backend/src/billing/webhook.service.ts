@@ -212,8 +212,6 @@ export class WebhookService {
         updatedAt: new Date(),
       })
       .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
-
-    console.log(`Invoice for subscription ${subscriptionId} paid successfully`);
   }
 
   async handleSubscriptionUpdate(event: Stripe.Subscription) {
@@ -247,21 +245,16 @@ export class WebhookService {
       throw new Error('Plan details not found for the updated subscription');
     }
 
-    console.log('Current period end:', currentPeriodEnd);
-    console.log('Subscription before update:', subscription[0]);
-
     const updatedRows = await this.drizzle
       .update(subscriptions)
       .set({
         planId: planDetails[0].id,
         status: 'active',
-        currentPeriodEnd, // ES6 shorthand - same as currentPeriodEnd: currentPeriodEnd
+        currentPeriodEnd,
         updatedAt: new Date(),
       })
       .where(eq(subscriptions.stripeSubscriptionId, subscriptionId))
-      .returning(); // Add returning() to see what was actually updated
-
-    console.log('Updated subscription:', updatedRows);
+      .returning();
   }
 
   async handleInvoicePaymentFailed(event: Stripe.Invoice) {
@@ -287,7 +280,5 @@ export class WebhookService {
         status: 'past_due',
       })
       .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
-
-    console.log(`Invoice for subscription ${subscriptionId} paid successfully`);
   }
 }

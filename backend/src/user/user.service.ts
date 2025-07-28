@@ -11,7 +11,7 @@ import {
   aiOutputs,
   flashcards,
 } from '../database/schema';
-import { toUserGraphQL } from './user.mapper';
+import { toUserGraphQL } from './graphql/user.mapper';
 import { promisify } from 'util';
 import { randomBytes, scrypt as _scrypt } from 'crypto';
 import { RedisService } from '../redis/redis.service';

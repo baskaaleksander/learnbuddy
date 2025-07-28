@@ -671,14 +671,13 @@ export class QuizService {
     );
 
     try {
-      const job = await this.quizProgressQueue.add(
+      await this.quizProgressQueue.add(
         'savePartial',
         { userId, quizId, quizPartialData },
         {
           attempts: 3,
         },
       );
-      console.log('Job added:', job.id);
     } catch (err) {
       console.error('Error adding job:', err);
     }

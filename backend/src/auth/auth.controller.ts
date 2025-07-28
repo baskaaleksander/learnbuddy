@@ -10,7 +10,7 @@ import {
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { UserCredentialsDto } from './dtos/user-credentials.dto';
-import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { CurrentUser } from '../decorators/current-user.decorator';
 import { PayloadDto } from './dtos/payload.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UserRegisterDto } from './dtos/user-register.dto';
@@ -59,7 +59,7 @@ export class AuthController {
   }
 
   @Post('logout')
-  async logout(@Res() res: Response) {
+  logout(@Res() res: Response) {
     res.clearCookie('jwt', {
       httpOnly: true,
       secure: true,

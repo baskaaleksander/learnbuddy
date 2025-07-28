@@ -1,10 +1,10 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { UserType } from './user.graphql';
+import { UserType } from './graphql/user.graphql';
 import { UserService } from './user.service';
-import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
+import { CurrentUser } from '../decorators/gql-current-user.decorator';
 import { UseGuards } from '@nestjs/common';
-import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
-import { PayloadDto } from 'src/auth/dtos/payload.dto';
+import { GqlAuthGuard } from '../guards/gql-auth.guard';
+import { PayloadDto } from '../auth/dtos/payload.dto';
 
 @Resolver(() => UserType)
 export class UserResolver {
@@ -15,11 +15,6 @@ export class UserResolver {
   async me(@CurrentUser() user: PayloadDto) {
     return this.userService.getCurrentUser(user.id);
   }
-
-  // @Query(() => [UserType], { name: 'users' })
-  // async getAllUsers() {
-  //     return await this.userService.getAllUsers();
-  // }
 
   @UseGuards(GqlAuthGuard)
   @Mutation(() => Boolean)
