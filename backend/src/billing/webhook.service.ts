@@ -245,7 +245,7 @@ export class WebhookService {
       throw new Error('Plan details not found for the updated subscription');
     }
 
-    const updatedRows = await this.drizzle
+    await this.drizzle
       .update(subscriptions)
       .set({
         planId: planDetails[0].id,

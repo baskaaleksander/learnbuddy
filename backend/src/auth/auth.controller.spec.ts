@@ -49,7 +49,7 @@ describe('AuthController', () => {
         'mockedAccessToken',
         {
           httpOnly: true,
-          secure: false,
+          secure: true,
           sameSite: 'none',
           maxAge: 24 * 60 * 60 * 1000,
         },
@@ -85,11 +85,88 @@ describe('AuthController', () => {
     });
   });
   describe('login', () => {
-    it.todo('should log in a user and set a cookie');
-    it.todo('should return user details after login');
+    it('should log in a user and set a cookie', async () => {
+      const mockLoginDto = {
+        email: 'test@gmail.com',
+        password: 'password123',
+      };
+      const mockResponse = {
+        cookie: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      } as unknown as Response;
+
+      mockAuthService.login.mockResolvedValueOnce({
+        ...mockLoginDto,
+        id: 1,
+        access_token: 'mockedAccessToken',
+        role: 'user',
+      });
+      await controller.login(mockLoginDto, mockResponse);
+      expect(mockResponse.cookie).toHaveBeenCalledWith(
+        'jwt',
+        'mockedAccessToken',
+        {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none',
+          maxAge: 24 * 60 * 60 * 1000,
+        },
+      );
+    });
+    it('should return user details after login', async () => {
+      const mockLoginDto = {
+        email: 'test@gmail.com',
+        password: 'password123',
+      };
+      const mockResponse = {
+        cookie: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      } as unknown as Response;
+
+      mockAuthService.login.mockResolvedValueOnce({
+        ...mockLoginDto,
+        id: 1,
+        access_token: 'mockedAccessToken',
+        role: 'user',
+      });
+      await controller.login(mockLoginDto, mockResponse);
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.send).toHaveBeenCalledWith({
+        id: 1,
+        email: mockLoginDto.email,
+        role: 'user',
+        message: 'User logged in successfully',
+      });
+    });
   });
   describe('logout', () => {
-    it.todo('should log out a user and clear the cookie');
-    it.todo('should return a success message after logout');
+    it('should log out a user and clear the cookie', async () => {
+      const mockResponse = {
+        clearCookie: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      } as unknown as Response;
+
+      await controller.logout(mockResponse);
+      expect(mockResponse.clearCookie).toHaveBeenCalledWith('jwt', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+      });
+    });
+    it('should return a success message after logout', async () => {
+      const mockResponse = {
+        clearCookie: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      } as unknown as Response;
+
+      await controller.logout(mockResponse);
+      expect(mockResponse.send).toHaveBeenCalledWith({
+        message: 'User logged out successfully',
+      });
+    });
   });
 });

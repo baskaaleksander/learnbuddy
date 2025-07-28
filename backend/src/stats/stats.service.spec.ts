@@ -7,24 +7,32 @@ import {
   createMockFlashcardProgress,
   createMockMaterial,
   createMockUser,
+  createQuizPartial,
+  createQuizResult,
 } from '../../test/helpers/test-data.helper';
 import { UnauthorizedException } from '@nestjs/common';
+import { MockDrizzle } from '../utils/types';
 
 describe('StatsService', () => {
   let service: StatsService;
-  let mockDrizzle: any;
+  let mockDrizzle: MockDrizzle;
 
   beforeEach(async () => {
     mockDrizzle = {
       select: jest.fn().mockReturnThis(),
+      insert: jest.fn().mockReturnThis(),
+      update: jest.fn().mockReturnThis(),
+      delete: jest.fn().mockReturnThis(),
       from: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       innerJoin: jest.fn().mockReturnThis(),
       orderBy: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      and: jest.fn().mockReturnThis(),
-      desc: jest.fn().mockReturnThis(),
+      offset: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      returning: jest.fn().mockReturnThis(),
+      values: jest.fn().mockReturnThis(),
+      set: jest.fn().mockReturnThis(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -109,7 +117,68 @@ describe('StatsService', () => {
     });
   });
   describe('getUserStats', () => {
-    it.todo('should return user stats');
+    it('should return user stats', async () => {
+      const mockUser = createMockUser();
+      const mockMaterial = createMockMaterial();
+      const mockAIOutput = createMockAIOutput();
+      const mockQuizPartial = createQuizPartial();
+
+      jest
+        .spyOn(service as any, 'getMaterialsWithAiOutputs')
+        .mockResolvedValue([
+          {
+            materials: mockMaterial,
+            ai_outputs: mockAIOutput,
+          },
+        ]);
+
+      jest.spyOn(service as any, 'getMaterialsCounts').mockReturnValue({
+        materialsCount: 1,
+        quizzesCount: mockAIOutput.type === 'quiz' ? 1 : 0,
+        flashcardsCount: mockAIOutput.type === 'flashcards' ? 1 : 0,
+        summariesCount: mockAIOutput.type === 'summary' ? 1 : 0,
+      });
+
+      jest.spyOn(service as any, 'getQuizStats').mockResolvedValue({
+        totalQuizResults: 1,
+      });
+
+      jest.spyOn(service as any, 'getFlashcardUserStats').mockResolvedValue({
+        totalFlashcardsKnown: 2,
+        totalFlashcardsToReview: 1,
+      });
+
+      jest.spyOn(service as any, 'getRecentActivity').mockResolvedValue({
+        recentlyCreatedAiOutputs: [
+          {
+            ...mockAIOutput,
+            material: mockMaterial,
+          },
+        ],
+        recentlyCreatedMaterials: [mockMaterial],
+      });
+
+      jest.spyOn(service as any, 'getQuizPartials').mockResolvedValue({
+        quizPartials: [mockQuizPartial],
+      });
+
+      const mockUserQuery = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([mockUser]),
+      };
+
+      mockDrizzle.select.mockReturnValue(mockUserQuery);
+
+      const stats = await service.getUserStats(mockUser.id);
+
+      expect(stats).toBeDefined();
+      expect(stats.materialsCount).toBe(1);
+      expect(stats.totalQuizResults).toBe(1);
+      expect(stats.totalFlashcardsKnown).toBe(2);
+      expect(stats.totalFlashcardsToReview).toBe(1);
+      expect(stats.recentlyCreatedAiOutputs).toHaveLength(1);
+      expect(stats.recentlyCreatedMaterials).toHaveLength(1);
+    });
     it('should throw UnauthorizedException if user does not exist', async () => {
       mockDrizzle.select.mockReturnValueOnce({
         from: jest.fn().mockReturnThis(),
