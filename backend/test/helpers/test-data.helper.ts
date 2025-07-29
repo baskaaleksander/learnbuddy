@@ -99,13 +99,13 @@ export const createQuizResult = () => {
     completedAt: new Date(),
   };
 };
-export const createMockMaterial = () => {
+export const createMockMaterial = (status?: 'processed' | 'pending') => {
   return {
     id: 'material-1',
     userId: 'user-1',
     title: 'Test Material',
     description: 'This is a test material',
-    status: 'processed',
+    status: status || 'processed',
     content: 'test-file.pdf',
     createdAt: new Date(),
   };
