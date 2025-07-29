@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { and, eq } from 'drizzle-orm';
-import { db } from 'src/database/drizzle.module';
-import { plans, subscriptions, users } from 'src/database/schema';
-import { ScheduledTaskService } from 'src/scheduled-task/scheduled-task.service';
+import { db } from '../database/drizzle.module';
+import { plans, subscriptions, users } from '../database/schema';
+import { ScheduledTaskService } from '../scheduled-task/scheduled-task.service';
 import Stripe from 'stripe';
 
 @Injectable()
@@ -43,6 +43,8 @@ export class WebhookService {
       case 'invoice.payment_failed':
         await this.handleInvoicePaymentFailed(event.data.object);
         break;
+      default:
+        throw new Error(`Unhandled event type: ${event.type}`);
     }
   }
 

@@ -278,3 +278,16 @@ export const createMockSubPlan = () => {
     createdAt: '2023-01-01T00:00:00Z',
   };
 };
+
+export const createMockSubscription = () => {
+  return {
+    id: 'sub_123',
+    userId: 'user-1',
+    planId: 'plan_123',
+    stripeSubscriptionId: 'sub_123',
+    status: 'active',
+    currentPeriodEnd: new Date(Date.now() + 2592000000),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+};

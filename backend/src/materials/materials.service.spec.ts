@@ -5,10 +5,14 @@ import {
   createMockMaterial,
 } from '../../test/helpers/test-data.helper';
 import { UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 describe('MaterialsService', () => {
   let service: MaterialsService;
   let mockDrizzle: any;
+  const mockConfigService = {
+    get: jest.fn(),
+  };
 
   beforeEach(async () => {
     mockDrizzle = {
