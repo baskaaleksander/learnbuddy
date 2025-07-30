@@ -1,9 +1,9 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { SummaryService } from './summary.service';
 import { UseGuards } from '@nestjs/common';
-import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
-import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
-import { PayloadDto } from 'src/auth/dtos/payload.dto';
+import { GqlAuthGuard } from '../guards/gql-auth.guard';
+import { CurrentUser } from '../decorators/gql-current-user.decorator';
+import { PayloadDto } from '../auth/dtos/payload.dto';
 import { PaginatedSummaryType, SummaryType } from './graphql/summary.graphql';
 
 @Resolver(() => SummaryType)

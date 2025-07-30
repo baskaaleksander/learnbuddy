@@ -1,6 +1,6 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
-import { AIOutputType } from 'src/graphql/ai-output.graphql';
-import { PaginatedResponse } from 'src/graphql/pagination.graphql';
+import { AIOutputType } from '../../graphql/ai-output.graphql';
+import { PaginatedResponse } from '../../graphql/pagination.graphql';
 
 export enum MaterialStatus {
   PENDING = 'pending',

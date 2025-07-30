@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OpenAI } from 'openai';
-import {
-  FlashcardContent,
-  Quiz,
-  SummaryAiOutputContent,
-} from 'src/utils/types';
+import { FlashcardContent, Quiz, SummaryAiOutputContent } from '../utils/types';
 
 @Injectable()
 export class OpenAiService {

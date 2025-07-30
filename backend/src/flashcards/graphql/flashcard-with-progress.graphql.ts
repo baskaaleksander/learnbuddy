@@ -3,7 +3,7 @@ import {
   FlashcardProgressStatus,
   FlashcardStats,
 } from '../graphql/flashcard-progress.graphql';
-import { MaterialType } from 'src/materials/graphql/materials.graphql';
+import { MaterialType } from '../../materials/graphql/materials.graphql';
 
 @ObjectType()
 export class FlashcardWithProgressType {

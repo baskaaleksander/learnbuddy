@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { PaginatedResponse } from 'src/graphql/pagination.graphql';
+import { PaginatedResponse } from '../../graphql/pagination.graphql';
 
 @ObjectType()
 export class QuizAnswerType {

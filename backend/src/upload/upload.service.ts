@@ -2,8 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuid } from 'uuid';
-import { db } from 'src/database/drizzle.module';
-import { materials } from 'src/database/schema';
+import { db } from '../database/drizzle.module';
+import { materials } from '../database/schema';
 
 @Injectable()
 export class UploadService {

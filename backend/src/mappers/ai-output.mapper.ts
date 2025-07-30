@@ -1,5 +1,5 @@
 import { InferModel } from 'drizzle-orm';
-import { aiOutputs } from 'src/database/schema';
+import { aiOutputs } from '../database/schema';
 
 export type MaterialDb = InferModel<typeof aiOutputs>;
 

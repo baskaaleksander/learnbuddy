@@ -1,6 +1,6 @@
 import { Module, Global } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
-import { setupBullBoard } from 'src/utils/setupBullBoard'
+import { setupBullBoard } from '../utils/setupBullBoard';
 @Global()
 @Module({
   imports: [

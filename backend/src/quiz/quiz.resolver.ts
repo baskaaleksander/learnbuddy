@@ -1,8 +1,8 @@
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { PayloadDto } from 'src/auth/dtos/payload.dto';
-import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
-import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
+import { PayloadDto } from '../auth/dtos/payload.dto';
+import { CurrentUser } from '../decorators/gql-current-user.decorator';
+import { GqlAuthGuard } from '../guards/gql-auth.guard';
 import { QuizService } from './quiz.service';
 import {
   PaginatedQuizResultType,

@@ -6,8 +6,13 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+const isTestEnv = process.env.NODE_ENV === 'test';
+const connectionString = isTestEnv
+  ? process.env.TEST_DATABASE_URL
+  : process.env.DATABASE_URL;
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
 });
 
 export const db = drizzle(pool, { schema });

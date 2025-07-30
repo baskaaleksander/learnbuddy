@@ -1,5 +1,5 @@
 import { InferModel } from 'drizzle-orm';
-import { quizPartials } from 'src/database/schema';
+import { quizPartials } from '../../database/schema';
 
 export type QuizPartialDb = InferModel<typeof quizPartials>;
 

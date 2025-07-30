@@ -2,8 +2,8 @@ import { Controller, Get, Param, Res, UseGuards } from '@nestjs/common';
 import { ExportService } from './export.service';
 import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
-import { CurrentUser } from 'src/decorators/current-user.decorator';
-import { PayloadDto } from 'src/auth/dtos/payload.dto';
+import { CurrentUser } from '../decorators/current-user.decorator';
+import { PayloadDto } from '../auth/dtos/payload.dto';
 
 @Controller('export')
 export class ExportController {

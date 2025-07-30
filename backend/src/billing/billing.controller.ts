@@ -16,8 +16,8 @@ import { BillingService } from './billing.service';
 import { WebhookService } from './webhook.service';
 import { CreateCheckoutSessionDto } from './dtos/create-checkout-session.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { CurrentUser } from 'src/decorators/current-user.decorator';
-import { PayloadDto } from 'src/auth/dtos/payload.dto';
+import { CurrentUser } from '../decorators/current-user.decorator';
+import { PayloadDto } from '../auth/dtos/payload.dto';
 import { NewPlanDto } from './dtos/new-plan.dto';
 
 @Controller('billing')

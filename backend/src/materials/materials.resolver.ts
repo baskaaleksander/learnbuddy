@@ -5,9 +5,9 @@ import {
 } from './graphql/materials.graphql';
 import { MaterialsService } from './materials.service';
 import { UseGuards } from '@nestjs/common';
-import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
-import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
-import { PayloadDto } from 'src/auth/dtos/payload.dto';
+import { GqlAuthGuard } from '../guards/gql-auth.guard';
+import { CurrentUser } from '../decorators/gql-current-user.decorator';
+import { PayloadDto } from '../auth/dtos/payload.dto';
 import { CreateMaterialInput } from './dtos/create-material.input';
 import { EditMaterialInput } from './dtos/edit-material.input';
 

@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { BillingService } from './billing.service';
 import { BillingController } from './billing.controller';
 import { WebhookService } from './webhook.service';
-import { RedisService } from 'src/redis/redis.service';
-import { ScheduledTaskService } from 'src/scheduled-task/scheduled-task.service';
+import { RedisService } from '../redis/redis.service';
+import { ScheduledTaskService } from '../scheduled-task/scheduled-task.service';
 
 @Module({
   providers: [

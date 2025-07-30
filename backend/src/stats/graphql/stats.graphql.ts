@@ -1,7 +1,7 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { AIOutputType } from 'src/graphql/ai-output.graphql';
-import { MaterialType } from 'src/materials/graphql/materials.graphql';
-import { QuizPartialType } from 'src/quiz/graphql/quiz-partial.graphql';
+import { AIOutputType } from '../../graphql/ai-output.graphql';
+import { MaterialType } from '../../materials/graphql/materials.graphql';
+import { QuizPartialType } from '../../quiz/graphql/quiz-partial.graphql';
 
 @ObjectType()
 export class UserStats {

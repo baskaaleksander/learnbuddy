@@ -4,11 +4,11 @@ import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EmailModule } from 'src/email/email.module';
+import { EmailModule } from '../email/email.module';
 import { RedisService } from '../redis/redis.service';
 import { UserService } from '../user/user.service';
-import { ScheduledTaskService } from 'src/scheduled-task/scheduled-task.service';
-import { BillingService } from 'src/billing/billing.service';
+import { ScheduledTaskService } from '../scheduled-task/scheduled-task.service';
+import { BillingService } from '../billing/billing.service';
 
 @Module({
   imports: [

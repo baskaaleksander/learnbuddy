@@ -28,7 +28,7 @@ import { ScheduledTaskModule } from './scheduled-task/scheduled-task.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: `.env${process.env.NODE_ENV ? `.${process.env.NODE_ENV}` : ''}`,
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       context: ({ req, res }) => ({ req, res }),

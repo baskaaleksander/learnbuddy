@@ -1,10 +1,10 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { PayloadDto } from 'src/auth/dtos/payload.dto';
-import { CurrentUser } from 'src/decorators/gql-current-user.decorator';
-import { AIOutputType } from 'src/graphql/ai-output.graphql';
+import { PayloadDto } from '../auth/dtos/payload.dto';
+import { CurrentUser } from '../decorators/gql-current-user.decorator';
+import { AIOutputType } from '../graphql/ai-output.graphql';
 import { FlashcardsService } from './flashcards.service';
 import { UseGuards } from '@nestjs/common';
-import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
+import { GqlAuthGuard } from '../guards/gql-auth.guard';
 import { FlashcardProgressStatus } from './graphql/flashcard-progress.graphql';
 import {
   FlashcardType,

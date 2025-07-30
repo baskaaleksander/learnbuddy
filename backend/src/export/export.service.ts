@@ -1,8 +1,8 @@
 import { Inject, Injectable, NotFoundException, Res } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
-import { db } from 'src/database/drizzle.module';
-import { aiOutputs, materials } from 'src/database/schema';
-import { FlashcardContent, SummaryAiOutputContent } from 'src/utils/types';
+import { db } from '../database/drizzle.module';
+import { aiOutputs, materials } from '../database/schema';
+import { FlashcardContent, SummaryAiOutputContent } from '../utils/types';
 import * as stringify from 'csv-stringify';
 import { Response } from 'express';
 import * as PDFDocument from 'pdfkit';
