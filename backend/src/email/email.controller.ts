@@ -4,10 +4,10 @@ import { SendEmailDto } from './dtos/send-email.dto';
 
 @Controller('email')
 export class EmailController {
-    constructor(private readonly emailService: EmailService) {}
+  constructor(private readonly emailService: EmailService) {}
 
-    @Post('send')
-    async sendEmail(@Body() body: SendEmailDto) {
-        return this.emailService.sendEmail(body.to, body.subject, body.text);
-    }
+  @Post('send')
+  async sendEmail(@Body() body: SendEmailDto) {
+    return this.emailService.sendEmail(body.to, body.subject, body.text);
+  }
 }

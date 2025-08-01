@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import * as dotenv from 'dotenv';
-const postgres = require('postgres');
-import { drizzle } from 'drizzle-orm/postgres-js';
+import * as postgres from 'postgres';
+import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as schema from '../src/database/schema';
 
 process.env.NODE_ENV = 'test';
@@ -45,7 +45,10 @@ export async function setupTestDatabase() {
   }
 }
 
-export async function cleanupTestDatabase(db: any, client: any) {
+export async function cleanupTestDatabase(
+  db: PostgresJsDatabase<typeof schema>,
+  client: postgres.Sql,
+) {
   try {
     console.log('Cleaning up test database...');
 

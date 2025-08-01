@@ -3,6 +3,6 @@ import { StatsService } from './stats.service';
 import { StatsResolver } from './stats.resolver';
 
 @Module({
-  providers: [StatsService, StatsResolver]
+  providers: [StatsService, StatsResolver],
 })
 export class StatsModule {}

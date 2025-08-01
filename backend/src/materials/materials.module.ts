@@ -3,6 +3,6 @@ import { MaterialsResolver } from './materials.resolver';
 import { MaterialsService } from './materials.service';
 
 @Module({
-  providers: [MaterialsResolver, MaterialsService]
+  providers: [MaterialsResolver, MaterialsService],
 })
 export class MaterialsModule {}
