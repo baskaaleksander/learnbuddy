@@ -7,6 +7,12 @@ import * as schema from '../src/database/schema';
 process.env.NODE_ENV = 'test';
 dotenv.config({ path: '.env.test' });
 
+export const client = postgres(
+  process.env.TEST_DATABASE_URL || 'postgres://localhost:5432/learnbuddy_test',
+);
+
+export const db = drizzle(client, { schema });
+
 console.log('Starting E2E tests with separate database');
 
 async function ensureE2EDatabase() {
@@ -28,13 +34,6 @@ export async function setupTestDatabase() {
   try {
     await ensureE2EDatabase();
 
-    const client = postgres(
-      process.env.TEST_DATABASE_URL ||
-        'postgres://localhost:5432/learnbuddy_test',
-    );
-
-    const db = drizzle(client, { schema });
-
     execSync('npm run db:e2e:setup');
 
     console.log('Database schema pushed successfully');
@@ -48,7 +47,7 @@ export async function setupTestDatabase() {
 
 export async function cleanupTestDatabase(db: any, client: any) {
   try {
-    console.log('🧹 Cleaning up test database...');
+    console.log('Cleaning up test database...');
 
     await db.delete(schema.flashcardProgress);
     await db.delete(schema.quizResults);

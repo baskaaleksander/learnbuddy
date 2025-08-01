@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuid } from 'uuid';
@@ -28,6 +28,9 @@ export class UploadService {
   }
 
   async uploadFile(file: Express.Multer.File, userId: string): Promise<any> {
+    if (file.mimetype !== 'application/pdf') {
+      throw new BadRequestException('Only PDF files are allowed for upload');
+    }
     const fileKey = `${uuid()}-${file.originalname}`;
 
     const command = new PutObjectCommand({
