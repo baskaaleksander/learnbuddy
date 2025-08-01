@@ -261,6 +261,22 @@ describe('Materials (e2e)', () => {
     });
   });
 
+  describe('Material Processing Edge Cases', () => {
+    it.todo('should handle concurrent uploads from same user');
+    it.todo('should respect file size limits');
+    it.todo('should handle network timeouts during upload');
+    it.todo('should clean up failed uploads properly');
+    it.todo('should handle AI service rate limits');
+    it.todo('should process different file formats (PDF, DOCX, TXT)');
+  });
+
+  describe('Token Usage & Billing Integration', () => {
+    it.todo('should deduct tokens after successful processing');
+    it.todo('should not charge tokens for failed processing');
+    it.todo('should block processing when user has no tokens');
+    it.todo('should handle premium vs free tier differences');
+  });
+
   afterAll(async () => {
     await cleanupTestDatabase(dbHelper.db, dbHelper.client);
     await app.close();
