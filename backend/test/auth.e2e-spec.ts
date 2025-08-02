@@ -49,6 +49,7 @@ describe('Auth (e2e)', () => {
       expect(response.body).toHaveProperty('id');
       expect(response.body).toHaveProperty('email');
       expect(response.body).toHaveProperty('firstName');
+      expect(response.body).toHaveProperty('accessToken');
     });
     it('should not allow duplicate user registration', async () => {
       const email = `duplicateuser${Date.now()}@example.com`;

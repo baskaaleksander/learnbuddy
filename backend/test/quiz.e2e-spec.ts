@@ -52,6 +52,7 @@ describe('Quiz (e2e)', () => {
       const response = await request(app.getHttpServer())
         .post('/graphql')
         .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
         .send({ query: createQuizMutation })
         .expect(200);
 
@@ -69,6 +70,7 @@ describe('Quiz (e2e)', () => {
       const response = await request(app.getHttpServer())
         .post('/graphql')
         .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
         .send({ query: createQuizMutation });
 
       expect(response.body.errors).toBeDefined();
@@ -103,6 +105,7 @@ describe('Quiz (e2e)', () => {
       const response = await request(app.getHttpServer())
         .post('/graphql')
         .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
         .send({ query: createQuizMutation });
 
       expect(response.body.errors).toBeDefined();

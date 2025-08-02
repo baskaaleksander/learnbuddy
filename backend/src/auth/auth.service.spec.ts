@@ -212,7 +212,8 @@ describe('AuthService', () => {
         firstName: 'Test',
       });
       expect(result).toEqual({
-        access_token: 'mock-jwt-token',
+        accessToken: 'mock-jwt-token',
+        refreshToken: 'mock-jwt-token',
         email: 'test@example.com',
         firstName: 'Test',
         id: '123',
@@ -319,7 +320,8 @@ describe('AuthService', () => {
       });
 
       expect(result).toEqual({
-        access_token: 'mock-jwt-token',
+        accessToken: 'mock-jwt-token',
+        refreshToken: 'mock-jwt-token',
         email: mockUserData.email,
         id: mockUserData.id,
         role: mockUserData.role,

@@ -43,6 +43,7 @@ describe('Materials (e2e)', () => {
       const uploadResponse = await request(app.getHttpServer())
         .post('/upload')
         .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
         .attach('file', 'test/fixtures/sample.pdf')
         .expect(201);
       const materialId = uploadResponse.body.materialId;
@@ -67,6 +68,7 @@ describe('Materials (e2e)', () => {
       await request(app.getHttpServer())
         .post('/graphql')
         .set('Cookie', `jwt=${testUser.token}`)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
         .send({
           query: mutationCreateMaterial,
         })
@@ -117,6 +119,7 @@ describe('Materials (e2e)', () => {
       const response = await request(app.getHttpServer())
         .post('/graphql')
         .set('Cookie', `jwt=${testUser.token}`)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
         .send({
           query: materialsQuery,
         })
@@ -146,6 +149,7 @@ describe('Materials (e2e)', () => {
       const updateResponse = await request(app.getHttpServer())
         .post('/graphql')
         .set('Cookie', `jwt=${testUser.token}`)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
         .send({
           query: updateMaterialMutation,
         })
@@ -154,6 +158,7 @@ describe('Materials (e2e)', () => {
       const materialAfterUpdate = await request(app.getHttpServer())
         .post('/graphql')
         .set('Cookie', `jwt=${testUser.token}`)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
         .send({
           query: getMaterialQuery,
         })
@@ -177,6 +182,7 @@ describe('Materials (e2e)', () => {
       const response = await request(app.getHttpServer())
         .post('/graphql')
         .set('Cookie', `jwt=${testUser.token}`)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
         .send({
           query: deleteMaterialMutation,
         })
@@ -195,6 +201,7 @@ describe('Materials (e2e)', () => {
       const getMaterialResponse = await request(app.getHttpServer())
         .post('/graphql')
         .set('Cookie', `jwt=${testUser.token}`)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
         .send({
           query: getMaterialQuery,
         });
@@ -219,6 +226,7 @@ describe('Materials (e2e)', () => {
       const response = await request(app.getHttpServer())
         .post('/graphql')
         .set('Cookie', `jwt=${testUser.token}`)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
         .send({
           query: getMaterialQuery,
         });

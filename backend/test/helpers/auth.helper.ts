@@ -25,7 +25,8 @@ export async function createUserAndLogin(app: INestApplication) {
 
   return {
     user: registerResponse.body,
-    token: token.replace('jwt=', ''),
+    refreshToken: token.replace('jwt=', ''),
+    accessToken: registerResponse.body.accessToken,
     fullCookie: token,
   };
 }
