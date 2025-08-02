@@ -1,13 +1,13 @@
-import { cleanupTestDatabase, setupTestDatabase } from './setup-e2e';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import * as request from 'supertest';
+import { DatabaseHelper } from './helpers/database.helper';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
-  let dbHelper: any;
+  let dbHelper: DatabaseHelper;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -32,7 +32,9 @@ describe('Auth (e2e)', () => {
 
     await app.init();
 
-    dbHelper = await setupTestDatabase();
+    dbHelper = new DatabaseHelper();
+
+    await dbHelper.setupDatabase();
   });
   describe('User Registration', () => {
     it('should register a new user', async () => {
@@ -140,7 +142,7 @@ describe('Auth (e2e)', () => {
   });
 
   afterAll(async () => {
-    await cleanupTestDatabase(dbHelper.db, dbHelper.client);
+    await dbHelper.cleanupTestDatabase();
     await app.close();
   });
 });

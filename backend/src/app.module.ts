@@ -73,8 +73,4 @@ import { ScheduledTaskModule } from './scheduled-task/scheduled-task.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule implements NestModule {
-  constructor() {}
-
-  configure(consumer: MiddlewareConsumer) {}
-}
+export class AppModule {}
