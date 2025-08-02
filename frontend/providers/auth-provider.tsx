@@ -1,4 +1,5 @@
 "use client";
+import { useAuthStore } from "@/utils/authStore";
 import api from "@/utils/axios";
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -48,6 +49,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const checkAuth = async () => {
       setError(null);
       setLoading(true);
+
       try {
         const res = await api.get("/auth/me");
         setUser(res.data);
@@ -76,6 +78,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         firstName: user.data.firstName,
         tokensUsed: user.data.tokensUsed,
       });
+      useAuthStore.getState().setAccessToken(user.data.accessToken);
     } catch (error) {
       setError(getErrorMessage(error));
     } finally {
@@ -89,6 +92,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       await api.post("/auth/logout");
       setUser(null);
+      useAuthStore.getState().clear();
     } catch (error) {
       setError(getErrorMessage(error));
     } finally {
@@ -116,6 +120,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         firstName: user.data.firstName,
         tokensUsed: user.data.tokensUsed,
       });
+      useAuthStore.getState().setAccessToken(user.data.accessToken);
     } catch (error) {
       setError(getErrorMessage(error));
     } finally {

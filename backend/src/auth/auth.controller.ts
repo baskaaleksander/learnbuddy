@@ -4,11 +4,13 @@ import {
   Get,
   Param,
   Post,
+  Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { UserCredentialsDto } from './dtos/user-credentials.dto';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { PayloadDto } from './dtos/payload.dto';
@@ -22,15 +24,16 @@ export class AuthController {
   async register(@Body() body: UserRegisterDto, @Res() res: Response) {
     const registerRes = await this.authService.register(body);
 
-    res.cookie('jwt', registerRes.access_token, {
+    res.cookie('jwt', registerRes.refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     return res.status(201).send({
       message: 'User created successfully',
+      accessToken: registerRes.accessToken,
       email: registerRes.email,
       id: registerRes.id,
       role: registerRes.role,
@@ -42,15 +45,16 @@ export class AuthController {
   async login(@Body() body: UserCredentialsDto, @Res() res: Response) {
     const loginRes = await this.authService.login(body);
 
-    res.cookie('jwt', loginRes.access_token, {
+    res.cookie('jwt', loginRes.refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     return res.status(200).send({
       message: 'User logged in successfully',
+      accessToken: loginRes.accessToken,
       email: loginRes.email,
       id: loginRes.id,
       role: loginRes.role,
@@ -75,6 +79,19 @@ export class AuthController {
   @Get('me')
   async me(@CurrentUser() user: PayloadDto) {
     return this.authService.getMe(user.id);
+  }
+
+  @Get('refresh-token')
+  async refreshToken(@Req() req: Request) {
+    const refreshToken = req.cookies?.jwt;
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token found');
+    }
+
+    const newTokens = await this.authService.refreshToken(refreshToken);
+
+    return newTokens;
   }
 
   @Post('verify-email/:emailVerificationToken')

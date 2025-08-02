@@ -2,13 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { cleanupTestDatabase, setupTestDatabase } from '../test/setup-e2e';
 import { createUserAndLogin } from '../test/helpers/auth.helper';
 import * as cookieParser from 'cookie-parser';
-import { createTestMaterial } from './helpers/database.helper';
+import { DatabaseHelper } from './helpers/database.helper';
 describe('Materials (e2e)', () => {
   let app: INestApplication;
-  let dbHelper: any;
+  let dbHelper: DatabaseHelper;
   let testUser: any;
 
   beforeAll(async () => {
@@ -33,8 +32,8 @@ describe('Materials (e2e)', () => {
     app.use(cookieParser());
 
     await app.init();
-
-    dbHelper = await setupTestDatabase();
+    dbHelper = new DatabaseHelper();
+    await dbHelper.setupDatabase();
 
     testUser = await createUserAndLogin(app);
   });
@@ -278,7 +277,7 @@ describe('Materials (e2e)', () => {
   });
 
   afterAll(async () => {
-    await cleanupTestDatabase(dbHelper.db, dbHelper.client);
+    await dbHelper.cleanupTestDatabase();
     await app.close();
   });
 });

@@ -85,8 +85,13 @@ export class AuthService {
     );
 
     return {
-      access_token: this.jwtService.sign(payload, {
+      refreshToken: this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
+        expiresIn: '30d',
+      }),
+      accessToken: this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '15m',
       }),
       email: res[0].email,
       id: res[0].id,
@@ -122,14 +127,55 @@ export class AuthService {
     };
 
     return {
-      access_token: this.jwtService.sign(payload, {
+      accessToken: this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
+        expiresIn: '15m',
+      }),
+      refreshToken: this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '30d',
       }),
       email: payload.email,
       id: payload.id,
       role: payload.role,
       firstName: payload.firstName,
       tokensUsed: payload.tokensUsed,
+    };
+  }
+
+  async refreshToken(token: string) {
+    const payload = this.jwtService.verify(token, {
+      secret: process.env.JWT_SECRET,
+    });
+
+    if (!payload) {
+      throw new ConflictException('Invalid token');
+    }
+
+    const user = await this.userService.getUserById(payload.id);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const newPayload = {
+      email: user.email,
+      id: user.id,
+      role: user.role,
+      firstName: user.firstName,
+      tokensUsed: user.tokensUsed,
+    };
+
+    return {
+      accessToken: this.jwtService.sign(newPayload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '15m',
+      }),
+      email: newPayload.email,
+      id: newPayload.id,
+      role: newPayload.role,
+      firstName: newPayload.firstName,
+      tokensUsed: newPayload.tokensUsed,
     };
   }
 
