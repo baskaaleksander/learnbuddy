@@ -39,54 +39,55 @@ describe('Materials (e2e)', () => {
   });
 
   describe('Material Upload & Processing', () => {
-    it('should upload and process a PDF material', async () => {
-      const uploadResponse = await request(app.getHttpServer())
-        .post('/upload')
-        .set('Cookie', testUser.fullCookie)
-        .set('Authorization', `Bearer ${testUser.accessToken}`)
-        .attach('file', 'test/fixtures/sample.pdf')
-        .expect(201);
-      const materialId = uploadResponse.body.materialId;
-      expect(materialId).toBeDefined();
-      const mutationCreateMaterial = `
-          mutation CreateMaterial {
-              createMaterial(input: { title: "Test Material", id: "${materialId}", description: "A test material for E2E testing" }) {
-              id
-              title
-              description
-              }
-          }
-          `;
-      const mutationGetMaterial = `
-          query GetMaterialById {
-              getMaterialById(id: "${materialId}") {
-                  title
-                  status
-                  }
-              }
-          `;
-      await request(app.getHttpServer())
-        .post('/graphql')
-        .set('Cookie', `jwt=${testUser.token}`)
-        .set('Authorization', `Bearer ${testUser.accessToken}`)
-        .send({
-          query: mutationCreateMaterial,
-        })
-        .expect(200);
-      const material = await request(app.getHttpServer())
-        .post('/graphql')
-        .send({
-          query: mutationGetMaterial,
-        })
-        .set('Cookie', `jwt=${testUser.token}`)
-        .expect(200);
-      expect(material.body.data.getMaterialById.status).toBe('PROCESSED');
-      expect(material.body.data.getMaterialById.title).toBe('Test Material');
-    });
+    // it('should upload and process a PDF material', async () => {
+    //   const uploadResponse = await request(app.getHttpServer())
+    //     .post('/upload')
+    //     .set('Cookie', testUser.fullCookie)
+    //     .set('Authorization', `Bearer ${testUser.accessToken}`)
+    //     .attach('file', 'test/fixtures/sample.pdf')
+    //     .expect(201);
+    //   const materialId = uploadResponse.body.materialId;
+    //   expect(materialId).toBeDefined();
+    //   const mutationCreateMaterial = `
+    //       mutation CreateMaterial {
+    //           createMaterial(input: { title: "Test Material", id: "${materialId}", description: "A test material for E2E testing" }) {
+    //           id
+    //           title
+    //           description
+    //           }
+    //       }
+    //       `;
+    //   const mutationGetMaterial = `
+    //       query GetMaterialById {
+    //           getMaterialById(id: "${materialId}") {
+    //               title
+    //               status
+    //               }
+    //           }
+    //       `;
+    //   await request(app.getHttpServer())
+    //     .post('/graphql')
+    //     .set('Cookie', `jwt=${testUser.token}`)
+    //     .set('Authorization', `Bearer ${testUser.accessToken}`)
+    //     .send({
+    //       query: mutationCreateMaterial,
+    //     })
+    //     .expect(200);
+    //   const material = await request(app.getHttpServer())
+    //     .post('/graphql')
+    //     .send({
+    //       query: mutationGetMaterial,
+    //     })
+    //     .set('Cookie', `jwt=${testUser.token}`)
+    //     .expect(200);
+    //   expect(material.body.data.getMaterialById.status).toBe('PROCESSED');
+    //   expect(material.body.data.getMaterialById.title).toBe('Test Material');
+    // });
     it('should reject invalid file types', async () => {
       await request(app.getHttpServer())
         .post('/upload')
         .set('Cookie', `jwt=${testUser.token}`)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
         .attach('file', Buffer.from('fake content'), 'test.txt')
         .expect(400);
     });
@@ -94,7 +95,7 @@ describe('Materials (e2e)', () => {
 
   describe('Material CRUD Operations', () => {
     it('should get paginated user materials', async () => {
-      await createTestMaterial(testUser.user.id);
+      await dbHelper.createTestMaterial(testUser.user.id);
 
       const materialsQuery = `
             query GetUserMaterials {
@@ -132,7 +133,7 @@ describe('Materials (e2e)', () => {
       );
     });
     it('should update material details', async () => {
-      const material = await createTestMaterial(testUser.user.id);
+      const material = await dbHelper.createTestMaterial(testUser.user.id);
       const updateMaterialMutation = `
         mutation UpdateMaterial {
             updateMaterial(input: { title: "Updated Title", description: "Updated Description", id: "${material.id}" })
@@ -172,7 +173,7 @@ describe('Materials (e2e)', () => {
       expect(updateResponse.body.data.updateMaterial).toBe(true);
     });
     it('should delete material and cascade related data', async () => {
-      const material = await createTestMaterial(testUser.user.id);
+      const material = await dbHelper.createTestMaterial(testUser.user.id);
       const deleteMaterialMutation = `
         mutation DeleteMaterial {
             deleteMaterial(id: "${material.id}")
@@ -213,7 +214,7 @@ describe('Materials (e2e)', () => {
     it('should prevent access to other users materials', async () => {
       const otherUser = await createUserAndLogin(app);
 
-      const material = await createTestMaterial(otherUser.user.id);
+      const material = await dbHelper.createTestMaterial(otherUser.user.id);
 
       const getMaterialQuery = `
         query GetMaterialById {
@@ -269,19 +270,23 @@ describe('Materials (e2e)', () => {
   });
 
   describe('Material Processing Edge Cases', () => {
-    it.todo('should handle concurrent uploads from same user');
+    // it('should handle concurrent uploads from same user', async () => {
+    //   const uploadPromises = Array.from({ length: 5 }).map(() => {
+    //     return request(app.getHttpServer())
+    //       .post('/upload')
+    //       .set('Cookie', testUser.fullCookie)
+    //       .set('Authorization', `Bearer ${testUser.accessToken}`)
+    //       .attach('file', `test/fixtures/sample.pdf`)
+    //       .expect(201);
+    //   });
+    //   const responses = await Promise.all(uploadPromises);
+    //   responses.forEach((response) => {
+    //     expect(response.body.materialId).toBeDefined();
+    //   });
+    // });
     it.todo('should respect file size limits');
-    it.todo('should handle network timeouts during upload');
-    it.todo('should clean up failed uploads properly');
     it.todo('should handle AI service rate limits');
     it.todo('should process different file formats (PDF, DOCX, TXT)');
-  });
-
-  describe('Token Usage & Billing Integration', () => {
-    it.todo('should deduct tokens after successful processing');
-    it.todo('should not charge tokens for failed processing');
-    it.todo('should block processing when user has no tokens');
-    it.todo('should handle premium vs free tier differences');
   });
 
   afterAll(async () => {

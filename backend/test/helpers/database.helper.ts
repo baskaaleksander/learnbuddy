@@ -1,5 +1,6 @@
 import { execSync } from 'child_process';
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { eq } from 'drizzle-orm';
 import * as postgres from 'postgres';
 import * as schema from '../../src/database/schema';
 
@@ -47,7 +48,7 @@ export class DatabaseHelper {
     try {
       await this.ensureDatabase();
 
-      execSync('npm run db:e2e:setup', { stdio: 'inherit' });
+      execSync('npm run db:e2e:setup');
 
       console.log('Database schema pushed successfully');
 
@@ -96,6 +97,24 @@ export class DatabaseHelper {
       }
       throw error;
     }
+  }
+
+  public async billTokensForUser(userId: string, tokens: number) {
+    const user = await this.db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, userId))
+      .limit(1);
+
+    if (user.length === 0) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+
+    await this.db
+      .update(schema.users)
+      .set({ tokensUsed: tokens })
+      .where(eq(schema.users.id, userId))
+      .execute();
   }
 
   public async createTestMaterial(userId: string) {

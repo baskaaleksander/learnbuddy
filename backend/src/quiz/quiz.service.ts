@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -381,7 +382,7 @@ export class QuizService {
       );
 
     if (existingQuiz.length > 0) {
-      throw new Error('Quiz already exists for this material');
+      throw new ConflictException('Quiz already exists for this material');
     }
 
     await this.billingService.useTokens(userId, 2);
