@@ -170,4 +170,26 @@ export class DatabaseHelper {
       .returning();
     return createdQuiz;
   }
+
+  public async createTestQuizResult(
+    quizId: string,
+    userId: string,
+    materialId: string,
+    answers: string,
+  ) {
+    const quizResult = {
+      userId,
+      materialId,
+      aiOutputId: quizId,
+      score: 2,
+      totalQuestions: 2,
+      answers,
+    };
+
+    const [createdQuizResult] = await this.db
+      .insert(schema.quizResults)
+      .values(quizResult)
+      .returning();
+    return createdQuizResult;
+  }
 }

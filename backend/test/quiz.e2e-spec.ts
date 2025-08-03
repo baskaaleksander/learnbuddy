@@ -253,7 +253,7 @@ describe('Quiz (e2e)', () => {
     });
     it('should save quiz partial progress if quiz not completed', async () => {
       const material = await dbHelper.createTestMaterial(testUser.user.id);
-      const quiz = await dbHelper.createTestQuiz(material.id, testUser.user.id);
+      await dbHelper.createTestQuiz(material.id, testUser.user.id);
 
       const getQuizQuery = `
         query GetQuizzesByMaterial {
@@ -749,14 +749,140 @@ describe('Quiz (e2e)', () => {
   });
 
   describe('Quiz Deletion', () => {
-    it.todo('should delete a quiz');
-    it.todo('should not delete a quiz for a non-existent quiz');
-    it.todo('should not delete a quiz without authentication');
-    it.todo(
-      'should not delete a quiz for a quiz that does not belong to the user',
-    );
-    it.todo('should cascade delete quiz progress when deleting quiz');
-    it.todo('should not delete quiz if user has active session');
+    it('should delete a quiz', async () => {
+      const material = await dbHelper.createTestMaterial(testUser.user.id);
+      await dbHelper.createTestQuiz(material.id, testUser.user.id);
+
+      const deleteQuizMutation = `
+        mutation DeleteQuiz {
+          deleteQuiz(id: "${material.id}")
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({
+          query: deleteQuizMutation,
+        });
+
+      console.log(response.body);
+
+      expect(response.body.data.deleteQuiz).toBe(true);
+    });
+    it('should not delete a quiz for a non-existent quiz', async () => {
+      const deleteQuizMutation = `
+        mutation DeleteQuiz {
+          deleteQuiz(id: "non-existent-quiz-id")
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({
+          query: deleteQuizMutation,
+        });
+
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.data).toBeNull();
+    });
+    it('should not delete a quiz without authentication', async () => {
+      const deleteQuizMutation = `
+        mutation DeleteQuiz {
+          deleteQuiz(id: "non-existent-quiz-id")
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: deleteQuizMutation,
+        });
+
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.data).toBeNull();
+    });
+    it('should not delete a quiz for a quiz that does not belong to the user', async () => {
+      const otherUser = await createUserAndLogin(app);
+      const material = await dbHelper.createTestMaterial(otherUser.user.id);
+      const quiz = await dbHelper.createTestQuiz(
+        material.id,
+        otherUser.user.id,
+      );
+      const deleteQuizMutation = `
+        mutation DeleteQuiz {
+          deleteQuiz(id: "${quiz.id}")
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({
+          query: deleteQuizMutation,
+        });
+
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.data).toBeNull();
+    });
+    it('should cascade delete quiz results when deleting quiz', async () => {
+      const material = await dbHelper.createTestMaterial(testUser.user.id);
+      const quiz = await dbHelper.createTestQuiz(material.id, testUser.user.id);
+      const answers = [
+        {
+          question: 1,
+          answer: 'Wykazanie umiejętności zdobytych podczas studiów',
+        },
+        {
+          question: 2,
+          answer:
+            'Ponieważ może to uczynić ją przygodą z wartościowymi wnioskami',
+        },
+      ];
+      const quizResult = await dbHelper.createTestQuizResult(
+        quiz.id,
+        testUser.user.id,
+        material.id,
+        JSON.stringify(answers),
+      );
+
+      const deleteQuizMutation = `
+          mutation DeleteQuiz {
+            deleteQuiz(id: "${material.id}")
+          }
+        `;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({
+          query: deleteQuizMutation,
+        });
+
+      expect(response.body.data.deleteQuiz).toBe(true);
+
+      const getQuizResultQuery = `
+        query GetQuizResultById {
+          getQuizResultById(id: ${quizResult.id}) {
+              id
+          }
+      }
+      `;
+
+      const quizResultResponse = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({ query: getQuizResultQuery });
+
+      expect(quizResultResponse.body.data).toBeUndefined();
+      expect(quizResultResponse.body.errors).toBeDefined();
+    });
   });
 
   describe('Quiz Progress', () => {
