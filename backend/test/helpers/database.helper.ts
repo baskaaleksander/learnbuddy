@@ -70,7 +70,6 @@ export class DatabaseHelper {
       await this.db.delete(schema.flashcards);
 
       await this.db.delete(schema.aiOutputs);
-
       await this.db.delete(schema.materials);
 
       await this.db.delete(schema.subscriptions);

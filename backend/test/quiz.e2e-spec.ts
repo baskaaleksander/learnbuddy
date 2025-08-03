@@ -322,7 +322,7 @@ describe('Quiz (e2e)', () => {
         }
       `;
 
-      const response = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/graphql')
         .set('Cookie', testUser.fullCookie)
         .set('Authorization', `Bearer ${testUser.accessToken}`)
@@ -435,25 +435,317 @@ describe('Quiz (e2e)', () => {
 
       expect(quizResultsResponse.body.errors).toBeDefined();
     });
-    it('should calculate correct score based on answers');
-    it.todo('should handle submission after time limit expires');
-    it.todo('should prevent multiple submissions for same quiz');
-    it.todo('should validate answer format before submission');
-    it.todo('should record time spent on each question');
+    it('should calculate correct score based on answers', async () => {
+      const material = await dbHelper.createTestMaterial(testUser.user.id);
+      await dbHelper.createTestQuiz(material.id, testUser.user.id);
+
+      const getQuizQuery = `
+        query GetQuizzesByMaterial {
+            getQuizzesByMaterial(materialId: "${material.id}") {
+              id
+            }
+        }
+    `;
+
+      const quizResponse = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({ query: getQuizQuery });
+
+      const quizId = quizResponse.body.data.getQuizzesByMaterial.id;
+      const questionsAndAnswers = [
+        {
+          question: 1,
+          answer: 'Wykazanie umiejętności zdobytych podczas studiów',
+        },
+        {
+          question: 2,
+          answer:
+            'Ponieważ może to uczynić ją przygodą z wartościowymi wnioskami',
+        },
+      ];
+
+      const submitQuizMutation = `
+        mutation RegisterQuizProgress($quizId: String!, $currentQuestionIndex: Int!, $questionsAndAnswers: [QuestionAndAnswer!]!) {
+            registerQuizProgress(
+                quizId: $quizId,
+                currentQuestionIndex: $currentQuestionIndex,
+                questionsAndAnswers: $questionsAndAnswers
+            )
+        }
+      `;
+
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({
+          query: submitQuizMutation,
+          variables: {
+            quizId: quizId,
+            currentQuestionIndex: 2,
+            questionsAndAnswers: questionsAndAnswers,
+          },
+        });
+
+      const quizResultsQuery = `
+        query GetQuizResultByQuizId {
+            getQuizResultByQuizId(id: "${quizId}") {
+                id
+                score
+                totalQuestions
+            }
+        }
+    `;
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const quizResultsResponse = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({ query: quizResultsQuery });
+
+      expect(quizResultsResponse.body.data.getQuizResultByQuizId).toBeDefined();
+      expect(quizResultsResponse.body.data.getQuizResultByQuizId.score).toBe(0);
+      expect(
+        quizResultsResponse.body.data.getQuizResultByQuizId.totalQuestions,
+      ).toBe(2);
+      expect(quizResultsResponse.body.errors).toBeUndefined();
+    });
   });
 
   describe('Quiz Retrieval', () => {
-    it.todo('should retrieve a quiz by ID');
-    it.todo('should retrieve quiz partial to continue quiz');
-    it.todo('should not retrieve a quiz for a non-existent quiz');
-    it.todo('should not retrieve a quiz without authentication');
-    it.todo(
-      'should not retrieve a quiz for a quiz that does not belong to the user',
-    );
-    it.todo('should hide correct answers when retrieving active quiz');
-    it.todo('should show correct answers and explanations after completion');
-    it.todo('should retrieve quiz with user progress included');
-    it.todo('should handle concurrent quiz access properly');
+    it('should retrieve a quiz by ID', async () => {
+      const material = await dbHelper.createTestMaterial(testUser.user.id);
+      const quiz = await dbHelper.createTestQuiz(material.id, testUser.user.id);
+
+      const getQuizQuery = `
+        query GetQuizById {
+            getQuizById(id: "${quiz.id}") {
+                id
+                type
+                content
+            }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({ query: getQuizQuery });
+
+      expect(response.body.data.getQuizById).toBeDefined();
+      expect(response.body.data.getQuizById.id).toBe(quiz.id);
+      expect(response.body.errors).toBeUndefined();
+    });
+    it('should retrieve quiz partial to continue quiz', async () => {
+      const material = await dbHelper.createTestMaterial(testUser.user.id);
+      const quiz = await dbHelper.createTestQuiz(material.id, testUser.user.id);
+
+      const questionsAndAnswers = [
+        {
+          question: 1,
+          answer: 'Wykazanie umiejętności zdobytych podczas studiów',
+        },
+      ];
+
+      const submitQuizMutation = `
+        mutation RegisterQuizProgress($quizId: String!, $currentQuestionIndex: Int!, $questionsAndAnswers: [QuestionAndAnswer!]!) {
+            registerQuizProgress(
+                quizId: $quizId,
+                currentQuestionIndex: $currentQuestionIndex,
+                questionsAndAnswers: $questionsAndAnswers
+            )
+        }
+      `;
+
+      const getQuizQuery = `
+        query GetQuizById {
+          getQuizById(id: "${quiz.id}") {
+              id
+              partialData {
+                  currentQuestionIndex
+              }
+          }
+      }`;
+
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({
+          query: submitQuizMutation,
+          variables: {
+            quizId: quiz.id,
+            currentQuestionIndex: 1,
+            questionsAndAnswers: questionsAndAnswers,
+          },
+        });
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({ query: getQuizQuery });
+      expect(response.body.data.getQuizById).toBeDefined();
+      expect(
+        response.body.data.getQuizById.partialData.currentQuestionIndex,
+      ).toBe(1);
+      expect(response.body.errors).toBeUndefined();
+    });
+    it('should not retrieve a quiz for a non-existent quiz', async () => {
+      const getQuizQuery = `
+        query GetQuizById {
+          getQuizById(id: "non-existent-quiz-id") {
+              id
+              type
+              content
+          }
+      }`;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({ query: getQuizQuery });
+
+      expect(response.body.data.getQuizById).toBeNull();
+      expect(response.body.errors).toBeDefined();
+    });
+    it('should not retrieve a quiz without authentication', async () => {
+      const getQuizQuery = `
+        query GetQuizById {
+          getQuizById(id: "non-existent-quiz-id") {
+              id
+              type
+              content
+          }
+      }`;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: getQuizQuery });
+
+      expect(response.body.data.getQuizById).toBeNull();
+      expect(response.body.errors).toBeDefined();
+    });
+    it('should not retrieve a quiz for a quiz that does not belong to the user', async () => {
+      const otherUser = await createUserAndLogin(app);
+      const material = await dbHelper.createTestMaterial(otherUser.user.id);
+      const quiz = await dbHelper.createTestQuiz(
+        material.id,
+        otherUser.user.id,
+      );
+
+      const getQuizQuery = `
+        query GetQuizById {
+          getQuizById(id: "${quiz.id}") {
+              id
+              type
+              content
+          }
+      }`;
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({ query: getQuizQuery });
+      expect(response.body.data.getQuizById).toBeNull();
+      expect(response.body.errors).toBeDefined();
+    });
+    it('should hide correct answers when retrieving active quiz', async () => {
+      const material = await dbHelper.createTestMaterial(testUser.user.id);
+      const quiz = await dbHelper.createTestQuiz(material.id, testUser.user.id);
+
+      const getQuizQuery = `
+        query GetQuizById {
+          getQuizById(id: "${quiz.id}") {
+              id
+              type
+              content
+          }
+      }`;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({ query: getQuizQuery });
+
+      expect(response.body.data.getQuizById).toBeDefined();
+      expect(response.body.data.getQuizById.content).toBeDefined();
+      expect(
+        response.body.data.getQuizById.content[0].correctAnswer,
+      ).toBeUndefined();
+    });
+    it('should show correct answers and explanations after completion', async () => {
+      const material = await dbHelper.createTestMaterial(testUser.user.id);
+      const quiz = await dbHelper.createTestQuiz(material.id, testUser.user.id);
+
+      const questionsAndAnswers = [
+        {
+          question: 1,
+          answer: 'Wykazanie umiejętności zdobytych podczas studiów',
+        },
+        {
+          question: 2,
+          answer:
+            'Ponieważ może to uczynić ją przygodą z wartościowymi wnioskami',
+        },
+      ];
+
+      const submitQuizMutation = `
+        mutation RegisterQuizProgress($quizId: String!, $currentQuestionIndex: Int!, $questionsAndAnswers: [QuestionAndAnswer!]!) {
+            registerQuizProgress(
+                quizId: $quizId,
+                currentQuestionIndex: $currentQuestionIndex,
+                questionsAndAnswers: $questionsAndAnswers
+            )
+        }
+      `;
+
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({
+          query: submitQuizMutation,
+          variables: {
+            quizId: quiz.id,
+            currentQuestionIndex: 2,
+            questionsAndAnswers: questionsAndAnswers,
+          },
+        });
+      const getQuizResultQuery = `
+        query GetQuizResultByQuizId {
+          getQuizResultByQuizId(id: "${quiz.id}") {
+              id
+              completedAt
+              answers {
+                  question
+                  answer
+                  isCorrect
+              }
+          }
+      }
+      `;
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({ query: getQuizResultQuery });
+      expect(response.body.data.getQuizResultByQuizId).toBeDefined();
+      expect(response.body.data.getQuizResultByQuizId.answers).toBeDefined();
+      expect(
+        response.body.data.getQuizResultByQuizId.answers[0].isCorrect,
+      ).toBeDefined();
+    });
   });
 
   describe('Quiz Deletion', () => {
