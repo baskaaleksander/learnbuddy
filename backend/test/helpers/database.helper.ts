@@ -192,4 +192,27 @@ export class DatabaseHelper {
       .returning();
     return createdQuizResult;
   }
+
+  public async createTestQuizPartial(quizId: string, userId: string) {
+    const answers = JSON.stringify([
+      {
+        question: 1,
+        answer: 'Wykazanie umiejętności zdobytych podczas studiów',
+        isCorrect: true,
+      },
+    ]);
+    const quizPartial = {
+      userId,
+      quizId,
+      answers,
+      currentQuestionIndex: 1,
+      lastUpdated: new Date(),
+    };
+
+    const [createdQuizPartial] = await this.db
+      .insert(schema.quizPartials)
+      .values(quizPartial)
+      .returning();
+    return createdQuizPartial;
+  }
 }

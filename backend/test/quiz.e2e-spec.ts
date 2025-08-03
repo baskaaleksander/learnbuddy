@@ -499,7 +499,7 @@ describe('Quiz (e2e)', () => {
         }
     `;
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const quizResultsResponse = await request(app.getHttpServer())
         .post('/graphql')
         .set('Cookie', testUser.fullCookie)
@@ -584,7 +584,7 @@ describe('Quiz (e2e)', () => {
           },
         });
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
@@ -734,7 +734,7 @@ describe('Quiz (e2e)', () => {
       }
       `;
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const response = await request(app.getHttpServer())
         .post('/graphql')
         .set('Cookie', testUser.fullCookie)
@@ -886,16 +886,211 @@ describe('Quiz (e2e)', () => {
   });
 
   describe('Quiz Progress', () => {
-    it.todo('should retrieve quiz progress');
-    it.todo('should not retrieve quiz progress for a non-existent quiz');
-    it.todo('should not retrieve quiz progress without authentication');
-    it.todo(
-      'should not retrieve quiz progress for a quiz that does not belong to the user',
-    );
-    it.todo('should save progress automatically during quiz');
-    it.todo('should resume quiz from last saved question');
-    it.todo('should clear progress after quiz completion');
-    it.todo('should handle progress for timed quizzes');
+    it('should retrieve quiz progress', async () => {
+      const material = await dbHelper.createTestMaterial(testUser.user.id);
+      const quiz = await dbHelper.createTestQuiz(material.id, testUser.user.id);
+      await dbHelper.createTestQuizPartial(quiz.id, testUser.user.id);
+
+      const getQuizWithPartialData = `
+        query GetQuizById {
+            getQuizById(id: "${quiz.id}") {
+                id
+                partialData {
+                    currentQuestionIndex
+                    questionsAndAnswers {
+                        question
+                        answer
+                        isCorrect
+                    }
+                }
+            }
+        }      `;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({ query: getQuizWithPartialData });
+
+      console.log(response.body);
+
+      expect(response.body.data.getQuizById).toBeDefined();
+      expect(response.body.data.getQuizById.partialData).toBeDefined();
+      expect(
+        response.body.data.getQuizById.partialData.currentQuestionIndex,
+      ).toBeDefined();
+      expect(response.body.errors).toBeUndefined();
+    });
+    it('should not retrieve quiz progress for a non-existent quiz', async () => {
+      const getQuizWithPartialData = `
+        query GetQuizById {
+            getQuizById(id: "non-existent-quiz-id") {
+                id
+                partialData {
+                    currentQuestionIndex
+                    questionsAndAnswers {
+                        question
+                        answer
+                        isCorrect
+                    }
+                }
+            }
+        }      `;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({ query: getQuizWithPartialData });
+
+      expect(response.body.data.getQuizById).toBeNull();
+      expect(response.body.errors).toBeDefined();
+    });
+    it('should not retrieve quiz progress without authentication', async () => {
+      const getQuizWithPartialData = `
+        query GetQuizById {
+            getQuizById(id: "non-existent-quiz-id") {
+                id
+                partialData {
+                    currentQuestionIndex
+                    questionsAndAnswers {
+                        question
+                        answer
+                        isCorrect
+                    }
+                }
+            }
+        }      `;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: getQuizWithPartialData });
+
+      expect(response.body.data.getQuizById).toBeNull();
+      expect(response.body.errors).toBeDefined();
+    });
+    it('should not retrieve quiz progress for a quiz that does not belong to the user', async () => {
+      const otherUser = await createUserAndLogin(app);
+      const material = await dbHelper.createTestMaterial(otherUser.user.id);
+      const quiz = await dbHelper.createTestQuiz(
+        material.id,
+        otherUser.user.id,
+      );
+
+      const getQuizWithPartialData = `
+          query GetQuizById {
+              getQuizById(id: "${quiz.id}") {
+                  id
+                  partialData {
+                      currentQuestionIndex
+                      questionsAndAnswers {
+                          question
+                          answer
+                          isCorrect
+                      }
+                  }
+              }
+          }      `;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({ query: getQuizWithPartialData });
+
+      expect(response.body.data.getQuizById).toBeNull();
+      expect(response.body.errors).toBeDefined();
+    });
+    it('should clear progress after quiz completion', async () => {
+      const material = await dbHelper.createTestMaterial(testUser.user.id);
+      const quiz = await dbHelper.createTestQuiz(material.id, testUser.user.id);
+
+      const questionsAndAnswers = [
+        {
+          question: 1,
+          answer: 'Wykazanie umiejętności zdobytych podczas studiów',
+        },
+      ];
+
+      const fullQuizQAA = [
+        ...questionsAndAnswers,
+        {
+          question: 2,
+          answer:
+            'Ponieważ może to uczynić ją przygodą z wartościowymi wnioskami',
+        },
+      ];
+
+      const submitQuizMutation = `
+        mutation RegisterQuizProgress($quizId: String!, $currentQuestionIndex: Int!, $questionsAndAnswers: [QuestionAndAnswer!]!) {
+            registerQuizProgress(
+                quizId: $quizId,
+                currentQuestionIndex: $currentQuestionIndex,
+                questionsAndAnswers: $questionsAndAnswers
+            )
+        }
+      `;
+
+      const getQuizQuery = `
+        query GetQuizById {
+          getQuizById(id: "${quiz.id}") {
+              id
+              partialData {
+                  currentQuestionIndex
+              }
+          }
+      }`;
+
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({
+          query: submitQuizMutation,
+          variables: {
+            quizId: quiz.id,
+            currentQuestionIndex: 1,
+            questionsAndAnswers: questionsAndAnswers,
+          },
+        });
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const firstResponse = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({ query: getQuizQuery });
+      expect(firstResponse.body.data.getQuizById).toBeDefined();
+      expect(
+        firstResponse.body.data.getQuizById.partialData.currentQuestionIndex,
+      ).toBe(1);
+      expect(firstResponse.body.errors).toBeUndefined();
+
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({
+          query: submitQuizMutation,
+          variables: {
+            quizId: quiz.id,
+            currentQuestionIndex: 2,
+            questionsAndAnswers: fullQuizQAA,
+          },
+        });
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const secondResponse = await request(app.getHttpServer())
+        .post('/graphql')
+        .set('Cookie', testUser.fullCookie)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
+        .send({ query: getQuizQuery });
+
+      expect(secondResponse.body.data.getQuizById).toBeDefined();
+      expect(secondResponse.body.data.getQuizById.partialData).toBeNull();
+    });
   });
 
   afterAll(async () => {
