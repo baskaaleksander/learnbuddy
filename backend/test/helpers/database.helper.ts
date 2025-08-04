@@ -98,6 +98,20 @@ export class DatabaseHelper {
     }
   }
 
+  public async getUserData(userId: string) {
+    const user = await this.db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, userId))
+      .limit(1);
+
+    if (user.length === 0) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+
+    return user[0];
+  }
+
   public async billTokensForUser(userId: string, tokens: number) {
     const user = await this.db
       .select()
@@ -214,5 +228,63 @@ export class DatabaseHelper {
       .values(quizPartial)
       .returning();
     return createdQuizPartial;
+  }
+
+  public async createTestFlashcards(materialId: string, userId: string) {
+    const generatedFlashcards = {
+      flashcards: [
+        {
+          id: '36506c90-8914-453d-992e-d1b181790233',
+          question: 'What role does sleep play in memory consolidation?',
+          answer:
+            'Sleep plays a crucial role in memory consolidation by transforming short-term memories into long-term knowledge.',
+        },
+        {
+          id: '9adea952-3c73-4d7f-975d-03163e7758ff',
+          question:
+            'How does deep sleep benefit learning and recall abilities?',
+          answer:
+            'During deep sleep, the brain organizes and strengthens new information, improving learning and recall abilities.',
+        },
+      ],
+    };
+
+    const aiOutput = await this.db
+      .insert(schema.aiOutputs)
+      .values({
+        materialId: materialId,
+        type: 'flashcards',
+        content: { flashcards: generatedFlashcards },
+        createdAt: new Date(),
+      })
+      .returning();
+
+    const dbFlashcards = await Promise.all(
+      generatedFlashcards.flashcards.map(async (flashcard) => {
+        const inserted = await this.db
+          .insert(schema.flashcards)
+          .values({
+            aiOutputId: aiOutput[0].id,
+            question: flashcard.question,
+            answer: flashcard.answer,
+            createdAt: new Date(),
+          })
+          .returning();
+
+        return inserted[0];
+      }),
+    );
+
+    await Promise.all(
+      dbFlashcards.map(async (flashcard) => {
+        await this.db.insert(schema.flashcardProgress).values({
+          flashcardId: flashcard.id,
+          userId: userId,
+          status: 'review' as const,
+        });
+      }),
+    );
+
+    return aiOutput[0].id;
   }
 }
