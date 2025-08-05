@@ -40,18 +40,19 @@ describe('AuthController', () => {
       mockAuthService.register.mockResolvedValueOnce({
         ...mockRegisterDto,
         id: 1,
-        access_token: 'mockedAccessToken',
+        accessToken: 'mockedAccessToken',
+        refreshToken: 'mockedRefreshToken',
         role: 'user',
       });
       await controller.register(mockRegisterDto, mockResponse);
       expect(mockResponse.cookie).toHaveBeenCalledWith(
         'jwt',
-        'mockedAccessToken',
+        'mockedRefreshToken',
         {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
-          maxAge: 24 * 60 * 60 * 1000,
+          maxAge: 30 * 24 * 60 * 60 * 1000,
         },
       );
     });
@@ -70,7 +71,8 @@ describe('AuthController', () => {
       mockAuthService.register.mockResolvedValueOnce({
         ...mockRegisterDto,
         id: 1,
-        access_token: 'mockedAccessToken',
+        accessToken: 'mockedAccessToken',
+        refreshToken: 'mockedRefreshToken',
         role: 'user',
       });
       await controller.register(mockRegisterDto, mockResponse);
@@ -80,6 +82,7 @@ describe('AuthController', () => {
         email: mockRegisterDto.email,
         firstName: mockRegisterDto.firstName,
         role: 'user',
+        accessToken: 'mockedAccessToken',
         message: 'User created successfully',
       });
     });
@@ -99,18 +102,19 @@ describe('AuthController', () => {
       mockAuthService.login.mockResolvedValueOnce({
         ...mockLoginDto,
         id: 1,
-        access_token: 'mockedAccessToken',
+        accessToken: 'mockedAccessToken',
+        refreshToken: 'mockedRefreshToken',
         role: 'user',
       });
       await controller.login(mockLoginDto, mockResponse);
       expect(mockResponse.cookie).toHaveBeenCalledWith(
         'jwt',
-        'mockedAccessToken',
+        'mockedRefreshToken',
         {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
-          maxAge: 24 * 60 * 60 * 1000,
+          maxAge: 30 * 24 * 60 * 60 * 1000,
         },
       );
     });
@@ -128,7 +132,8 @@ describe('AuthController', () => {
       mockAuthService.login.mockResolvedValueOnce({
         ...mockLoginDto,
         id: 1,
-        access_token: 'mockedAccessToken',
+        firstName: 'Test',
+        accessToken: 'mockedAccessToken',
         role: 'user',
       });
       await controller.login(mockLoginDto, mockResponse);
@@ -136,6 +141,8 @@ describe('AuthController', () => {
       expect(mockResponse.send).toHaveBeenCalledWith({
         id: 1,
         email: mockLoginDto.email,
+        firstName: 'Test',
+        accessToken: 'mockedAccessToken',
         role: 'user',
         message: 'User logged in successfully',
       });

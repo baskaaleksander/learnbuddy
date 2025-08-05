@@ -22,6 +22,7 @@
     "test:e2e:auth": "NODE_ENV=test jest --config ./test/jest-e2e.json --runInBand --testPathPattern=auth",
     "test:e2e:quiz": "NODE_ENV=test jest --config ./test/jest-e2e.json --runInBand --testPathPattern=quiz",
     "test:e2e:flashcards": "NODE_ENV=test jest --config ./test/jest-e2e.json --runInBand --testPathPattern=flashcards",
+    "test:e2e:billing": "NODE_ENV=test jest --config ./test/jest-e2e.json --runInBand --testPathPattern=billing",
     "test:e2e:watch": "NODE_ENV=test jest --config ./test/jest-e2e.json --watch --runInBand",
     "db:e2e:setup": "NODE_ENV=test npm run drizzle:push",
     "drizzle:push": "drizzle-kit push",
