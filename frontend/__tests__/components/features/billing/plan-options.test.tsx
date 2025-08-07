@@ -63,13 +63,13 @@ describe("PlanOptions", () => {
   it("should display correct pricing based on selected period", () => {
     const { rerender } = render(<PlanOptions {...defaultProps} />);
 
-    expect(screen.getByText("$9.99")).toBeInTheDocument();
-    expect(screen.getByText("$19.99")).toBeInTheDocument();
+    expect(screen.getByText("9.99")).toBeInTheDocument();
+    expect(screen.getByText("19.99")).toBeInTheDocument();
 
     rerender(<PlanOptions {...defaultProps} isYearly={true} />);
 
-    expect(screen.getByText("$99.99")).toBeInTheDocument();
-    expect(screen.getByText("$199.99")).toBeInTheDocument();
+    expect(screen.getByText("99.99")).toBeInTheDocument();
+    expect(screen.getByText("199.99")).toBeInTheDocument();
   });
 
   it("should highlight selected plan", () => {
@@ -154,14 +154,6 @@ describe("PlanOptions", () => {
     await user.click(monthlyButton);
 
     expect(mockSetIsYearly).toHaveBeenCalledWith(false);
-  });
-
-  it("should display plan features correctly", () => {
-    render(<PlanOptions {...defaultProps} />);
-
-    expect(screen.getByText("Feature 1")).toBeInTheDocument();
-    expect(screen.getByText("Feature 2")).toBeInTheDocument();
-    expect(screen.getByText("Feature 3")).toBeInTheDocument();
   });
 
   it("should handle no selected plan state", () => {

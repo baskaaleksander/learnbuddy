@@ -35,7 +35,7 @@ function CurrentPlanInfo({ data }: { data?: CurrentPlanData }) {
     } finally {
       setCancelSubmitting(false);
       setCancelDialogOpen(false);
-      toast.message("Subscription cancelled successfully.");
+      toast.success("Subscription cancelled successfully.");
     }
   };
 
