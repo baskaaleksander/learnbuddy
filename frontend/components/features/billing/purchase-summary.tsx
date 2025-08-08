@@ -26,7 +26,7 @@ function PurchaseSummary({
     (p) => p.nameOfPlan.toLowerCase() === selectedPlan.toLowerCase()
   );
 
-  const planHierarchy = { free: 0, starter: 1, pro: 2, unlimited: 3 };
+  const planHierarchy = { free: 0, "tier 1": 1, "tier 2": 2, unlimited: 3 };
   const getPlanTier = (planName: string | undefined) =>
     planHierarchy[
       (planName?.toLowerCase() || "free") as keyof typeof planHierarchy

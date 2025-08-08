@@ -31,7 +31,10 @@ jest.mock("@/utils/gql-axios", () => ({
 }));
 
 jest.mock("sonner", () => ({
-  toast: jest.fn(),
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
   Toaster: ({ children, ...props }: any) => (
     <div data-testid="toaster" {...props}>
       {children}
