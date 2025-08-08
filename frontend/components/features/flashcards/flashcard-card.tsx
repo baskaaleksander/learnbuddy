@@ -67,7 +67,7 @@ function FlashcardCard({
           deleteFlashcard(id: "${flashcardData.id}")
         }
       `);
-      toast("Flashcards deleted successfully.", {
+      toast.success("Flashcards deleted successfully.", {
         duration: 3000,
         icon: <Trash className="h-4 w-4" />,
       });
