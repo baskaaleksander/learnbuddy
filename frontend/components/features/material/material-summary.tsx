@@ -105,7 +105,7 @@ function MaterialSummary({
         }
       `);
 
-      toast("Summary generated successfully", {
+      toast.success("Summary generated successfully", {
         icon: <Check className="h-4 w-4" />,
         duration: 3000,
       });
@@ -128,7 +128,7 @@ function MaterialSummary({
           deleteSummary(id: "${summary?.id}")
         }
       `);
-      toast("Summary deleted successfully", {
+      toast.success("Summary deleted successfully", {
         icon: <Trash className="h-4 w-4" />,
         duration: 3000,
       });
@@ -151,7 +151,7 @@ function MaterialSummary({
           regenerateSummary(materialId: "${id}")
         }
       `);
-      toast("Summary regenerated successfully", {
+      toast.success("Summary regenerated successfully", {
         icon: <RefreshCw className="h-4 w-4" />,
         duration: 3000,
       });

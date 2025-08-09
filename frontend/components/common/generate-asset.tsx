@@ -88,7 +88,9 @@ export function GenerateAssetDialog({
               {triggerText}
             </Button>
             <DialogTrigger asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button data-testid="cancel-button" variant="outline">
+                Cancel
+              </Button>
             </DialogTrigger>
           </DialogFooter>
         </DialogContent>
@@ -131,7 +133,9 @@ export function GenerateAssetDialog({
             </Button>
           )}
           <DrawerClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button data-testid="cancel-button" variant="outline">
+              Cancel
+            </Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>

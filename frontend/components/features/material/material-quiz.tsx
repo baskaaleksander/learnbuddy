@@ -108,7 +108,7 @@ function MaterialQuiz({
                     deleteQuiz(id: "${id}")
                 }
             `);
-      toast("Quiz deleted successfully.", {
+      toast.success("Quiz deleted successfully.", {
         duration: 3000,
         icon: <Trash className="w-4 h-4" />,
       });
@@ -131,7 +131,7 @@ function MaterialQuiz({
               regenerateQuiz(materialId: "${id}")
             }
           `);
-      toast("Quiz regenerated successfully.", {
+      toast.success("Quiz regenerated successfully.", {
         duration: 3000,
         icon: <RefreshCw className="w-4 h-4" />,
       });
@@ -153,7 +153,7 @@ function MaterialQuiz({
                 createQuiz(materialId: "${id}")
             }
           `);
-      toast("Quiz generated successfully.", {
+      toast.success("Quiz generated successfully.", {
         duration: 3000,
         icon: <Check className="w-4 h-4" />,
       });

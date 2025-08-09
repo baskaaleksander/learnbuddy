@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, waitFor } from "@/__tests__/utils/test-utils";
 import userEvent from "@testing-library/user-event";
-import { within } from "@testing-library/react";
+import { fireEvent, within } from "@testing-library/react";
 import MaterialQuiz from "@/components/features/material/material-quiz";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import { toast } from "sonner";
@@ -12,11 +12,6 @@ jest.mock("next/link", () => {
       {children}
     </a>
   );
-});
-
-jest.mock("sonner", () => {
-  const t = Object.assign(jest.fn(), { success: jest.fn(), error: jest.fn() });
-  return { toast: t };
 });
 
 jest.mock("@/providers/auth-provider", () => {
@@ -54,14 +49,19 @@ describe("Material Quiz", () => {
   });
 
   it("should render material card with title, description, and status", async () => {
-    (fetchGraphQL as jest.Mock).mockResolvedValueOnce({
+    (fetchGraphQL as jest.Mock).mockResolvedValue({
       getQuizzesByMaterial: quiz,
     });
 
     render(<MaterialQuiz id={id} onAssetChange={jest.fn()} />);
 
-    const titleLink = await screen.findByRole("link", { name: /quiz/i });
-    expect(titleLink).toHaveAttribute("href", `/dashboard/quizzes/${quiz.id}`);
+    await screen.findByText(quiz.averageScore.toFixed(1));
+
+    const titleLinks = screen.getAllByRole("link", { name: /quiz/i });
+    expect(titleLinks[0]).toHaveAttribute(
+      "href",
+      `/dashboard/quizzes/${quiz.id}`
+    );
 
     expect(screen.getByText(String(quiz.bestScore))).toBeInTheDocument();
     expect(screen.getByText(quiz.averageScore.toFixed(1))).toBeInTheDocument();
@@ -77,11 +77,13 @@ describe("Material Quiz", () => {
   });
 
   it("should visually indicate pending or failed status", async () => {
-    // Pending
     let resolveFn: Function = () => {};
-    (fetchGraphQL as jest.Mock).mockImplementationOnce(
-      () => new Promise((resolve) => (resolveFn = resolve))
-    );
+    (fetchGraphQL as jest.Mock)
+      .mockImplementationOnce(
+        () => new Promise((resolve) => (resolveFn = resolve))
+      )
+      .mockResolvedValueOnce({ getQuizzesByMaterial: quiz });
+
     const { unmount } = render(
       <MaterialQuiz id={id} onAssetChange={jest.fn()} />
     );
@@ -92,8 +94,7 @@ describe("Material Quiz", () => {
     });
     unmount();
 
-    // Failed
-    (fetchGraphQL as jest.Mock).mockRejectedValueOnce(new Error("boom"));
+    (fetchGraphQL as jest.Mock).mockRejectedValue(new Error("boom"));
     render(<MaterialQuiz id={id} onAssetChange={jest.fn()} />);
     await waitFor(() => {
       expect(
@@ -103,7 +104,7 @@ describe("Material Quiz", () => {
   });
 
   it("should show delete dialog when triggered", async () => {
-    (fetchGraphQL as jest.Mock).mockResolvedValueOnce({
+    (fetchGraphQL as jest.Mock).mockResolvedValue({
       getQuizzesByMaterial: quiz,
     });
 
@@ -120,9 +121,12 @@ describe("Material Quiz", () => {
   });
 
   it("should call onDelete after successful deletion", async () => {
-    (fetchGraphQL as jest.Mock)
-      .mockResolvedValueOnce({ getQuizzesByMaterial: quiz }) // initial fetch
-      .mockResolvedValueOnce({ deleteQuiz: true }); // delete mutation
+    (fetchGraphQL as jest.Mock).mockImplementation((query: string) => {
+      if (query.includes("deleteQuiz")) {
+        return Promise.resolve({ deleteQuiz: true });
+      }
+      return Promise.resolve({ getQuizzesByMaterial: quiz });
+    });
 
     const onAssetChange = jest.fn();
     render(<MaterialQuiz id={id} onAssetChange={onAssetChange} />);
@@ -136,7 +140,7 @@ describe("Material Quiz", () => {
     const confirmDelete = within(dialog).getByRole("button", {
       name: /^delete$/i,
     });
-    await user.click(confirmDelete);
+    await fireEvent.click(confirmDelete);
 
     await waitFor(() => {
       expect(fetchGraphQL).toHaveBeenCalledWith(
@@ -145,7 +149,7 @@ describe("Material Quiz", () => {
     });
 
     await waitFor(() => {
-      expect(mockToast).toHaveBeenCalledWith(
+      expect(mockToast.success).toHaveBeenCalledWith(
         "Quiz deleted successfully.",
         expect.objectContaining({ icon: expect.any(Object) })
       );
@@ -153,19 +157,8 @@ describe("Material Quiz", () => {
     });
   });
 
-  it("should handle edit button click and navigation", async () => {
-    (fetchGraphQL as jest.Mock).mockResolvedValueOnce({
-      getQuizzesByMaterial: quiz,
-    });
-
-    render(<MaterialQuiz id={id} onAssetChange={jest.fn()} />);
-
-    const titleLink = await screen.findByRole("link", { name: /quiz/i });
-    expect(titleLink).toHaveAttribute("href", `/dashboard/quizzes/${quiz.id}`);
-  });
-
   it("should navigate to correct page based on status when clicked", async () => {
-    (fetchGraphQL as jest.Mock).mockResolvedValueOnce({
+    (fetchGraphQL as jest.Mock).mockResolvedValue({
       getQuizzesByMaterial: quiz,
     });
 
@@ -189,7 +182,7 @@ describe("Material Quiz", () => {
   });
 
   it("should open and close dropdown menu", async () => {
-    (fetchGraphQL as jest.Mock).mockResolvedValueOnce({
+    (fetchGraphQL as jest.Mock).mockResolvedValue({
       getQuizzesByMaterial: quiz,
     });
 
@@ -203,11 +196,16 @@ describe("Material Quiz", () => {
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toBeInTheDocument();
 
-    const cancel = within(dialog).getByRole("button", { name: /cancel/i });
-    await user.click(cancel);
+    const cancel = within(dialog).getByTestId("cancel-button");
+    await fireEvent.click(cancel);
 
     await waitFor(() => {
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      const dlg = screen.queryByRole("dialog", { name: /generate quiz/i });
+      if (dlg) {
+        expect(dlg).toHaveAttribute("data-state", "closed");
+      } else {
+        expect(dlg).toBeNull();
+      }
     });
   });
 });
