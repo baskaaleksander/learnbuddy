@@ -10,6 +10,7 @@ import {
   Get,
   Patch,
   Query,
+  Param,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { BillingService } from './billing.service';
@@ -96,5 +97,10 @@ export class BillingController {
   @Get('get-user-tokens')
   async getUserTokens(@CurrentUser() user: PayloadDto) {
     return this.billingService.getUserTokens(user.id);
+  }
+
+  @Get('retrieve-checkout-session/:id')
+  async retrieveCheckoutSession(@Param('id') sessionId: string) {
+    return this.billingService.retrieveCheckoutSession(sessionId);
   }
 }

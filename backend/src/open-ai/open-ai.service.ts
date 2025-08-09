@@ -74,10 +74,9 @@ export class OpenAiService {
   async generateContent(prompt: string): Promise<string> {
     try {
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4.1-nano',
         messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
-        max_tokens: 4000,
+        max_completion_tokens: 4000,
       });
 
       const content = response.choices[0]?.message?.content;

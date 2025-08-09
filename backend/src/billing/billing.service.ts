@@ -439,4 +439,19 @@ export class BillingService {
       tokensLimit: subscription[0].plans.tokens_monthly || 12,
     };
   }
+  async retrieveCheckoutSession(sessionId: string) {
+    const session = await this.stripe.checkout.sessions.retrieve(sessionId);
+
+    if (!session) {
+      throw new NotFoundException('Checkout session not found');
+    }
+
+    return {
+      id: session.id,
+      status: session.status,
+      customer_email: session.customer_email,
+      amount_total: session.amount_total,
+      currency: session.currency,
+    };
+  }
 }

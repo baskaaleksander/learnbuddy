@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import AlertBox from "@/components/alert-box";
+import AlertBox from "@/components/common/alert-box";
 import { AlertCircle, Send } from "lucide-react";
 
 const formSchema = z.object({

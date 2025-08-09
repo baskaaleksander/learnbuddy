@@ -385,19 +385,21 @@ export class QuizService {
       throw new ConflictException('Quiz already exists for this material');
     }
 
-    await this.billingService.useTokens(userId, 2);
-
     const pdfContent = await parsePublicPdfFromS3(material[0].content);
 
     if (!pdfContent) {
       throw new NotFoundException('PDF content not found');
     }
 
+    console.log(pdfContent);
+
     const quiz = await this.openAiService.generateQuiz(pdfContent);
 
     if (!quiz) {
       throw new Error('Failed to generate quiz');
     }
+
+    await this.billingService.useTokens(userId, 2);
 
     await this.drizzle.insert(aiOutputs).values({
       materialId: materialId,
