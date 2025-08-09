@@ -84,7 +84,7 @@ export class BillingService {
         ],
         customer: stripeCustomerId,
         success_url: `${this.configService.get<string>('FRONTEND_URL')}/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${this.configService.get<string>('FRONTEND_URL')}/cancel`,
+        cancel_url: `${this.configService.get<string>('FRONTEND_URL')}/dashboard`,
         metadata: {
           planName: planName,
           planInterval: planInterval,
@@ -105,7 +105,7 @@ export class BillingService {
       ],
       customer_email: email,
       success_url: `${this.configService.get<string>('FRONTEND_URL')}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${this.configService.get<string>('FRONTEND_URL')}/cancel`,
+      cancel_url: `${this.configService.get<string>('FRONTEND_URL')}/dashboard`,
       metadata: {
         planName: planName,
         planInterval: planInterval,
