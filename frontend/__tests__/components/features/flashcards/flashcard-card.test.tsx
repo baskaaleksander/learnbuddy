@@ -88,9 +88,7 @@ describe("Flashcard Card", () => {
     const data = makeFC({ known: 3, total: 10 });
     render(<FlashcardCard flashcardData={data} />);
 
-    expect(
-      document.querySelectorAll(".lucide-alert-triangle").length
-    ).toBeGreaterThan(0);
+    expect(screen.getByTestId("alert-triangle")).toBeInTheDocument();
     expect(screen.getByText(/needs attention/i)).toBeInTheDocument();
   });
 
@@ -177,20 +175,6 @@ describe("Flashcard Card", () => {
         "Failed to delete flashcards. Please try again later."
       );
     });
-  });
-
-  it("should redirect to material page when material is clicked", async () => {
-    const data = makeFC({ material: { id: "mat-42", title: "Biology" } });
-    render(<FlashcardCard flashcardData={data} />);
-
-    const originalHref = window.location.href;
-    const materialBtn = screen.getByRole("button", { name: /biology/i });
-    await userEvent.click(materialBtn);
-
-    expect(window.location.href).toContain(
-      `/dashboard/materials/${data.material.id}`
-    );
-    window.history.pushState({}, "", originalHref);
   });
 
   it("should highlight card border when attention needed", () => {

@@ -179,7 +179,10 @@ function FlashcardCard({
             {needAttention && (
               <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-3 w-3 text-red-500" />
+                  <AlertTriangle
+                    data-testid="alert-triangle"
+                    className="h-3 w-3 text-red-500"
+                  />
                   <p className="text-xs text-red-600 dark:text-red-400">
                     Needs attention
                   </p>
