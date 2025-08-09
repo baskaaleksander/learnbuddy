@@ -1,9 +1,213 @@
+import React from "react";
+import { render, screen, waitFor } from "@/__tests__/utils/test-utils";
+import userEvent from "@testing-library/user-event";
+import { within } from "@testing-library/react";
+import MaterialQuiz from "@/components/features/material/material-quiz";
+import { fetchGraphQL } from "@/utils/gql-axios";
+import { toast } from "sonner";
+
+jest.mock("next/link", () => {
+  return ({ children, href, ...props }: any) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  );
+});
+
+jest.mock("sonner", () => {
+  const t = Object.assign(jest.fn(), { success: jest.fn(), error: jest.fn() });
+  return { toast: t };
+});
+
+jest.mock("@/providers/auth-provider", () => {
+  const actual = jest.requireActual("@/providers/auth-provider");
+  return {
+    ...actual,
+    useAuth: () => ({
+      getUserTokens: jest
+        .fn()
+        .mockResolvedValue({ tokensLimit: 10, tokensUsed: 0 }),
+    }),
+  };
+});
+
+jest.mock("@/utils/gql-axios", () => ({
+  fetchGraphQL: jest.fn(),
+}));
+
+const mockToast = toast as jest.Mocked<typeof toast>;
+
 describe("Material Quiz", () => {
-  it.todo("should render material card with title, description, and status");
-  it.todo("should visually indicate pending or failed status");
-  it.todo("should show delete dialog when triggered");
-  it.todo("should call onDelete after successful deletion");
-  it.todo("should handle edit button click and navigation");
-  it.todo("should navigate to correct page based on status when clicked");
-  it.todo("should open and close dropdown menu");
+  const id = "mat-123";
+  const quiz = {
+    id: "quiz-1",
+    createdAt: "2024-01-01T00:00:00.000Z",
+    averageScore: 7.5,
+    totalAttempts: 5,
+    averagePercentage: 75,
+    bestScore: 9.3,
+    latestResult: { score: 8.4, completedAt: "2024-01-05T00:00:00.000Z" },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should render material card with title, description, and status", async () => {
+    (fetchGraphQL as jest.Mock).mockResolvedValueOnce({
+      getQuizzesByMaterial: quiz,
+    });
+
+    render(<MaterialQuiz id={id} onAssetChange={jest.fn()} />);
+
+    const titleLink = await screen.findByRole("link", { name: /quiz/i });
+    expect(titleLink).toHaveAttribute("href", `/dashboard/quizzes/${quiz.id}`);
+
+    expect(screen.getByText(String(quiz.bestScore))).toBeInTheDocument();
+    expect(screen.getByText(quiz.averageScore.toFixed(1))).toBeInTheDocument();
+    expect(screen.getByText(String(quiz.totalAttempts))).toBeInTheDocument();
+    expect(screen.getByText(/average percentage rate/i)).toBeInTheDocument();
+    expect(screen.getByText(/latest attempt/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(`${quiz.latestResult.score.toFixed(1)}/10`)
+    ).toBeInTheDocument();
+
+    const percent = `${quiz.averagePercentage.toFixed(0)}%`;
+    expect(screen.getByText(percent)).toBeInTheDocument();
+  });
+
+  it("should visually indicate pending or failed status", async () => {
+    // Pending
+    let resolveFn: Function = () => {};
+    (fetchGraphQL as jest.Mock).mockImplementationOnce(
+      () => new Promise((resolve) => (resolveFn = resolve))
+    );
+    const { unmount } = render(
+      <MaterialQuiz id={id} onAssetChange={jest.fn()} />
+    );
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    resolveFn({ getQuizzesByMaterial: quiz });
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+    unmount();
+
+    // Failed
+    (fetchGraphQL as jest.Mock).mockRejectedValueOnce(new Error("boom"));
+    render(<MaterialQuiz id={id} onAssetChange={jest.fn()} />);
+    await waitFor(() => {
+      expect(
+        screen.getByText(/failed to fetch quizzes\. please try again later\./i)
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("should show delete dialog when triggered", async () => {
+    (fetchGraphQL as jest.Mock).mockResolvedValueOnce({
+      getQuizzesByMaterial: quiz,
+    });
+
+    render(<MaterialQuiz id={id} onAssetChange={jest.fn()} />);
+
+    await screen.findByText(String(quiz.totalAttempts));
+
+    const user = userEvent.setup();
+    const delBtn = screen.getByRole("button", { name: /delete/i });
+    await user.click(delBtn);
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+  });
+
+  it("should call onDelete after successful deletion", async () => {
+    (fetchGraphQL as jest.Mock)
+      .mockResolvedValueOnce({ getQuizzesByMaterial: quiz }) // initial fetch
+      .mockResolvedValueOnce({ deleteQuiz: true }); // delete mutation
+
+    const onAssetChange = jest.fn();
+    render(<MaterialQuiz id={id} onAssetChange={onAssetChange} />);
+
+    await screen.findByText(String(quiz.totalAttempts));
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /delete/i }));
+
+    const dialog = await screen.findByRole("dialog");
+    const confirmDelete = within(dialog).getByRole("button", {
+      name: /^delete$/i,
+    });
+    await user.click(confirmDelete);
+
+    await waitFor(() => {
+      expect(fetchGraphQL).toHaveBeenCalledWith(
+        expect.stringContaining(`deleteQuiz(id: "${id}")`)
+      );
+    });
+
+    await waitFor(() => {
+      expect(mockToast).toHaveBeenCalledWith(
+        "Quiz deleted successfully.",
+        expect.objectContaining({ icon: expect.any(Object) })
+      );
+      expect(onAssetChange).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("should handle edit button click and navigation", async () => {
+    (fetchGraphQL as jest.Mock).mockResolvedValueOnce({
+      getQuizzesByMaterial: quiz,
+    });
+
+    render(<MaterialQuiz id={id} onAssetChange={jest.fn()} />);
+
+    const titleLink = await screen.findByRole("link", { name: /quiz/i });
+    expect(titleLink).toHaveAttribute("href", `/dashboard/quizzes/${quiz.id}`);
+  });
+
+  it("should navigate to correct page based on status when clicked", async () => {
+    (fetchGraphQL as jest.Mock).mockResolvedValueOnce({
+      getQuizzesByMaterial: quiz,
+    });
+
+    render(<MaterialQuiz id={id} onAssetChange={jest.fn()} />);
+
+    await screen.findByText(String(quiz.totalAttempts));
+
+    const takeLink = screen.getByRole("link", { name: /take quiz/i });
+    expect(takeLink).toHaveAttribute(
+      "href",
+      `/dashboard/quizzes/${quiz.id}/take`
+    );
+
+    const viewResults = screen.getByRole("link", {
+      name: /view all results/i,
+    });
+    expect(viewResults).toHaveAttribute(
+      "href",
+      `/dashboard/quizzes/${quiz.id}/`
+    );
+  });
+
+  it("should open and close dropdown menu", async () => {
+    (fetchGraphQL as jest.Mock).mockResolvedValueOnce({
+      getQuizzesByMaterial: quiz,
+    });
+
+    render(<MaterialQuiz id={id} onAssetChange={jest.fn()} />);
+    await screen.findByText(String(quiz.totalAttempts));
+
+    const user = userEvent.setup();
+    const regenBtn = screen.getByRole("button", { name: /regenerate/i });
+    await user.click(regenBtn);
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+
+    const cancel = within(dialog).getByRole("button", { name: /cancel/i });
+    await user.click(cancel);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+  });
 });

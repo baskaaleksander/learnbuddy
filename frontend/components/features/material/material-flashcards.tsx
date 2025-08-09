@@ -106,7 +106,7 @@ function MaterialFlashcards({
             deleteFlashcard(id: "${id}")
         }
     `);
-      toast("Flashcards deleted successfully.", {
+      toast.success("Flashcards deleted successfully.", {
         duration: 3000,
         icon: <Trash className="h-4 w-4" />,
       });
@@ -129,7 +129,7 @@ function MaterialFlashcards({
                   regenerateFlashcards(materialId: "${id}")
                 }
               `);
-      toast("Flashcards regenerated successfully.", {
+      toast.success("Flashcards regenerated successfully.", {
         icon: <RefreshCw className="h-4 w-4" />,
         duration: 3000,
       });
@@ -152,7 +152,7 @@ function MaterialFlashcards({
             createFlashcard(materialId: "${id}")
         }
     `);
-      toast("Flashcards generated successfully.", {
+      toast.success("Flashcards generated successfully.", {
         icon: <Check className="h-4 w-4" />,
         duration: 3000,
       });
@@ -199,7 +199,10 @@ function MaterialFlashcards({
           <div className="flex-1 flex flex-col items-center justify-center text-center">
             <div className="mb-4">
               <Target className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-              <p className="text-muted-foreground text-sm">
+              <p
+                data-testid="no-flashcards"
+                className="text-muted-foreground text-sm"
+              >
                 No flashcards available for this material.
               </p>
             </div>
