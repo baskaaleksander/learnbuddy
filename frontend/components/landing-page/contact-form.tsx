@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import api from "@/utils/axios";
 import { Checkbox } from "@/components/ui/checkbox";
+import { sendEmail } from "@/utils/send-email";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   name: z
@@ -43,14 +45,15 @@ function ContactForm() {
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     try {
-      await api.post("/email/send", {
-        to: process.env.NEXT_PUBLIC_EMAIL,
-        subject: `Contact Form Submission from ${data.name}`,
-        text: `Name: ${data.name}\nEmail: ${data.email}\nMessage: ${data.message}`,
-      });
+      await sendEmail(
+        process.env.NEXT_PUBLIC_EMAIL,
+        `Contact Form Submission from ${data.name}`,
+        `Name: ${data.name}\nEmail: ${data.email}\nMessage: ${data.message}`
+      );
     } catch (error) {
-      console.error("error sending email");
+      toast.error("Failed to send email. Please try again later.");
     } finally {
+      toast.success("Your message has been sent successfully!");
       form.reset();
     }
   }
