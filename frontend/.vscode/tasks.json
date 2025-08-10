@@ -1,0 +1,89 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "jest - upload-material tests",
+			"type": "shell",
+			"command": "npm test -- __tests__/components/features/material/upload-material.test.tsx --reporters=default --reporters=jest-junit",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc",
+				"$eslint - stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "jest - upload-material tests (default)",
+			"type": "shell",
+			"command": "npm test -- __tests__/components/features/material/upload-material.test.tsx",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc",
+				"$eslint - stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "jest - upload-material tests run 2",
+			"type": "shell",
+			"command": "npm test -- __tests__/components/features/material/upload-material.test.tsx",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc",
+				"$eslint - stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "jest - upload-material tests run 3",
+			"type": "shell",
+			"command": "npm test -- __tests__/components/features/material/upload-material.test.tsx",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc",
+				"$eslint - stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "jest - upload-material tests run 4",
+			"type": "shell",
+			"command": "npm test -- __tests__/components/features/material/upload-material.test.tsx",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc",
+				"$eslint - stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "jest - upload-material tests run 5",
+			"type": "shell",
+			"command": "npm test -- __tests__/components/features/material/upload-material.test.tsx",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc",
+				"$eslint - stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "jest - upload-material tests run 6",
+			"type": "shell",
+			"command": "npm test -- __tests__/components/features/material/upload-material.test.tsx",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc",
+				"$eslint - stylish"
+			],
+			"group": "build"
+		}
+	]
+}

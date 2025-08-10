@@ -27,10 +27,7 @@ const customJestConfig = {
       statements: 70,
     },
   },
-  testMatch: [
-    "<rootDir>/__tests__/**/*.{js,jsx,ts,tsx}",
-    "<rootDir>/**/*.{test,spec}.{js,jsx,ts,tsx}",
-  ],
+  testMatch: ["<rootDir>/**/*.{test,spec}.{js,jsx,ts,tsx}"],
   transform: {
     "^.+\\.(js|jsx|ts|tsx)$": ["babel-jest", { presets: ["next/babel"] }],
   },

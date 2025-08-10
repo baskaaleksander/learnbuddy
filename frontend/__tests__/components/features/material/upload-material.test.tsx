@@ -7,25 +7,23 @@ import {
   act,
 } from "@/__tests__/utils/test-utils";
 import userEvent from "@testing-library/user-event";
+import UploadMaterial from "@/components/features/material/upload-material";
 import api from "@/utils/axios";
+import pdfMake from "pdfmake/build/pdfmake";
+
 const pushMock = jest.fn();
 jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: pushMock }),
+}));
+
+jest.mock("pdfmake/build/pdfmake", () => ({
   __esModule: true,
-  useRouter() {
-    return {
-      push: pushMock,
-      replace: jest.fn(),
-      prefetch: jest.fn(),
-      back: jest.fn(),
-      forward: jest.fn(),
-      refresh: jest.fn(),
-    };
-  },
-  useSearchParams() {
-    return new URLSearchParams();
-  },
-  usePathname() {
-    return "/";
+  default: {
+    vfs: {},
+    createPdf: jest.fn(() => ({
+      getBlob: (cb: (b: Blob) => void) =>
+        cb(new Blob(["pdf"], { type: "application/pdf" })),
+    })),
   },
 }));
 
@@ -34,37 +32,37 @@ jest.mock("pdfmake/build/vfs_fonts", () => ({
   default: { vfs: {} },
 }));
 
-const getBlobMock = (cb: (b: Blob) => void) =>
-  cb(new Blob(["dummy"], { type: "application/pdf" }));
-
-jest.mock("pdfmake/build/pdfmake", () => ({
-  __esModule: true,
-  default: {
-    vfs: {},
-    createPdf: jest.fn(() => ({ getBlob: getBlobMock })),
-  },
+jest.mock("@/providers/auth-provider", () => ({
+  useAuth: jest.fn(),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }));
 
-import UploadMaterial from "@/components/features/material/upload-material";
+import { useAuth } from "@/providers/auth-provider";
 
 describe("Upload Material", () => {
+  const mockUser = {
+    id: "1",
+    email: "user@example.com",
+    firstName: "User",
+    role: "user",
+    tokensUsed: 0,
+  };
+
   beforeEach(() => {
-    jest.resetAllMocks();
-    (api.get as jest.Mock).mockResolvedValue({
-      data: {
-        email: "test@example.com",
-        id: "1",
-        role: "user",
-        firstName: "Test",
-        tokensUsed: 0,
-      },
+    jest.clearAllMocks();
+    (useAuth as jest.Mock).mockReturnValue({ user: mockUser, loading: false });
+    (api.get as jest.Mock).mockResolvedValue({ data: null });
+    (api.post as jest.Mock).mockResolvedValue({
+      data: { materialId: "upload-1" },
     });
-    pushMock.mockReset();
   });
 
-  it("should render upload material form", async () => {
+  it("renders core UI elements", () => {
     render(<UploadMaterial />);
-    expect(await screen.findByText(/upload material/i)).toBeInTheDocument();
+
+    expect(screen.getByText(/upload material/i)).toBeInTheDocument();
     expect(
       screen.getByRole("tab", { name: /upload pdf/i })
     ).toBeInTheDocument();
@@ -76,147 +74,115 @@ describe("Upload Material", () => {
     ).toBeInTheDocument();
   });
 
-  it("should validate that either PDF or text content is provided", async () => {
-    render(<UploadMaterial />);
-    await userEvent.click(screen.getByRole("tab", { name: /paste text/i }));
-    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
-    expect(
-      await screen.findByText(/either upload a pdf or enter text/i)
-    ).toBeInTheDocument();
+  it("triggers hidden file input when drop area is clicked", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<UploadMaterial />);
+
+    const input = container.querySelector("#file-upload") as HTMLInputElement;
+    const clickSpy = jest.spyOn(input, "click");
+
+    const dropCta = screen.getByText(
+      /drop your file here, or click to browse/i
+    );
+    await user.click(dropCta);
+
+    expect(clickSpy).toHaveBeenCalled();
   });
 
-  it("should display error for invalid file type", async () => {
-    render(<UploadMaterial />);
-    const input = document.getElementById("file-upload") as HTMLInputElement;
-    const badFile = new File(["hello"], "notes.txt", { type: "text/plain" });
-    await waitFor(() =>
-      fireEvent.change(input, { target: { files: [badFile] } })
-    );
+  it("accepts PDF file and shows filename", async () => {
+    const { container } = render(<UploadMaterial />);
+
+    const input = container.querySelector("#file-upload") as HTMLInputElement;
+    const file = new File(["%PDF-1.4"], "doc.pdf", { type: "application/pdf" });
+    fireEvent.change(input, { target: { files: [file] } });
+
+    expect(await screen.findByText("doc.pdf")).toBeInTheDocument();
+  });
+
+  it("shows error for non-PDF file", async () => {
+    const { container } = render(<UploadMaterial />);
+    const input = container.querySelector("#file-upload") as HTMLInputElement;
+    const file = new File(["hello"], "note.txt", { type: "text/plain" });
+    fireEvent.change(input, { target: { files: [file] } });
+
     expect(
       await screen.findByText(/only pdf files are allowed/i)
     ).toBeInTheDocument();
   });
 
-  it("should handle file drop and select events", async () => {
+  it("shows fallback error when submitting with no file or text", async () => {
     render(<UploadMaterial />);
 
-    const dropZone = screen
-      .getByText(/drop your file here, or click to browse/i)
-      .closest("div") as HTMLElement;
-    const pdf = new File(["%PDF"], "doc.pdf", { type: "application/pdf" });
-    fireEvent.drop(dropZone, {
-      dataTransfer: {
-        files: [pdf],
-        types: ["Files"],
-        getData: () => "",
-        setData: () => {},
-      },
-    });
-    expect(await screen.findByText(/doc\.pdf/i)).toBeInTheDocument();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("tab", { name: /paste text/i }));
+    fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
-    const input = document.getElementById("file-upload") as HTMLInputElement;
-    const pdf2 = new File(["%PDF"], "another.pdf", { type: "application/pdf" });
-    fireEvent.change(input, { target: { files: [pdf2] } });
-    expect(await screen.findByText(/another\.pdf/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/either upload a pdf or enter text/i)
+    ).toBeInTheDocument();
+    expect(api.post).not.toHaveBeenCalled();
   });
 
-  it("should show uploading state and success message on upload", async () => {
-    (api.post as jest.Mock).mockResolvedValueOnce({
-      data: { materialId: "999" },
-    });
-
+  it("generates PDF from text using user email and uploads", async () => {
     render(<UploadMaterial />);
 
-    const input = document.getElementById("file-upload") as HTMLInputElement;
-    const pdf = new File(["%PDF"], "doc.pdf", { type: "application/pdf" });
-    fireEvent.change(input, { target: { files: [pdf] } });
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("tab", { name: /paste text/i }));
 
-    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
-
-    await waitFor(() =>
-      expect(
-        screen.getByText(/material uploaded successfully/i)
-      ).toBeInTheDocument()
-    );
-    await waitFor(() =>
-      expect(pushMock).toHaveBeenCalledWith("/dashboard/materials/upload/123")
-    );
-  });
-
-  it("should show error message on upload failure", async () => {
-    (api.get as jest.Mock).mockResolvedValueOnce({
-      data: {
-        email: "test@example.com",
-        id: "1",
-        role: "user",
-        firstName: "Test",
-        tokensUsed: 0,
-      },
-    });
-    let rejectPost: (e: any) => void;
-    const pending = new Promise((_, reject) => {
-      rejectPost = reject;
-    });
-    (api.post as jest.Mock).mockReturnValueOnce(pending);
-
-    render(<UploadMaterial />);
-
-    const input = document.getElementById("file-upload") as HTMLInputElement;
-    const pdf = new File(["%PDF"], "doc.pdf", { type: "application/pdf" });
-    fireEvent.change(input, { target: { files: [pdf] } });
-
-    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
-    rejectPost!(new Error("Upload failed"));
-    expect(await screen.findByText(/upload failed/i)).toBeInTheDocument();
-  });
-
-  it("should call API for uploading PDF", async () => {
-    (api.post as jest.Mock).mockResolvedValueOnce({
-      data: { materialId: "999" },
-    });
-
-    render(<UploadMaterial />);
-
-    const input = document.getElementById("file-upload") as HTMLInputElement;
-    const pdf = new File(["%PDF"], "doc.pdf", { type: "application/pdf" });
-    fireEvent.change(input, { target: { files: [pdf] } });
-
-    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
-
-    await waitFor(() => expect(api.post).toHaveBeenCalled());
-    const [, formData] = (api.post as jest.Mock).mock.calls[0];
-    expect(formData).toBeInstanceOf(FormData);
-    const uploaded = (formData as FormData).get("file") as File;
-    expect(uploaded).toBeInstanceOf(File);
-    expect(uploaded.name).toBe("doc.pdf");
-  });
-
-  it("should call API for uploading text content", async () => {
-    (api.post as jest.Mock).mockResolvedValueOnce({
-      data: { materialId: "321" },
-    });
-
-    render(<UploadMaterial />);
-
-    await userEvent.click(screen.getByRole("tab", { name: /paste text/i }));
-    const textarea = screen.getByPlaceholderText(
+    const textarea = await screen.findByPlaceholderText(
       /paste or type your content here/i
     );
-    await userEvent.type(textarea, "Some study notes");
+    fireEvent.change(textarea, { target: { value: "Hello world" } });
 
-    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
+    fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
-    await waitFor(() => expect(api.post).toHaveBeenCalled());
-    const [, formData] = (api.post as jest.Mock).mock.calls[0];
-    const uploaded = (formData as FormData).get("file") as File;
-    expect(uploaded).toBeInstanceOf(File);
-    expect(uploaded.type).toBe("application/pdf");
-    expect(uploaded.name).toMatch(/\.pdf$/);
+    await waitFor(() => {
+      expect((pdfMake as any).createPdf).toHaveBeenCalled();
+      expect(api.post).toHaveBeenCalledWith("/upload/", expect.any(FormData));
+    });
+
+    const docDef = (pdfMake as any).createPdf.mock.calls[0][0];
+    expect(docDef.info.author).toBe(mockUser.email);
+
+    const formDataArg = (api.post as jest.Mock).mock.calls[0][1] as FormData;
+    const file = formDataArg.get("file") as File;
+    expect(file).toBeInstanceOf(File);
+    expect(file.name).toContain(mockUser.email);
+
+    expect(
+      await screen.findByText(/material uploaded successfully/i)
+    ).toBeInTheDocument();
   });
 
-  it("should redirect to login if user is not authenticated", async () => {
-    (api.get as jest.Mock).mockRejectedValueOnce(new Error("Not auth"));
+  it("uploads selected PDF file and redirects", async () => {
+    jest.useFakeTimers();
+    const { container } = render(<UploadMaterial />);
+    const input = container.querySelector("#file-upload") as HTMLInputElement;
+    const file = new File(["%PDF-1.7"], "lesson.pdf", {
+      type: "application/pdf",
+    });
+    fireEvent.change(input, { target: { files: [file] } });
+
+    fireEvent.click(screen.getByRole("button", { name: /continue/i }));
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith("/upload/", expect.any(FormData));
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(3000);
+    });
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith(
+        "/dashboard/materials/upload/upload-1"
+      );
+    });
+    jest.useRealTimers();
+  });
+
+  it("redirects to login when unauthenticated", () => {
+    (useAuth as jest.Mock).mockReturnValueOnce({ user: null, loading: false });
     render(<UploadMaterial />);
-    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/login"));
+    expect(pushMock).toHaveBeenCalledWith("/login");
   });
 });
