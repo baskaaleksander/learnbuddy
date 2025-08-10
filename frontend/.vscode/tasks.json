@@ -84,6 +84,18 @@
 				"$eslint - stylish"
 			],
 			"group": "build"
+		},
+		{
+			"label": "jest - recently-created-materials tests",
+			"type": "shell",
+			"command": "npm test -- __tests__/components/features/dashboard/recently-created-materials.test.tsx",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc",
+				"$eslint - stylish"
+			],
+			"group": "build"
 		}
 	]
 }
