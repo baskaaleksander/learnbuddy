@@ -192,6 +192,7 @@ function SummariesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
           {summaries?.data?.map((summary) => (
             <SummaryCard
+              key={summary.id}
               summaryData={summary}
               onSummaryDelete={handleSummaryDeleted}
             />

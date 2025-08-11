@@ -233,3 +233,5 @@ function QuizzesPage() {
     </div>
   );
 }
+
+export default QuizzesPage;
