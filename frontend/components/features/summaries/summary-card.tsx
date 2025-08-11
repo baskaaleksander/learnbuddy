@@ -66,8 +66,9 @@ function SummaryCard({
         duration: 3000,
       });
       onSummaryDelete?.();
-    } catch () {
+    } catch (error) {
       toast.error("Failed to delete summary. Please try again later.");
+      console.error("Error deleting summary:", error);
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);

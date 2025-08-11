@@ -24,9 +24,7 @@ import {
 import useMediaQuery from "@/app/hooks/use-media-query";
 import { AssetData } from "@/lib/definitions";
 import { Coins, Loader2 } from "lucide-react";
-import api from "@/utils/axios";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 export function GenerateAssetDialog({
   onGenerateAction,

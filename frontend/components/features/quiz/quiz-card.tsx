@@ -79,8 +79,9 @@ function QuizCard({
         duration: 3000,
         icon: <Trash className="w-4 h-4" />,
       });
-    } catch () {
+    } catch (error) {
       toast.error("Failed to delete quiz. Please try again later.");
+      console.error("Error deleting quiz:", error);
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);

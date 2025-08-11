@@ -3,7 +3,6 @@ import { Calendar, File, MoreVertical, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "../../ui/card";
 import Link from "next/link";
-import { Badge } from "../../ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +37,7 @@ function MaterialCard({
 
   const handleDeleteMaterial = async () => {
     setDeleteDialogOpen(false);
+    setSubmittingDelete(true);
   };
 
   const handleOpenDeleteDialog = () => {

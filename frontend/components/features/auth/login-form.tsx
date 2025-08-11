@@ -41,7 +41,7 @@ function LoginForm() {
     if (user && !authLoading) {
       router.push("/");
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, router]);
 
   const handleLogin = async (data: z.infer<typeof formSchema>) => {
     try {

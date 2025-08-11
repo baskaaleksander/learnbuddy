@@ -2,8 +2,8 @@
 import { useAuth } from "@/providers/auth-provider";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import React, { use, useEffect, useState } from "react";
-import { set, useForm } from "react-hook-form";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
   Form,
@@ -54,7 +54,7 @@ function RegisterForm() {
     if (user && !authLoading) {
       router.push("/");
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, router]);
 
   const handleRegister = async (data: z.infer<typeof formSchema>) => {
     await register(data.email, data.password, data.firstName);

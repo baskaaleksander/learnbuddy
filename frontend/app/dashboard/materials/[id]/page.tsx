@@ -4,7 +4,7 @@ import MaterialFlashcards from "@/components/features/material/material-flashcar
 import MaterialQuiz from "@/components/features/material/material-quiz";
 import MaterialSummary from "@/components/features/material/material-summary";
 import { fetchGraphQL } from "@/utils/gql-axios";
-import React, { use, useEffect, useState } from "react";
+import React, { use, useCallback, useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
 
   const resolvedParams = use(params);
   const { id } = resolvedParams;
-  const fetchMaterial = async () => {
+  const fetchMaterial = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -52,17 +52,17 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     fetchMaterial();
-  }, [id]);
+  }, [fetchMaterial]);
 
   useEffect(() => {
     if (material && material.status === "PENDING") {
       router.push(`/dashboard/materials/upload/${id}/`);
     }
-  }, [material]);
+  }, [material, id, router]);
 
   const handleDeleteMaterial = async () => {
     try {
@@ -73,7 +73,7 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
                 deleteMaterial(id: "${id}")
             }
         `);
-    } catch (error) {
+    } catch {
       setError("Failed to delete material. Please try again later.");
     } finally {
       setSubmitting(false);

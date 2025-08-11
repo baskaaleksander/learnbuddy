@@ -9,7 +9,6 @@ import {
   RefreshCw,
   Target,
   Trash,
-  Trash2,
   X,
 } from "lucide-react";
 import { Button } from "../../ui/button";
@@ -30,7 +29,17 @@ function MaterialFlashcards({
   className?: string;
   onAssetChange: () => void;
 }) {
-  const [flashcardsStats, setFlashcardsStats] = useState<any>();
+  type FlashcardsStats = {
+    aiOutputId: string;
+    total: number;
+    known: number;
+    review: number;
+    lastUpdated: string;
+    knowledgePercentage: number;
+  };
+
+  const [flashcardsStats, setFlashcardsStats] =
+    useState<FlashcardsStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [generateDialogOpen, setGenerateDialogOpen] = useState<boolean>(false);
@@ -48,7 +57,7 @@ function MaterialFlashcards({
       try {
         setLoading(true);
         setError(null);
-        const response = await fetchGraphQL(`
+        const response = (await fetchGraphQL(`
                   query GetFlashcardStatsByMaterial {
                       getFlashcardStatsByMaterial(materialId: "${id}") {
                           aiOutputId
@@ -58,7 +67,15 @@ function MaterialFlashcards({
                           lastUpdated
                       }
                   }                
-                `);
+                `)) as {
+          getFlashcardStatsByMaterial: {
+            aiOutputId: string;
+            total: number;
+            known: number;
+            review: number;
+            lastUpdated: string;
+          };
+        };
         const knowledgePercentage =
           (response.getFlashcardStatsByMaterial?.known /
             response.getFlashcardStatsByMaterial?.total) *
@@ -69,7 +86,7 @@ function MaterialFlashcards({
             knowledgePercentage,
           });
         }
-      } catch (error) {
+      } catch {
         setError("Failed to fetch quizzes. Please try again later.");
       } finally {
         setLoading(false);
@@ -90,7 +107,7 @@ function MaterialFlashcards({
     };
 
     fetchUserTokens();
-  }, []);
+  }, [getUserTokens]);
 
   const assetData = {
     title: "Flashcards",
@@ -111,7 +128,7 @@ function MaterialFlashcards({
         icon: <Trash className="h-4 w-4" />,
       });
       onAssetChange();
-    } catch (error) {
+    } catch {
       setError("Failed to delete flashcards. Please try again later.");
       toast.error("Failed to delete flashcards. Please try again later.");
     } finally {
@@ -134,7 +151,7 @@ function MaterialFlashcards({
         duration: 3000,
       });
       onAssetChange();
-    } catch (error) {
+    } catch {
       setError("Failed to regenerate summary. Please try again later.");
       toast.error("Failed to regenerate flashcards. Please try again later.");
     } finally {
@@ -158,7 +175,7 @@ function MaterialFlashcards({
       });
       setGenerateDialogOpen(false);
       onAssetChange();
-    } catch (error) {
+    } catch {
       setError("Failed to delete material. Please try again later.");
       toast.error("Failed to generate flashcards. Please try again later.");
     } finally {

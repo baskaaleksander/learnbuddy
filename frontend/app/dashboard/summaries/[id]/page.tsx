@@ -14,7 +14,7 @@ import { getUserSubscription } from "@/utils/get-user-subscription";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import { ExternalLink, RefreshCw, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { use, useEffect, useState } from "react";
+import React, { use, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
@@ -35,7 +35,7 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = resolvedParams;
   const router = useRouter();
 
-  const fetchSummary = async () => {
+  const fetchSummary = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -71,7 +71,7 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     const fetchUserSubscription = async () => {
@@ -89,7 +89,7 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
 
   useEffect(() => {
     fetchSummary();
-  }, [id]);
+  }, [fetchSummary]);
 
   const handleMaterialClick = () => {
     if (summary?.material && summary.material.id) {
@@ -113,7 +113,7 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
         duration: 3000,
       });
       router.push("/dashboard/summaries/");
-    } catch (error) {
+    } catch {
       setError("Failed to regenerate summary. Please try again later.");
       toast.error("Failed to regenerate summary. Please try again later.");
     } finally {
@@ -135,7 +135,7 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
         icon: <Trash className="h-4 w-4" />,
       });
       router.push("/dashboard/summaries");
-    } catch (error) {
+    } catch {
       setError("Failed to delete summary. Please try again later.");
       toast.error("Failed to delete summary. Please try again later.");
     } finally {
@@ -333,7 +333,7 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
       {summary?.content && (
         <div className="space-y-6">
           {visibleChapters &&
-            visibleChapters.map((chapter, originalIndex) => {
+            visibleChapters.map((chapter) => {
               const chapterIndex = summary.content.chapters.findIndex(
                 (c) => c.name === chapter.name
               );

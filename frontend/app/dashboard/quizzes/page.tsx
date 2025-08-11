@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import ErrorComponent from "@/components/common/error-component";
 import LoadingScreen from "@/components/common/loading-screen";
 import { PaginationProps, QuizData } from "@/lib/definitions";
@@ -25,7 +25,7 @@ function QuizzesPage() {
   const [sortBy, setSortBy] = useState<string>("createdAt-desc");
   const [totalPages, setTotalPages] = useState<number>(1);
 
-  const fetchQuizzes = async () => {
+  const fetchQuizzes = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -73,11 +73,11 @@ function QuizzesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, sortBy]);
 
   useEffect(() => {
     fetchQuizzes();
-  }, [page, pageSize, sortBy]);
+  }, [fetchQuizzes]);
 
   const handleQuizDeleted = () => {
     fetchQuizzes();

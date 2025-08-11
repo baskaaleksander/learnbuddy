@@ -72,7 +72,7 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
     };
 
     fetchUserTokens();
-  }, []);
+  }, [getUserTokens]);
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -186,7 +186,7 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
         duration: 3000,
       });
       router.push("/dashboard/quizzes/");
-    } catch (error) {
+    } catch {
       setError("Failed to regenerate quiz. Please try again later.");
       toast.error("Failed to regenerate quiz. Please try again later.");
     } finally {
@@ -208,7 +208,7 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
         icon: <Trash className="h-4 w-4" />,
       });
       router.push("/dashboard/quizzes");
-    } catch (error) {
+    } catch {
       setError("Failed to delete quiz. Please try again later.");
       toast.error("Failed to delete quiz. Please try again later.");
     } finally {

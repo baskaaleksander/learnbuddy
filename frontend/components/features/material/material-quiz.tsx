@@ -86,7 +86,7 @@ function MaterialQuiz({
       try {
         const tokens = await getUserTokens();
         setUserTokens(tokens);
-      } catch () {
+      } catch (error) {
         console.error("Failed to fetch user tokens:", error);
       }
     };
@@ -114,9 +114,10 @@ function MaterialQuiz({
         icon: <Trash className="w-4 h-4" />,
       });
       onAssetChange();
-    } catch () {
+    } catch (error) {
       setError("Failed to delete material. Please try again later.");
       toast.error("Failed to delete quiz. Please try again later.");
+      console.error("Error deleting quiz:", error);
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);
@@ -137,8 +138,9 @@ function MaterialQuiz({
         icon: <RefreshCw className="w-4 h-4" />,
       });
       onAssetChange();
-    } catch () {
+    } catch (error) {
       setError("Failed to regenerate summary. Please try again later.");
+      console.error("Error regenerating quiz:", error);
     } finally {
       setSubmittingRegenerate(false);
       setRegenerateDialogOpen(false);
@@ -159,8 +161,9 @@ function MaterialQuiz({
         icon: <Check className="w-4 h-4" />,
       });
       onAssetChange();
-    } catch () {
+    } catch (error) {
       setError("Failed to generate summary. Please try again later.");
+      console.error("Error generating quiz:", error);
     } finally {
       setSubmittingGenerate(false);
       setGenerateDialogOpen(false);

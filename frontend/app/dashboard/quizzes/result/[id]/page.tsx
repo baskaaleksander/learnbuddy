@@ -10,7 +10,10 @@ import React, { use, useEffect, useState } from "react";
 
 function ResultPage({ params }: { params: Promise<{ id: string }> }) {
   const [results, setResults] = useState<QuizResult | null>(null);
-  const [quiz, setQuiz] = useState<any>(null);
+  const [quiz, setQuiz] = useState<{
+    id: string;
+    content?: Array<{ question: string; answers: string[] }>;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const resolvedParams = use(params);
@@ -107,18 +110,23 @@ function ResultPage({ params }: { params: Promise<{ id: string }> }) {
       </div>
 
       <div className="space-y-4">
-        {results?.answers.map((question: any, index: number) => (
-          <ResultQuestionCard
-            key={index}
-            questionIndex={index}
-            totalQuestions={results.totalQuestions}
-            isCorrect={question.isCorrect}
-            question={quiz?.content?.[index]?.question || question.question}
-            answer={question.answer}
-            answers={quiz?.content?.[index]?.answers || []}
-            correctAnswer={results.correctAnswers[index]}
-          />
-        ))}
+        {results?.answers.map(
+          (
+            question: { question: string; answer: string; isCorrect: boolean },
+            index: number
+          ) => (
+            <ResultQuestionCard
+              key={index}
+              questionIndex={index}
+              totalQuestions={results.totalQuestions}
+              isCorrect={question.isCorrect}
+              question={quiz?.content?.[index]?.question || question.question}
+              answer={question.answer}
+              answers={quiz?.content?.[index]?.answers || []}
+              correctAnswer={results.correctAnswers[index]}
+            />
+          )
+        )}
       </div>
     </div>
   );

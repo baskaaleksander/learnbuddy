@@ -70,11 +70,8 @@ function PurchaseSummary({
         );
         window.location.href = response.data;
       }
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to process request. Please try again."
-      );
+    } catch {
+      toast.error("Failed to process request. Please try again.");
     } finally {
       setIsProcessing(false);
     }

@@ -1,8 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import PricingCard from "@/components/landing-page/pricing-card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { pricingPlans } from "@/lib/pricing-plans";
 
@@ -47,7 +46,7 @@ function PlanOptions({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {currentPricing.map((card, idx) => (
+        {currentPricing.map((card) => (
           <PricingCard
             key={`${card.nameOfPlan}-${isYearly ? "yearly" : "monthly"}`}
             {...card}

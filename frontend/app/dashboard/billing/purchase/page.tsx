@@ -78,6 +78,7 @@ function PurchasePage() {
   }, [
     selectedPlan,
     isYearly,
+    currentPlan,
     currentPlan?.planName,
     currentPlan?.planInterval,
   ]);

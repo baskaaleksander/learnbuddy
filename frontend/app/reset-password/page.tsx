@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import AlertBox from "@/components/common/alert-box";
 import { AlertCircle, Send } from "lucide-react";
+import { AxiosError } from "axios";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -43,12 +44,13 @@ function RequestPasswordResetPage() {
         email: data.email,
       });
       setSuccess("Password reset link sent to your email.");
-      //find type for that
-    } catch (error: any) {
-      setError(
-        error.response?.data?.message ||
-          "An error occurred while sending the password reset link."
-      );
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        setError(
+          error.response?.data?.message ||
+            "An error occurred while sending the password reset link."
+        );
+      }
     } finally {
       setLoading(false);
       form.reset();

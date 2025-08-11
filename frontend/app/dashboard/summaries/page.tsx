@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import LoadingScreen from "@/components/common/loading-screen";
 import ErrorComponent from "@/components/common/error-component";
@@ -25,7 +25,7 @@ function SummariesPage() {
   const [sortBy, setSortBy] = useState<string>("createdAt-desc");
   const [totalPages, setTotalPages] = useState<number>(1);
 
-  const fetchSummaries = async () => {
+  const fetchSummaries = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -67,11 +67,11 @@ function SummariesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, sortBy]);
 
   useEffect(() => {
     fetchSummaries();
-  }, [page, pageSize, sortBy]);
+  }, [fetchSummaries]);
 
   const handlePreviousPage = () => {
     if (page > 1) {

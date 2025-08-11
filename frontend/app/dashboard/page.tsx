@@ -77,7 +77,7 @@ function DashboardPage() {
       }
     };
     fetchUserStats();
-  }, [user]);
+  }, [user, authLoading]);
 
   if (loading) {
     return <LoadingScreen />;

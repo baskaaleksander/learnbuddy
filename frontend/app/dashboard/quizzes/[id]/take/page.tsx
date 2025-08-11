@@ -17,7 +17,6 @@ import {
   CircleAlert,
   Loader2,
   RotateCcw,
-  Trophy,
 } from "lucide-react";
 import ErrorComponent from "@/components/common/error-component";
 import LoadingScreen from "@/components/common/loading-screen";
@@ -76,9 +75,11 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
 
             setCurrentQuestionIndex(currentQuestionIndex);
             const answers: Record<number, string> = {};
-            questionsAndAnswers.forEach((qa: any, index: number) => {
-              answers[index] = qa.answer;
-            });
+            questionsAndAnswers.forEach(
+              (qa: { answer: string }, index: number) => {
+                answers[index] = qa.answer;
+              }
+            );
             setSelectedAnswers(answers);
           }
         } else {

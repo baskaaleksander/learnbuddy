@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import api from "@/utils/axios";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -22,10 +21,9 @@ type CheckoutSession = {
   customer_email?: string;
   amount_total?: number;
   currency?: string;
-  [key: string]: any;
 };
 
-function SuccessPage() {
+function SuccessPageInner() {
   const searchParams = useSearchParams();
   const sessionId = useMemo(
     () => searchParams.get("session_id"),
@@ -47,13 +45,9 @@ function SuccessPage() {
         );
         if (!mounted) return;
         setSession(data);
-      } catch (e: any) {
+      } catch {
         if (!mounted) return;
-        setError(
-          e?.response?.data?.message ||
-            e?.message ||
-            "Failed to retrieve checkout session"
-        );
+        setError("Failed to retrieve checkout session");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -146,6 +140,14 @@ function SuccessPage() {
         </CardFooter>
       </Card>
     </div>
+  );
+}
+
+function SuccessPage() {
+  return (
+    <Suspense fallback={<div className="px-[10%] py-6 min-h-screen" />}>
+      <SuccessPageInner />
+    </Suspense>
   );
 }
 

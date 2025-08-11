@@ -46,7 +46,7 @@ type UserSettingsFormValues = z.infer<typeof userSettingsSchema>;
 function Settings() {
   const { user, loading: authLoading, logout } = useAuth();
 
-  const [userData, setUserData] = useState<any>();
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -124,8 +124,8 @@ function Settings() {
         `);
       setSuccess("Profile updated successfully");
 
-      setUserData((prev: UserData) =>
-        prev ? { ...prev, ...data } : undefined
+      setUserData((prev: UserData | null) =>
+        prev ? { ...prev, ...data } : null
       );
     } catch (err) {
       console.error("Error updating profile:", err);
@@ -164,7 +164,7 @@ function Settings() {
           )}
 
           <div className="mb-8">
-            <h3 className="font-medium">{userData?.name}</h3>
+            <h3 className="font-medium">{userData?.firstName}</h3>
             <p className="text-muted-foreground text-sm">{userData?.email}</p>
           </div>
 

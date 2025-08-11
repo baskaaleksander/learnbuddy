@@ -23,6 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { use, useEffect, useState } from "react";
+import LoadingScreen from "@/components/common/loading-screen";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -70,7 +71,7 @@ function EditMaterialPage({ params }: { params: Promise<{ id: string }> }) {
         if (materialResponse.getMaterialById) {
           setMaterialData(materialResponse.getMaterialById);
         }
-      } catch (error) {
+      } catch {
         setError("Failed to fetch material data. Please try again later.");
       } finally {
         setLoading(false);
@@ -102,7 +103,7 @@ function EditMaterialPage({ params }: { params: Promise<{ id: string }> }) {
       setSuccess(
         "Material updated successfully. You will be redirected shortly."
       );
-    } catch (error) {
+    } catch {
       setError("Failed to update material. Please try again later.");
     } finally {
       setSubmitting(false);
@@ -114,6 +115,7 @@ function EditMaterialPage({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <div className="p-6 space-y-4">
+      {loading && <LoadingScreen />}
       <h1 className="text-2xl font-bold mb-6">Edit Material</h1>
       <Card>
         <CardHeader>

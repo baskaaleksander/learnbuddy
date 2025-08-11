@@ -14,7 +14,9 @@ function FlashcardsPlayPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = resolvedParams;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [flashcardsSet, setFlashcardsSet] = useState<Array<Flashcard>>(null);
+  const [flashcardsSet, setFlashcardsSet] = useState<Array<Flashcard> | null>(
+    null
+  );
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -88,6 +90,10 @@ function FlashcardsPlayPage({ params }: { params: Promise<{ id: string }> }) {
 
   if (error) {
     return <ErrorComponent message={error} />;
+  }
+
+  if (!flashcardsSet) {
+    return <ErrorComponent message="No flashcards available in this set." />;
   }
 
   if (currentFlashcardIndex >= flashcardsSet.length || finished) {

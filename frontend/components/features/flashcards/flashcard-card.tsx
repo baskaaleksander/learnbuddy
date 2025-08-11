@@ -75,6 +75,7 @@ function FlashcardCard({
       onFlashcardDeleted?.();
     } catch (error) {
       toast.error("Failed to delete flashcards. Please try again later.");
+      console.error("Error deleting flashcards:", error);
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);

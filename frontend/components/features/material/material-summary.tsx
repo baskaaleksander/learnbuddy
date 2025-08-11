@@ -66,8 +66,9 @@ function MaterialSummary({
         if (summaryResponse.getSummaryByMaterial) {
           setSummary(summaryResponse.getSummaryByMaterial);
         }
-      } catch () {
+      } catch (error) {
         setError("Failed to fetch summary. Please try again later.");
+        console.error("Error fetching summary:", error);
       } finally {
         setLoading(false);
       }
@@ -81,7 +82,7 @@ function MaterialSummary({
       try {
         const tokens = await getUserTokens();
         setUserTokens(tokens);
-      } catch () {
+      } catch (error) {
         console.error("Failed to fetch user tokens:", error);
       }
     };
@@ -110,9 +111,10 @@ function MaterialSummary({
         duration: 3000,
       });
       onAssetChange();
-    } catch () {
+    } catch (error) {
       setError("Failed to generate summary. Please try again later.");
       toast.error("Failed to generate summary. Please try again later.");
+      console.error("Error generating summary:", error);
     } finally {
       setSubmittingGenerate(false);
       setGenerateDialogOpen(false);
@@ -133,9 +135,10 @@ function MaterialSummary({
         duration: 3000,
       });
       onAssetChange();
-    } catch () {
+    } catch (error) {
       setError("Failed to delete summary. Please try again later.");
       toast.error("Failed to delete summary. Please try again later.");
+      console.error("Error deleting summary:", error);
     } finally {
       setSubmittingDelete(false);
       setDeleteDialogOpen(false);
@@ -156,9 +159,10 @@ function MaterialSummary({
         duration: 3000,
       });
       onAssetChange();
-    } catch () {
+    } catch (error) {
       setError("Failed to regenerate summary. Please try again later.");
       toast.error("Failed to regenerate summary. Please try again later.");
+      console.error("Error regenerating summary:", error);
     } finally {
       setSubmittingRegenerate(false);
       setRegenerateDialogOpen(false);

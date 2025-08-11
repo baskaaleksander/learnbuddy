@@ -48,10 +48,8 @@ function useMediaQuery(query: string): boolean {
     }
     // Legacy browsers - addListener (deprecated but included for backwards compatibility)
     else {
-      // @ts-expect-error - Using deprecated API for older browsers
       mediaQueryList.addListener(listener);
       return () => {
-        // @ts-expect-error - Using deprecated API for older browsers
         mediaQueryList.removeListener(listener);
       };
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import { FlashcardData, PaginationProps } from "@/lib/definitions";
 import FlashcardCard from "@/components/features/flashcards/flashcard-card";
@@ -26,7 +26,7 @@ function FlashcardsPage() {
   const [sortBy, setSortBy] = useState<string>("createdAt-desc");
   const [totalPages, setTotalPages] = useState<number>(1);
 
-  const fetchFlashcards = async () => {
+  const fetchFlashcards = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -60,16 +60,16 @@ function FlashcardsPage() {
         setFlashcards(flashcardsResponse.getFlashcardsSetsByUser);
         setTotalPages(flashcardsResponse.getFlashcardsSetsByUser.totalPages);
       }
-    } catch (error) {
+    } catch {
       setError("Failed to fetch flashcards. Please try again later.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, sortBy]);
 
   useEffect(() => {
     fetchFlashcards();
-  }, [page, pageSize, sortBy]);
+  }, [fetchFlashcards]);
 
   const handlePreviousPage = () => {
     if (page > 1) {

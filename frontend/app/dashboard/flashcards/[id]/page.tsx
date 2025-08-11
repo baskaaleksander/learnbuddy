@@ -6,12 +6,7 @@ import { GenerateAssetDialog } from "@/components/common/generate-asset";
 import LoadingScreen from "@/components/common/loading-screen";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   Flashcard,
   FlashcardsStats,
@@ -30,7 +25,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { use, useEffect, useState } from "react";
+import React, { use, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import api from "@/utils/axios";
 import { getUserSubscription } from "@/utils/get-user-subscription";
@@ -57,7 +52,7 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
 
   const router = useRouter();
 
-  const fetchFlashcardsSet = async () => {
+  const fetchFlashcardsSet = useCallback(async () => {
     try {
       const flashcardsResponse = await fetchGraphQL(`
             query GetFlashcardsById {
@@ -99,7 +94,7 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   const handleMaterialClick = () => {
     if (material && material.id) {
@@ -125,7 +120,7 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
 
   useEffect(() => {
     fetchFlashcardsSet();
-  }, [id]);
+  }, [fetchFlashcardsSet]);
 
   const knowledgeRate = flashcardsStats
     ? ((flashcardsStats.known / flashcardsStats.total) * 100).toFixed(0)
@@ -188,7 +183,7 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
         icon: <Trash className="h-4 w-4" />,
       });
       router.push("/dashboard/flashcards");
-    } catch (error) {
+    } catch {
       setError("Failed to delete flashcards. Please try again later.");
       toast.error("Failed to delete flashcards. Please try again later.");
     } finally {
@@ -211,7 +206,7 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
         duration: 3000,
       });
       router.push("/dashboard/flashcards/");
-    } catch (error) {
+    } catch {
       setError("Failed to regenerate flashcards. Please try again later.");
       toast.error("Failed to regenerate flashcards. Please try again later.");
     } finally {

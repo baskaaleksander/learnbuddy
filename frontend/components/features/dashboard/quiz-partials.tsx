@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { QuizPartialData } from "@/lib/definitions";
 import {

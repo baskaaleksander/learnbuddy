@@ -49,8 +49,9 @@ function ContactForm() {
         `Contact Form Submission from ${data.name}`,
         `Name: ${data.name}\nEmail: ${data.email}\nMessage: ${data.message}`
       );
-    } catch () {
+    } catch (error) {
       toast.error("Failed to send email. Please try again later.");
+      console.error("Error sending email:", error);
     } finally {
       toast.success("Your message has been sent successfully!");
       form.reset();
