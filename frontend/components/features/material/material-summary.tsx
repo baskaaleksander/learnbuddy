@@ -66,7 +66,7 @@ function MaterialSummary({
         if (summaryResponse.getSummaryByMaterial) {
           setSummary(summaryResponse.getSummaryByMaterial);
         }
-      } catch (error) {
+      } catch () {
         setError("Failed to fetch summary. Please try again later.");
       } finally {
         setLoading(false);
@@ -81,13 +81,13 @@ function MaterialSummary({
       try {
         const tokens = await getUserTokens();
         setUserTokens(tokens);
-      } catch (error) {
+      } catch () {
         console.error("Failed to fetch user tokens:", error);
       }
     };
 
     fetchUserTokens();
-  }, []);
+  });
 
   const assetData = {
     title: "Summary",
@@ -110,7 +110,7 @@ function MaterialSummary({
         duration: 3000,
       });
       onAssetChange();
-    } catch (error) {
+    } catch () {
       setError("Failed to generate summary. Please try again later.");
       toast.error("Failed to generate summary. Please try again later.");
     } finally {
@@ -133,7 +133,7 @@ function MaterialSummary({
         duration: 3000,
       });
       onAssetChange();
-    } catch (error) {
+    } catch () {
       setError("Failed to delete summary. Please try again later.");
       toast.error("Failed to delete summary. Please try again later.");
     } finally {
@@ -156,7 +156,7 @@ function MaterialSummary({
         duration: 3000,
       });
       onAssetChange();
-    } catch (error) {
+    } catch () {
       setError("Failed to regenerate summary. Please try again later.");
       toast.error("Failed to regenerate summary. Please try again later.");
     } finally {

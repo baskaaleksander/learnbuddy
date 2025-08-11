@@ -14,7 +14,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import api from "@/utils/axios";
 import { Checkbox } from "@/components/ui/checkbox";
 import { sendEmail } from "@/utils/send-email";
 import { toast } from "sonner";
@@ -50,7 +49,7 @@ function ContactForm() {
         `Contact Form Submission from ${data.name}`,
         `Name: ${data.name}\nEmail: ${data.email}\nMessage: ${data.message}`
       );
-    } catch (error) {
+    } catch () {
       toast.error("Failed to send email. Please try again later.");
     } finally {
       toast.success("Your message has been sent successfully!");

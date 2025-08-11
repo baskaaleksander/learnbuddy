@@ -56,7 +56,7 @@ function SecondStepUpload({ id }: { id: string }) {
           router.push("/dashboard/materials");
         }, 2000);
       }
-    } catch (error) {
+    } catch () {
       setLoading(false);
       setErrorMessage(
         "An error occurred while uploading the material. Please try again later."

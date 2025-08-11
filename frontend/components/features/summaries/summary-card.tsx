@@ -66,7 +66,7 @@ function SummaryCard({
         duration: 3000,
       });
       onSummaryDelete?.();
-    } catch (error) {
+    } catch () {
       toast.error("Failed to delete summary. Please try again later.");
     } finally {
       setSubmittingDelete(false);

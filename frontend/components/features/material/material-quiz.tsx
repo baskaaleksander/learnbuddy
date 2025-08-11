@@ -22,6 +22,7 @@ import DeleteAssetDialog from "@/components/common/delete-asset-dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/providers/auth-provider";
 import { UserTokens } from "@/lib/definitions";
+import { QuizData } from "@/lib/definitions";
 
 function MaterialQuiz({
   id,
@@ -32,7 +33,7 @@ function MaterialQuiz({
   className?: string;
   onAssetChange: () => void;
 }) {
-  const [quizzes, setQuizzes] = useState<any>();
+  const [quizzes, setQuizzes] = useState<QuizData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [generateDialogOpen, setGenerateDialogOpen] = useState<boolean>(false);
@@ -85,13 +86,13 @@ function MaterialQuiz({
       try {
         const tokens = await getUserTokens();
         setUserTokens(tokens);
-      } catch (error) {
+      } catch () {
         console.error("Failed to fetch user tokens:", error);
       }
     };
 
     fetchUserTokens();
-  }, []);
+  });
 
   const assetData = {
     title: "Quiz",
@@ -113,7 +114,7 @@ function MaterialQuiz({
         icon: <Trash className="w-4 h-4" />,
       });
       onAssetChange();
-    } catch (error) {
+    } catch () {
       setError("Failed to delete material. Please try again later.");
       toast.error("Failed to delete quiz. Please try again later.");
     } finally {
@@ -136,7 +137,7 @@ function MaterialQuiz({
         icon: <RefreshCw className="w-4 h-4" />,
       });
       onAssetChange();
-    } catch (error) {
+    } catch () {
       setError("Failed to regenerate summary. Please try again later.");
     } finally {
       setSubmittingRegenerate(false);
@@ -158,7 +159,7 @@ function MaterialQuiz({
         icon: <Check className="w-4 h-4" />,
       });
       onAssetChange();
-    } catch (error) {
+    } catch () {
       setError("Failed to generate summary. Please try again later.");
     } finally {
       setSubmittingGenerate(false);

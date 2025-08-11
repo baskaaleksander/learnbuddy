@@ -16,7 +16,6 @@ import {
 import Link from "next/link";
 import { QuizData } from "@/lib/definitions";
 import { formatDate } from "@/utils/format-date";
-import { Button } from "../../ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,12 +60,6 @@ function QuizCard({
     window.location.href = `/dashboard/materials/${quizData.material.id}`;
   };
 
-  const handleResultClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    window.location.href = `/dashboard/quizzes/${quizData.id}/results`;
-  };
-
   const handleOpenDeleteDialog = () => {
     setDropdownOpen(false);
     setDeleteDialogOpen(true);
@@ -86,7 +79,7 @@ function QuizCard({
         duration: 3000,
         icon: <Trash className="w-4 h-4" />,
       });
-    } catch (error) {
+    } catch () {
       toast.error("Failed to delete quiz. Please try again later.");
     } finally {
       setSubmittingDelete(false);
