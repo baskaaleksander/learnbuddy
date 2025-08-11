@@ -15,12 +15,14 @@ import {
 import {
   Filter,
   ArrowUpDown,
-  Search,
   ChevronLeft,
   ChevronRight,
+  ArrowRight,
+  BookIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MaterialData, PaginationProps } from "@/lib/definitions";
+import Link from "next/link";
 // import { useRouter } from "next/navigation";
 
 function MaterialsPage() {
@@ -194,11 +196,12 @@ function MaterialsPage() {
       </div>
 
       {/* Materials grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-        <UploadCard />
 
-        {materials?.data && materials.data.length > 0 ? (
-          materials.data.map((material: MaterialData) => (
+      {materials?.data && materials.data.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+          <UploadCard />
+
+          {materials.data.map((material: MaterialData) => (
             <MaterialCard
               key={material.id}
               title={material.title}
@@ -207,16 +210,31 @@ function MaterialsPage() {
               id={material.id}
               createdAt={material.createdAt}
             />
-          ))
-        ) : (
-          <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
-            <div className="text-muted-foreground">
-              <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">No materials found</h3>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+          <div className="relative mb-4">
+            <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center">
+              <BookIcon className="h-8 w-8 text-muted-foreground/60" />
+            </div>
+            <div className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-xs text-primary font-medium">+</span>
             </div>
           </div>
-        )}
-      </div>
+          <h3 className="font-medium text-foreground mb-2">No materials yet</h3>
+          <p className="text-sm text-muted-foreground mb-4 max-w-sm">
+            Start creating your first learning material to see it appear here.
+          </p>
+          <Link
+            href="/dashboard/materials/upload"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+          >
+            Upload your first material
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

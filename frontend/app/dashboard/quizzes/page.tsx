@@ -10,11 +10,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { fetchGraphQL } from "@/utils/gql-axios";
-import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  MessageCircleQuestion,
+} from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import ErrorComponent from "@/components/common/error-component";
 import LoadingScreen from "@/components/common/loading-screen";
 import { PaginationProps, QuizData } from "@/lib/definitions";
+import Link from "next/link";
 
 function QuizzesPage() {
   const [loading, setLoading] = useState(false);
@@ -185,23 +192,44 @@ function QuizzesPage() {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+      <div>
         {quizzes && quizzes.data.length > 0 ? (
-          quizzes?.data?.map((quiz) => {
-            return (
-              <QuizCard
-                key={quiz.id}
-                quizData={quiz}
-                onQuizDeleted={handleQuizDeleted}
-              />
-            );
-          })
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+            {quizzes?.data?.map((quiz) => {
+              return (
+                <QuizCard
+                  key={quiz.id}
+                  quizData={quiz}
+                  onQuizDeleted={handleQuizDeleted}
+                />
+              );
+            })}
+          </div>
         ) : (
-          <p>No quizzes found</p>
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <div className="relative mb-4">
+              <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center">
+                <MessageCircleQuestion className="h-8 w-8 text-muted-foreground/60" />
+              </div>
+              <div className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-xs text-primary font-medium">AI</span>
+              </div>
+            </div>
+            <h3 className="font-medium text-foreground mb-2">No quizzes yet</h3>
+            <p className="text-sm text-muted-foreground mb-4 max-w-sm">
+              Upload some learning materials and generate quizzes to see them
+              here.
+            </p>
+            <Link
+              href="/dashboard/materials"
+              className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+            >
+              Browse your materials
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         )}
       </div>
     </div>
   );
 }
-
-export default QuizzesPage;

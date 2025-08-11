@@ -4,7 +4,13 @@ import { fetchGraphQL } from "@/utils/gql-axios";
 import LoadingScreen from "@/components/common/loading-screen";
 import ErrorComponent from "@/components/common/error-component";
 import { PaginationProps, SummaryData } from "@/lib/definitions";
-import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpDown,
+  BookText,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -14,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import SummaryCard from "@/components/features/summaries/summary-card";
+import Link from "next/link";
 
 function SummariesPage() {
   const [loading, setLoading] = useState<boolean>(false);
@@ -181,21 +188,39 @@ function SummariesPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-        {summaries && summaries.data.length > 0 ? (
-          summaries?.data?.map((summary) => {
-            return (
-              <SummaryCard
-                key={summary.id}
-                summaryData={summary}
-                onSummaryDelete={handleSummaryDeleted}
-              />
-            );
-          })
-        ) : (
-          <p>No summaries found</p>
-        )}
-      </div>
+      {summaries && summaries.data.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+          {summaries?.data?.map((summary) => (
+            <SummaryCard
+              summaryData={summary}
+              onSummaryDelete={handleSummaryDeleted}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+          <div className="relative mb-4">
+            <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center">
+              <BookText className="h-8 w-8 text-muted-foreground/60" />
+            </div>
+            <div className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-xs text-primary font-medium">AI</span>
+            </div>
+          </div>
+          <h3 className="font-medium text-foreground mb-2">No summaries yet</h3>
+          <p className="text-sm text-muted-foreground mb-4 max-w-sm">
+            Upload some learning materials and generate summaries to see them
+            here.
+          </p>
+          <Link
+            href="/dashboard/materials"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+          >
+            Browse your materials
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

@@ -50,7 +50,7 @@ api.interceptors.response.use(
 
       try {
         const response = await axios.get(
-          "http://localhost:3001/auth/refresh-token",
+          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-token`,
           {
             withCredentials: true,
           }
