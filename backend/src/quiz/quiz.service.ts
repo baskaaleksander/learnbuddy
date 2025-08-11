@@ -391,8 +391,6 @@ export class QuizService {
       throw new NotFoundException('PDF content not found');
     }
 
-    console.log(pdfContent);
-
     const quiz = await this.openAiService.generateQuiz(pdfContent);
 
     if (!quiz) {

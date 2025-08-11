@@ -3,8 +3,6 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import { Logger } from 'nestjs-pino';
-import { setupBullBoard } from './utils/setupBullBoard';
-import { getQueueToken } from '@nestjs/bullmq';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -26,18 +24,10 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const quizProgressQueue = app.get(getQueueToken('quizProgress'));
-  const { serverAdapter } = setupBullBoard([quizProgressQueue]);
-
-  app.use('/admin/queues', serverAdapter.getRouter());
-
   await app.listen(process.env.PORT ?? 3001);
 
   console.log(
     `🚀 Server running on: http://localhost:${process.env.PORT ?? 3001}`,
-  );
-  console.log(
-    `📊 Bull Dashboard available at: http://localhost:${process.env.PORT ?? 3001}/admin/queues`,
   );
 }
 bootstrap();
