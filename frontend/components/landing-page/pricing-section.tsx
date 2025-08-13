@@ -49,7 +49,7 @@ function PricingSection() {
           variant="secondary"
           className="absolute -bottom-4 -right-6 text-xs px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800"
         >
-          Save 20%
+          Save 17%
         </Badge>
       </div>
 

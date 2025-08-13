@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import logo from "@/public/logo.svg";
 import HamburgerButton from "@/components/ui/hamburger-button";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -60,6 +61,18 @@ function DesktopNavbar({
   navLinks: { name: string; path: string }[];
   pathname: string;
 }) {
+  const router = useRouter();
+  const handleDashboardClick = () => {
+    router.push("/dashboard");
+  };
+
+  const handleAccountClick = () => {
+    router.push("/dashboard/settings");
+  };
+
+  const handleBillingClick = () => {
+    router.push("/dashboard/billing");
+  };
   return (
     <nav className="hidden sm:flex items-center justify-between border-b border-gray-200 dark:border-gray-800 w-full bg-background">
       <div className="flex items-center w-full max-w-7xl mx-auto px-6 lg:px-8 py-4 h-16">
@@ -127,9 +140,15 @@ function DesktopNavbar({
               <DropdownMenuContent>
                 <DropdownMenuLabel>{user.firstName}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Dashboard</DropdownMenuItem>
-                <DropdownMenuItem>Billing</DropdownMenuItem>
-                <DropdownMenuItem>Account</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDashboardClick()}>
+                  Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleBillingClick()}>
+                  Billing
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAccountClick()}>
+                  Account
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="font-semibold text-destructive"

@@ -19,9 +19,9 @@ function FaqPricing() {
         "No prerequisites are required. Our platform is designed to be user-friendly and accessible to everyone.",
     },
     {
-      question: "Is there a free trial available?",
+      question: "Is there a free plan available?",
       answer:
-        "Yes, we offer a free trial period for new users to explore the platform and its features before committing to a subscription.",
+        "Yes, we offer a free plan for new users to explore the platform and its features before committing to a subscription.",
     },
   ];
   return (
