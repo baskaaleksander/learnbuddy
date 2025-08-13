@@ -11,6 +11,8 @@ import {
 } from "../../ui/dropdown-menu";
 import DeleteAssetDialog from "@/components/common/delete-asset-dialog";
 import { useRouter } from "next/navigation";
+import { fetchGraphQL } from "@/utils/gql-axios";
+import { toast } from "sonner";
 
 interface MaterialCardProps {
   title: string;
@@ -36,10 +38,21 @@ function MaterialCard({
   const router = useRouter();
 
   const handleDeleteMaterial = async () => {
-    setDeleteDialogOpen(false);
-    setSubmittingDelete(true);
+    try {
+      setSubmittingDelete(true);
+      await fetchGraphQL(`
+            mutation DeleteMaterial {
+                deleteMaterial(id: "${id}")
+            }
+        `);
+    } catch {
+      toast.error("Failed to delete material");
+    } finally {
+      setSubmittingDelete(false);
+      setDeleteDialogOpen(false);
+      window.location.reload();
+    }
   };
-
   const handleOpenDeleteDialog = () => {
     setDropdownOpen(false);
     setDeleteDialogOpen(true);

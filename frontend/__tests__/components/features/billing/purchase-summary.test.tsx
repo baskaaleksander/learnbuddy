@@ -250,7 +250,9 @@ describe("Purchase Summary", () => {
     await user.click(upgradeButton);
 
     await waitFor(() => {
-      expect(mockToast.error).toHaveBeenCalledWith(errorMessage);
+      expect(mockToast.error).toHaveBeenCalledWith(
+        "Failed to process request. Please try again."
+      );
     });
 
     mockApi.patch.mockRejectedValueOnce(new Error("Network error"));
