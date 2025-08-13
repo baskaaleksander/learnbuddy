@@ -14,12 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  PaginationProps,
-  QuizData,
-  QuizResult,
-  UserTokens,
-} from "@/lib/definitions";
+import { PaginationProps, QuizData, QuizResult } from "@/lib/definitions";
 import { useAuth } from "@/providers/auth-provider";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import {
@@ -54,25 +49,11 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
     useState<boolean>(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] =
     useState<boolean>(false);
-  const [userTokens, setUserTokens] = useState<UserTokens | null>(null);
-  const { getUserTokens } = useAuth();
+  const { userTokens } = useAuth();
 
   const resolvedParams = use(params);
   const { id } = resolvedParams;
   const router = useRouter();
-
-  useEffect(() => {
-    const fetchUserTokens = async () => {
-      try {
-        const tokens = await getUserTokens();
-        setUserTokens(tokens);
-      } catch (error) {
-        console.error("Failed to fetch user tokens:", error);
-      }
-    };
-
-    fetchUserTokens();
-  }, [getUserTokens]);
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -257,7 +238,11 @@ function QuizPage({ params }: { params: Promise<{ id: string }> }) {
               submitting={submittingRegenerate}
               triggerText="Regenerate"
               availableTokens={
-                userTokens ? userTokens.tokensLimit - userTokens.tokensUsed : 0
+                userTokens
+                  ? userTokens.tokensLimit === 0
+                    ? 2
+                    : userTokens.tokensLimit - userTokens.tokensUsed
+                  : 0
               }
             />
             <Button

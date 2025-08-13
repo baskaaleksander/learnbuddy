@@ -29,6 +29,7 @@ import React, { use, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import api from "@/utils/axios";
 import { getUserSubscription } from "@/utils/get-user-subscription";
+import { useAuth } from "@/providers/auth-provider";
 
 function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -47,6 +48,8 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
     useState<boolean>(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] =
     useState<boolean>(false);
+  const { userTokens } = useAuth();
+
   const [userSubscription, setUserSubscription] =
     useState<UserSubscription | null>(null);
 
@@ -285,11 +288,10 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
                 submitting={submittingRegenerate}
                 triggerText="Regenerate"
                 availableTokens={
-                  userSubscription
-                    ? userSubscription.planName === "Unlimited"
+                  userTokens
+                    ? userTokens.tokensLimit === 0
                       ? 2
-                      : userSubscription.tokensLimit -
-                        userSubscription.tokensUsed
+                      : userTokens.tokensLimit - userTokens.tokensUsed
                     : 0
                 }
               />

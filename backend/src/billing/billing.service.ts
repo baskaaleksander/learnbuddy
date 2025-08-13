@@ -442,6 +442,13 @@ export class BillingService {
       .innerJoin(plans, eq(subscriptions.planId, plans.id))
       .where(eq(subscriptions.userId, userId));
 
+    if (subscription.length === 0) {
+      return {
+        tokensUsed: user[0].tokensUsed || 0,
+        tokensLimit: 12,
+      };
+    }
+
     return {
       tokensUsed: user[0].tokensUsed || 0,
       tokensLimit: subscription[0].plans.tokens_monthly || 12,

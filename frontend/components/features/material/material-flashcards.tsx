@@ -18,7 +18,6 @@ import { GenerateAssetDialog } from "@/components/common/generate-asset";
 import DeleteAssetDialog from "@/components/common/delete-asset-dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/providers/auth-provider";
-import { UserTokens } from "@/lib/definitions";
 
 function MaterialFlashcards({
   id,
@@ -49,8 +48,7 @@ function MaterialFlashcards({
   const [submittingRegenerate, setSubmittingRegenerate] = useState(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] =
     useState<boolean>(false);
-  const [userTokens, setUserTokens] = useState<UserTokens | null>(null);
-  const { getUserTokens } = useAuth();
+  const { userTokens } = useAuth();
 
   useEffect(() => {
     const fetchQuizData = async () => {
@@ -95,22 +93,6 @@ function MaterialFlashcards({
 
     fetchQuizData();
   }, [id]);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const tokens = await getUserTokens();
-        if (mounted) setUserTokens(tokens);
-      } catch (error) {
-        console.error("Failed to fetch user tokens:", error);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const assetData = {
     title: "Flashcards",

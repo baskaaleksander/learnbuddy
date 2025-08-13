@@ -1,4 +1,5 @@
 "use client";
+import { UserTokens } from "@/lib/definitions";
 import { useAuthStore } from "@/utils/authStore";
 import api from "@/utils/axios";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -15,6 +16,7 @@ interface AuthContextType {
     firstName: string
   ) => Promise<void>;
   getUserTokens: () => Promise<any>;
+  userTokens: UserTokens | null;
 }
 
 export interface UserData {
@@ -29,6 +31,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserData | null>(null);
+  const [userTokens, setUserTokens] = useState<UserTokens | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,6 +55,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       try {
         const res = await api.get("/auth/me");
+        const tokensRes = await api.get("/billing/get-user-tokens");
+        setUserTokens(tokensRes.data);
         setUser(res.data);
       } catch {
         setUser(null);
@@ -143,7 +148,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, error, login, logout, register, getUserTokens }}
+      value={{
+        user,
+        loading,
+        error,
+        login,
+        logout,
+        register,
+        getUserTokens,
+        userTokens,
+      }}
     >
       {children}
     </AuthContext.Provider>

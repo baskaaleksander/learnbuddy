@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SummaryData, UserSubscription } from "@/lib/definitions";
+import { useAuth } from "@/providers/auth-provider";
 import api from "@/utils/axios";
 import { getUserSubscription } from "@/utils/get-user-subscription";
 import { fetchGraphQL } from "@/utils/gql-axios";
@@ -30,6 +31,7 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
   const [hideKnownChapters, setHideKnownChapters] = useState<boolean>(false);
   const [userSubscription, setUserSubscription] =
     useState<UserSubscription | null>(null);
+  const { userTokens } = useAuth();
 
   const resolvedParams = use(params);
   const { id } = resolvedParams;
@@ -286,8 +288,10 @@ function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
             submitting={submittingRegenerate}
             triggerText="Regenerate"
             availableTokens={
-              userSubscription
-                ? userSubscription.tokensLimit - userSubscription.tokensUsed
+              userTokens
+                ? userTokens.tokensLimit === 0
+                  ? 2
+                  : userTokens.tokensLimit - userTokens.tokensUsed
                 : 0
             }
           />
