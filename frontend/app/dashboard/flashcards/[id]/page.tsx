@@ -286,7 +286,10 @@ function FlashcardsSetPage({ params }: { params: Promise<{ id: string }> }) {
                 triggerText="Regenerate"
                 availableTokens={
                   userSubscription
-                    ? userSubscription.tokensLimit - userSubscription.tokensUsed
+                    ? userSubscription.planName === "Unlimited"
+                      ? 2
+                      : userSubscription.tokensLimit -
+                        userSubscription.tokensUsed
                     : 0
                 }
               />

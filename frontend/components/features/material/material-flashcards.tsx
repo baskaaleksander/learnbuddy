@@ -97,17 +97,20 @@ function MaterialFlashcards({
   }, [id]);
 
   useEffect(() => {
-    const fetchUserTokens = async () => {
+    let mounted = true;
+    (async () => {
       try {
         const tokens = await getUserTokens();
-        setUserTokens(tokens);
+        if (mounted) setUserTokens(tokens);
       } catch (error) {
         console.error("Failed to fetch user tokens:", error);
       }
+    })();
+    return () => {
+      mounted = false;
     };
-
-    fetchUserTokens();
-  }, [getUserTokens]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const assetData = {
     title: "Flashcards",

@@ -406,8 +406,8 @@ export class BillingService {
     }
 
     if (
-      user[0].tokensUsed + tokenAmount >
-      subscription[0].plans.tokens_monthly
+      user[0].tokensUsed + tokenAmount > subscription[0].plans.tokens_monthly &&
+      subscription[0].plans.tokens_monthly > 0
     ) {
       throw new ConflictException(
         'Insufficient tokens available for this operation',
