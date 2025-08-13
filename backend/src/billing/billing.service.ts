@@ -7,7 +7,12 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { and, eq } from 'drizzle-orm';
 import { db } from '../database/drizzle.module';
-import { plans, subscriptions, users } from '../database/schema';
+import {
+  plans,
+  subscriptions,
+  subscriptionStatusEnum,
+  users,
+} from '../database/schema';
 import { RedisService } from '../redis/redis.service';
 import Stripe from 'stripe';
 
@@ -115,6 +120,7 @@ export class BillingService {
     return session.url;
   }
 
+  // check why sub doesnt cancel in db
   async cancelSubscription(userId: string) {
     const subscription = await this.drizzle
       .select()
@@ -127,6 +133,8 @@ export class BillingService {
 
     const subscriptionId = subscription[0]?.stripeSubscriptionId;
 
+    console.log(subscription[0]);
+
     const subscriptionStripe =
       await this.stripe.subscriptions.retrieve(subscriptionId);
 
@@ -134,9 +142,16 @@ export class BillingService {
       throw new NotFoundException('Subscription not found');
     }
 
-    if (subscriptionStripe.status === 'canceled') {
+    if (subscription[0]?.status === 'canceled') {
       throw new ConflictException('Subscription is already canceled');
     }
+
+    await this.drizzle
+      .update(subscriptions)
+      .set({
+        status: 'canceled',
+      })
+      .where(eq(subscriptions.id, subscription[0].id));
 
     const canceledSubscription = await this.stripe.subscriptions.update(
       subscriptionId,
@@ -144,13 +159,6 @@ export class BillingService {
         cancel_at_period_end: true,
       },
     );
-
-    await this.drizzle
-      .update(subscriptions)
-      .set({
-        status: 'canceled',
-      })
-      .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
 
     return canceledSubscription;
   }

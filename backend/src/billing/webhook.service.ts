@@ -232,6 +232,16 @@ export class WebhookService {
       throw new Error(`Subscription with ID ${subscriptionId} not found`);
     }
 
+    if (event.cancel_at_period_end === true) {
+      await this.drizzle
+        .update(subscriptions)
+        .set({
+          status: 'canceled',
+          updatedAt: new Date(),
+        })
+        .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
+    }
+
     const planPriceId = event.items.data[0].plan.id;
 
     const currentPeriodEnd = new Date(
