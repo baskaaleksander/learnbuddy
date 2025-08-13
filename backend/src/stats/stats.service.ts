@@ -84,7 +84,10 @@ export class StatsService {
       throw new UnauthorizedException('User does not exist');
     }
 
-    const materialsData = await this.getMaterialsWithAiOutputs(userId);
+    const materialsWithAiOutputsData =
+      await this.getMaterialsWithAiOutputs(userId);
+
+    const materialsData = await this.getMaterialsData(userId);
 
     if (materialsData.length === 0) {
       return {
@@ -107,7 +110,7 @@ export class StatsService {
       recentActivity,
       quizPartials,
     ] = await Promise.all([
-      this.getMaterialsCounts(materialsData),
+      this.getMaterialsCounts(materialsWithAiOutputsData, materialsData),
       this.getQuizStats(userId),
       this.getFlashcardUserStats(userId),
       this.getRecentActivity(userId),
@@ -131,15 +134,26 @@ export class StatsService {
       .where(eq(materials.userId, userId));
   }
 
-  private getMaterialsCounts(materialsData: any[]) {
+  private async getMaterialsData(userId: string) {
+    return this.drizzle
+      .select()
+      .from(materials)
+      .where(eq(materials.userId, userId));
+  }
+
+  private getMaterialsCounts(
+    materialsWithAiOutputsData: any[],
+    materialsData: any[],
+  ) {
     return {
       materialsCount: materialsData.length,
-      quizzesCount: materialsData.filter((m) => m.ai_outputs.type === 'quiz')
-        .length,
-      flashcardsCount: materialsData.filter(
+      quizzesCount: materialsWithAiOutputsData.filter(
+        (m) => m.ai_outputs.type === 'quiz',
+      ).length,
+      flashcardsCount: materialsWithAiOutputsData.filter(
         (m) => m.ai_outputs.type === 'flashcards',
       ).length,
-      summariesCount: materialsData.filter(
+      summariesCount: materialsWithAiOutputsData.filter(
         (m) => m.ai_outputs.type === 'summary',
       ).length,
     };

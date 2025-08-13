@@ -240,6 +240,8 @@ export class WebhookService {
           updatedAt: new Date(),
         })
         .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
+
+      return;
     }
 
     const planPriceId = event.items.data[0].plan.id;

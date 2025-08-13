@@ -41,4 +41,3 @@ lerna-debug.log*
 .codegpt
 /drizzle
 **/.env*
-/dumb.rdb

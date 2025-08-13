@@ -20,14 +20,10 @@ async function bootstrap() {
   app.use(cookieParser());
   app.useLogger(app.get(Logger));
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    origin: ['http://localhost:3000', 'https://learnbuddy.baskaaleksander.com'],
     credentials: true,
   });
 
   await app.listen(process.env.PORT ?? 3001);
-
-  console.log(
-    `🚀 Server running on: http://localhost:${process.env.PORT ?? 3001}`,
-  );
 }
 bootstrap();
