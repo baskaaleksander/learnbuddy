@@ -4,13 +4,22 @@ import { db } from '../database/drizzle.module';
 import { aiOutputs, materials } from '../database/schema';
 import { FlashcardContent, SummaryAiOutputContent } from '../utils/types';
 import * as stringify from 'csv-stringify';
-import { Response } from 'express';
 import * as PDFDocument from 'pdfkit';
 import { join } from 'path';
+import { existsSync } from 'fs';
+import { Response } from 'express';
 
 @Injectable()
 export class ExportService {
   constructor(@Inject('DRIZZLE') private drizzle: typeof db) {}
+
+  private resolveFontsDir(): string {
+    const distFonts = join(__dirname, '..', 'assets', 'fonts');
+    if (existsSync(distFonts)) return distFonts;
+
+    const srcFonts = join(process.cwd(), 'src', 'assets', 'fonts');
+    return srcFonts;
+  }
 
   async exportFlashcards(
     userId: string,
@@ -81,20 +90,9 @@ export class ExportService {
     );
 
     const content = summary[0].ai_outputs.content as SummaryAiOutputContent;
-    const fontPath = join(
-      process.cwd(),
-      'src',
-      'assets',
-      'fonts',
-      'Inter-Regular.ttf',
-    );
-    const fontPathBold = join(
-      process.cwd(),
-      'src',
-      'assets',
-      'fonts',
-      'Inter-Bold.ttf',
-    );
+    const fontsDir = this.resolveFontsDir();
+    const fontPath = join(fontsDir, 'Inter-Regular.ttf');
+    const fontPathBold = join(fontsDir, 'Inter-Bold.ttf');
 
     const doc = new PDFDocument({ margin: 50 });
     doc.registerFont('Inter', fontPath);
