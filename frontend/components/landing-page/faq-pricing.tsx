@@ -26,7 +26,10 @@ function FaqPricing() {
     },
   ];
   return (
-    <div className="py-24 px-[10%] flex flex-col items-center text-center">
+    <div
+      id="faq"
+      className="py-24 px-[10%] flex flex-col items-center text-center"
+    >
       <DescriptionSection
         title="FAQ"
         secondaryTitle="Frequently Asked Questions"

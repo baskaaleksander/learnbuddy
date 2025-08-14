@@ -13,7 +13,10 @@ function PricingSection() {
   const currentPricing = isYearly ? pricingPlans.yearly : pricingPlans.monthly;
 
   return (
-    <div className="flex flex-col items-center px-[10%] py-4 md:py-12 lg:py-20 text-center">
+    <div
+      id="plans"
+      className="flex flex-col items-center px-[10%] py-4 md:py-12 lg:py-20 text-center"
+    >
       <DescriptionSection
         title="Pricing"
         secondaryTitle="Choose the plan that fits your learning journey"

@@ -36,7 +36,10 @@ function Features() {
     },
   ];
   return (
-    <div className="pt-24 px-[10%] flex flex-col items-center text-center">
+    <div
+      id="features"
+      className="pt-24 px-[10%] flex flex-col items-center text-center"
+    >
       {/* <h2 className="text-primary text-lg font-semibold">Features</h2>
       <h3 className="text-3xl font-semibold mt-4">
         Learning never have been easier

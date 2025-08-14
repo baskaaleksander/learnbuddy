@@ -21,7 +21,10 @@ function HowItWorks() {
     },
   ];
   return (
-    <div className="pt-24 px-[10%] flex flex-col items-center text-center">
+    <div
+      id="howitworks"
+      className="pt-24 px-[10%] flex flex-col items-center text-center"
+    >
       <DescriptionSection
         title="How it works?"
         secondaryTitle="Unlock your potential with a seamless and intuitive learning journey."

@@ -5,14 +5,17 @@ function DescriptionSection({
   secondaryTitle,
   description,
   className,
+  id,
 }: {
   title: string;
   secondaryTitle: string;
   description: string;
   className?: string;
+  id?: string;
 }) {
   return (
     <div
+      id={id}
       className={`pt-24 px-[10%] flex flex-col items-center text-center ${className}`}
     >
       <h2 className="text-primary text-lg font-semibold">{title}</h2>
