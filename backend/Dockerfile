@@ -11,6 +11,6 @@ RUN npm run build
 
 RUN npm run drizzle:push
 
-EXPOSE 5000
+EXPOSE 3001
 
 CMD ["npm", "run", "start"]
