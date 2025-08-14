@@ -6,6 +6,7 @@ import {
   NotebookText,
   Zap,
 } from "lucide-react";
+import DescriptionSection from "./description-section";
 
 function Features() {
   const features = [
@@ -36,14 +37,19 @@ function Features() {
   ];
   return (
     <div className="pt-24 px-[10%] flex flex-col items-center text-center">
-      <h2 className="text-primary text-lg font-semibold">Features</h2>
+      {/* <h2 className="text-primary text-lg font-semibold">Features</h2>
       <h3 className="text-3xl font-semibold mt-4">
         Learning never have been easier
       </h3>
       <p className="mt-4 md:mt-6 text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-3xl text-center">
         Discover a suite of powerful features designed to make your learning
         experience faster, smarter, and more effective.
-      </p>
+      </p> */}
+      <DescriptionSection
+        title="Features"
+        secondaryTitle="Learning never have been easier"
+        description="Discover a suite of powerful features designed to make your learning experience faster, smarter, and more effective."
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 w-full pt-12 md:pt-16 gap-y-10">
         {features.map((feature, index) => (
           <FeatureCard

@@ -214,13 +214,15 @@ function MobileNavbar({
   return (
     <>
       <nav className="flex sm:hidden justify-between items-center border-b border-gray-200 dark:border-gray-800 w-full bg-background px-4 py-2 fixed top-0 left-0 right-0 z-50">
-        <Image
-          src={logo}
-          alt="LearnBuddy"
-          width={140}
-          height={40}
-          className="w-[140px] lg:w-[180px]"
-        />
+        <Link href="/">
+          <Image
+            src={logo}
+            alt="LearnBuddy"
+            width={140}
+            height={40}
+            className="w-[140px] lg:w-[180px]"
+          />
+        </Link>
         <HamburgerButton isOpen={isOpen} toggle={() => setIsOpen(!isOpen)} />
       </nav>
 

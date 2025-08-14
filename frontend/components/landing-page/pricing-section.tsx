@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { pricingPlans } from "@/lib/pricing-plans";
+import DescriptionSection from "./description-section";
 
 function PricingSection() {
   const [isYearly, setIsYearly] = useState(false);
@@ -13,14 +14,11 @@ function PricingSection() {
 
   return (
     <div className="flex flex-col items-center px-[10%] py-4 md:py-12 lg:py-20 text-center">
-      <h2 className="text-primary text-lg font-semibold">Pricing</h2>
-      <h3 className="text-3xl font-semibold mt-4">
-        Choose the plan that fits your learning journey
-      </h3>
-      <p className="mt-4 md:mt-6 text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-3xl text-center">
-        Each token generates one AI-powered summary, quiz, or flashcard set.
-        Upgrade anytime as your learning needs grow.
-      </p>
+      <DescriptionSection
+        title="Pricing"
+        secondaryTitle="Choose the plan that fits your learning journey"
+        description="Each token generates one AI-powered summary, quiz, or flashcard set."
+      />
 
       <div className="flex items-center justify-center mt-8 p-1 bg-muted rounded-lg relative">
         <Button

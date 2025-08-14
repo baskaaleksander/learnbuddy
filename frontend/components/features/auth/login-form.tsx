@@ -39,7 +39,7 @@ function LoginForm() {
 
   useEffect(() => {
     if (user && !authLoading) {
-      router.push("/");
+      router.push("/dashboard");
     }
   }, [user, authLoading, router]);
 

@@ -1,5 +1,6 @@
 import React from "react";
 import UsingStepCard from "./using-step-card";
+import DescriptionSection from "./description-section";
 
 function HowItWorks() {
   const steps = [
@@ -21,16 +22,11 @@ function HowItWorks() {
   ];
   return (
     <div className="pt-24 px-[10%] flex flex-col items-center text-center">
-      <h3 className="text-primary text-lg font-semibold">How it works?</h3>
-      <h3 className="text-3xl font-semibold mt-4">
-        Unlock your potential with a seamless and intuitive learning journey.
-      </h3>
-      <p className="mt-4 md:mt-6 text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-3xl text-center">
-        LearnBuddy guides you step-by-step: set your learning goals, access
-        curated resources, and track your progress—all in one place. Whether
-        you&apos;re mastering new skills or revising old ones, our platform
-        adapts to your needs, making learning efficient and enjoyable.
-      </p>
+      <DescriptionSection
+        title="How it works?"
+        secondaryTitle="Unlock your potential with a seamless and intuitive learning journey."
+        description="LearnBuddy guides you step-by-step: set your learning goals, access curated resources, and track your progress—all in one place. Whether you're mastering new skills or revising old ones, our platform adapts to your needs, making learning efficient and enjoyable."
+      />
       <div className="pt-24">
         {steps.map((step, index) => (
           <UsingStepCard
