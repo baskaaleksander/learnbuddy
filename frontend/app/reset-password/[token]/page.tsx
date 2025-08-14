@@ -11,6 +11,10 @@ function ResetPasswordPage({ params }: { params: Promise<{ token: string }> }) {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    document.title = "Reset Password | LearnBuddy";
+  }, []);
+
+  useEffect(() => {
     const verifyToken = async () => {
       try {
         await api.post(`/auth/verify-password-reset-token/${token}`);

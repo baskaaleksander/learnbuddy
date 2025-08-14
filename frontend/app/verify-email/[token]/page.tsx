@@ -9,6 +9,10 @@ function VerifyEmail({ params }: { params: Promise<{ token: string }> }) {
   const [message, setMessage] = useState<string | null>("");
 
   useEffect(() => {
+    document.title = "Verify Email | LearnBuddy";
+  }, []);
+
+  useEffect(() => {
     const verifyEmail = async () => {
       try {
         await api.post(`/auth/verify-email/${token}`);

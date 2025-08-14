@@ -1,7 +1,13 @@
 import ContactSection from "@/components/landing-page/contact-section";
 import DescriptionSection from "@/components/landing-page/description-section";
+import { Metadata } from "next";
 import React from "react";
 
+export const metadata: Metadata = {
+  title: "About Us | LearnBuddy",
+  description:
+    "Learn more about our mission, vision, and the team behind LearnBuddy.",
+};
 function AboutPage() {
   return (
     <div className="pb-24 flex flex-col items-center justify-center">

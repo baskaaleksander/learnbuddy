@@ -12,12 +12,13 @@ import {
 import { Input } from "@/components/ui/input";
 import api from "@/utils/axios";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import AlertBox from "@/components/common/alert-box";
 import { AlertCircle, Send } from "lucide-react";
 import { AxiosError } from "axios";
+import Head from "next/head";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -26,6 +27,10 @@ function RequestPasswordResetPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = "Request Password Reset | LearnBuddy";
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -57,52 +62,54 @@ function RequestPasswordResetPage() {
     }
   };
   return (
-    <div className="flex flex-col items-center justify-center px-[10%] min-h-[80vh] py-16">
-      <DescriptionSection
-        secondaryTitle="Password reset"
-        title="Request Password Reset"
-        description="Enter your email address to receive a password reset link."
-      />
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(handlePasswordResetRequest)}
-          className="w-full max-w-md mx-auto text-start pt-24"
-        >
-          {error && (
-            <AlertBox
-              title="Error"
-              description={error}
-              type="destructive"
-              icon={<AlertCircle className="h-4 w-4" />}
-            />
-          )}
-          {success && (
-            <AlertBox
-              title="Success"
-              description={success}
-              type="default"
-              icon={<Send className="h-4 w-4" />}
-            />
-          )}
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem className="mb-4">
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+    <>
+      <div className="flex flex-col items-center justify-center px-[10%] min-h-[80vh] py-16">
+        <DescriptionSection
+          secondaryTitle="Password reset"
+          title="Request Password Reset"
+          description="Enter your email address to receive a password reset link."
+        />
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handlePasswordResetRequest)}
+            className="w-full max-w-md mx-auto text-start pt-24"
+          >
+            {error && (
+              <AlertBox
+                title="Error"
+                description={error}
+                type="destructive"
+                icon={<AlertCircle className="h-4 w-4" />}
+              />
             )}
-          />
-          <Button type="submit" className="w-full mt-6" disabled={loading}>
-            {loading ? "Loading..." : "Request Password Reset"}
-          </Button>
-        </form>
-      </Form>
-    </div>
+            {success && (
+              <AlertBox
+                title="Success"
+                description={success}
+                type="default"
+                icon={<Send className="h-4 w-4" />}
+              />
+            )}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem className="mb-4">
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="w-full mt-6" disabled={loading}>
+              {loading ? "Loading..." : "Request Password Reset"}
+            </Button>
+          </form>
+        </Form>
+      </div>
+    </>
   );
 }
 
