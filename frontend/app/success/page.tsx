@@ -35,6 +35,10 @@ function SuccessPageInner() {
   const [session, setSession] = useState<CheckoutSession | null>(null);
 
   useEffect(() => {
+    document.title = "Payment Success | LearnBuddy";
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
     async function fetchSession(id: string) {
       try {

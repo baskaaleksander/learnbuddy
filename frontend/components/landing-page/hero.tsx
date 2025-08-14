@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { LucideArrowRight } from "lucide-react";
 import BadgeWithLink from "../ui/badge-with-link";
+import Link from "next/link";
 
 function Hero() {
   const fullText = "Make learning smarter than ever!";
@@ -45,16 +46,20 @@ function Hero() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-6 md:mt-10">
-        <Button size="lg" className="w-full sm:w-auto px-8 py-6 text-lg">
-          Get Started <LucideArrowRight className="ml-2 h-5 w-5" />
-        </Button>
-        <Button
-          variant="outline"
-          size="lg"
-          className="w-full sm:w-auto px-8 py-6 text-lg"
-        >
-          Learn More
-        </Button>
+        <Link href="/register">
+          <Button size="lg" className="w-full sm:w-auto px-8 py-6 text-lg">
+            Get Started <LucideArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        </Link>
+        <Link href="/about">
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full sm:w-auto px-8 py-6 text-lg"
+          >
+            Learn More
+          </Button>
+        </Link>
       </div>
     </div>
   );

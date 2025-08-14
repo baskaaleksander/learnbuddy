@@ -1,5 +1,6 @@
 import React from "react";
 import AccordionComp from "./accordion-comp";
+import DescriptionSection from "./description-section";
 
 function FaqPricing() {
   const questions = [
@@ -25,15 +26,15 @@ function FaqPricing() {
     },
   ];
   return (
-    <div className="py-24 px-[10%] flex flex-col items-center text-center">
-      <h2 className="text-primary text-lg font-semibold">FAQ</h2>
-      <h3 className="text-3xl font-semibold mt-4">
-        Frequently Asked Questions
-      </h3>
-      <p className="mt-4 md:mt-6 text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-3xl text-center">
-        Find answers to the most common questions about our platform, features,
-        and how to get started.
-      </p>
+    <div
+      id="faq"
+      className="py-24 px-[10%] flex flex-col items-center text-center"
+    >
+      <DescriptionSection
+        title="FAQ"
+        secondaryTitle="Frequently Asked Questions"
+        description="Find answers to the most common questions about our platform, features, and how to get started."
+      />
       <AccordionComp questions={questions} />
     </div>
   );

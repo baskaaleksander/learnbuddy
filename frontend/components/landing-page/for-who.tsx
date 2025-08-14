@@ -1,6 +1,7 @@
 import React from "react";
 import FeatureCard from "./feature-card";
 import { CircleUser, PersonStanding, School } from "lucide-react";
+import DescriptionSection from "./description-section";
 
 function ForWho() {
   const forWho = [
@@ -24,15 +25,15 @@ function ForWho() {
     },
   ];
   return (
-    <div className="pt-24 px-[10%] flex flex-col items-center text-center">
-      <h2 className="text-primary text-lg font-semibold">For who?</h2>
-      <h3 className="text-3xl font-semibold mt-4">
-        Effortless learning for everyone
-      </h3>
-      <p className="mt-4 md:mt-6 text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-3xl text-center">
-        No matter your background, our platform adapts to your needs and helps
-        you achieve your learning goals with ease.
-      </p>
+    <div
+      id="forwho"
+      className="pt-24 px-[10%] flex flex-col items-center text-center"
+    >
+      <DescriptionSection
+        title="For who?"
+        secondaryTitle="Effortless learning for everyone"
+        description="No matter your background, our platform adapts to your needs and helps you achieve your learning goals with ease."
+      />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 w-full pt-12 md:pt-16 gap-y-10">
         {forWho.map((feature, index) => (
           <FeatureCard

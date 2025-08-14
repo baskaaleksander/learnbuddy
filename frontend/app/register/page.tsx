@@ -1,6 +1,12 @@
 import DescriptionSection from "@/components/landing-page/description-section";
 import RegisterForm from "@/components/features/auth/register-form";
 import React from "react";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Register | LearnBuddy",
+  description: "Register for a LearnBuddy account",
+};
 
 function RegisterPage() {
   return (

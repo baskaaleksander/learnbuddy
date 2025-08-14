@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/auth-provider";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function DashboardLayout({
@@ -25,6 +25,15 @@ export default function DashboardLayout({
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const segments = pathname.split("/");
+  const title = segments[2]
+    ? segments[2].charAt(0).toUpperCase() + segments[2].slice(1)
+    : "Dashboard";
+
+  useEffect(() => {
+    document.title = `${title} | LearnBuddy`;
+  }, [title]);
 
   const sidebarPaths = [
     {
@@ -91,37 +100,39 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <div className="flex min-h-screen">
-      {/* Desktop Sidebar */}
-      <Sidebar
-        paths={sidebarPaths}
-        isOpen={sidebarOpen}
-        toggle={() => setSidebarOpen(!sidebarOpen)}
-        isMobile={false}
-      />
+    <>
+      <div className="flex min-h-screen">
+        {/* Desktop Sidebar */}
+        <Sidebar
+          paths={sidebarPaths}
+          isOpen={sidebarOpen}
+          toggle={() => setSidebarOpen(!sidebarOpen)}
+          isMobile={false}
+        />
 
-      {/* Mobile Sidebar */}
-      <Sidebar
-        paths={sidebarPaths}
-        isOpen={mobileSidebarOpen}
-        toggle={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-        isMobile={true}
-      />
+        {/* Mobile Sidebar */}
+        <Sidebar
+          paths={sidebarPaths}
+          isOpen={mobileSidebarOpen}
+          toggle={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+          isMobile={true}
+        />
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="md:hidden p-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setMobileSidebarOpen(true)}
-          >
-            <MenuIcon size={18} />
-          </Button>
-        </div>
+        <main className="flex-1 overflow-y-auto">
+          <div className="md:hidden p-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setMobileSidebarOpen(true)}
+            >
+              <MenuIcon size={18} />
+            </Button>
+          </div>
 
-        {children}
-        <Toaster />
-      </main>
-    </div>
+          {children}
+          <Toaster />
+        </main>
+      </div>
+    </>
   );
 }
