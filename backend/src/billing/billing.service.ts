@@ -7,12 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { and, eq } from 'drizzle-orm';
 import { db } from '../database/drizzle.module';
-import {
-  plans,
-  subscriptions,
-  subscriptionStatusEnum,
-  users,
-} from '../database/schema';
+import { plans, subscriptions, users } from '../database/schema';
 import { RedisService } from '../redis/redis.service';
 import Stripe from 'stripe';
 

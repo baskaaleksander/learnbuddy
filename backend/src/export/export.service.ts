@@ -42,8 +42,12 @@ export class ExportService {
       throw new NotFoundException('Flashcards not found');
     }
 
-    const content = flashcards[0].ai_outputs.content as FlashcardContent;
-    const records = content.flashcards.map((item) => {
+    console.log(flashcards[0].ai_outputs.content);
+    const content = flashcards[0].ai_outputs.content as {
+      flashcards: FlashcardContent;
+    };
+    console.log(content);
+    const records = content.flashcards.flashcards.map((item) => {
       return [item.question, item.answer];
     });
 
