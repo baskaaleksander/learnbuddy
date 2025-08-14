@@ -40,7 +40,11 @@ export class UploadService {
       ContentType: file.mimetype,
     });
 
-    await this.s3Client.send(command);
+    try {
+      await this.s3Client.send(command);
+    } catch (error) {
+      throw new Error('Error uploading file to S3', error);
+    }
 
     const material = await this.drizzle
       .insert(materials)

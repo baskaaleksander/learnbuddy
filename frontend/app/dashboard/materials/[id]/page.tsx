@@ -135,9 +135,10 @@ function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
           )}
         </div>
         <div className="flex self-center mt-2 md:self-end gap-2">
+          {/* to remake dont add direct access to s3 
           <Button size="sm" variant="default">
             <Link href={material.content}>Download material</Link>
-          </Button>
+          </Button> */}
           <Button
             size="sm"
             variant="outline"

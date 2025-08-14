@@ -82,9 +82,16 @@ export function GenerateAssetDialog({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button disabled={buttonDisabled} onClick={onGenerateAction}>
-              {triggerText}
-            </Button>
+            {submitting ? (
+              <Button disabled={true}>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {triggerText} {assetData.title.toLowerCase()}
+              </Button>
+            ) : (
+              <Button disabled={buttonDisabled} onClick={onGenerateAction}>
+                {triggerText} {assetData.title.toLowerCase()}
+              </Button>
+            )}
             <DialogTrigger asChild>
               <Button data-testid="cancel-button" variant="outline">
                 Cancel
@@ -117,16 +124,12 @@ export function GenerateAssetDialog({
             </span>
           )}
           {submitting ? (
-            <Button disabled={true} variant="outline">
+            <Button disabled={true}>
               <Loader2 className="h-4 w-4 animate-spin" />
               {triggerText} {assetData.title.toLowerCase()}
             </Button>
           ) : (
-            <Button
-              disabled={buttonDisabled}
-              variant="outline"
-              onClick={onGenerateAction}
-            >
+            <Button disabled={buttonDisabled} onClick={onGenerateAction}>
               {triggerText} {assetData.title.toLowerCase()}
             </Button>
           )}
