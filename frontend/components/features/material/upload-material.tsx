@@ -195,6 +195,7 @@ function UploadMaterial() {
             <span className="font-medium">
               Please make sure that it has copyable text.
             </span>
+            ``
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -115,7 +115,6 @@ export class BillingService {
     return session.url;
   }
 
-  // check why sub doesnt cancel in db
   async cancelSubscription(userId: string) {
     const subscription = await this.drizzle
       .select()
@@ -127,8 +126,6 @@ export class BillingService {
     }
 
     const subscriptionId = subscription[0]?.stripeSubscriptionId;
-
-    console.log(subscription[0]);
 
     const subscriptionStripe =
       await this.stripe.subscriptions.retrieve(subscriptionId);

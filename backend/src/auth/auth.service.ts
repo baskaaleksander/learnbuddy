@@ -73,11 +73,15 @@ export class AuthService {
       tokensUsed: res[0].tokensUsed,
     };
 
-    await this.emailService.sendEmail(
-      user.email,
-      'Email Verification',
-      `Please verify your email by clicking on this link: ${process.env.FRONTEND_URL}/verify-email/${res[0].emailVerificationToken}`,
-    );
+    await this.emailService.sendEmail({
+      to: user.email,
+      subject: 'Email Verification',
+      template: 'welcome',
+      data: {
+        name: user.firstName,
+        verifyLink: `${process.env.FRONTEND_URL}/verify-email/${res[0].emailVerificationToken}`,
+      },
+    });
 
     this.logger.log(
       `User registered: ${user.email}, ID: ${res[0].id}`,
@@ -220,7 +224,7 @@ export class AuthService {
       .insert(passwordResets)
       .values({
         userId: user[0].id,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
       })
       .returning()
       .catch((err) => {
@@ -233,11 +237,15 @@ export class AuthService {
 
     const token = res[0].token;
 
-    await this.emailService.sendEmail(
-      email,
-      'Password Reset',
-      `Please reset your password by clicking on this link: ${process.env.FRONTEND_URL}/reset-password/${token}`,
-    );
+    await this.emailService.sendEmail({
+      to: email,
+      subject: 'Password Reset',
+      template: 'password-reset',
+      data: {
+        name: user[0].firstName,
+        resetLink: `${process.env.FRONTEND_URL}/reset-password/${token}`,
+      },
+    });
 
     return {
       message: 'Password reset email sent',
@@ -320,7 +328,7 @@ export class AuthService {
       .insert(passwordResets)
       .values({
         userId: user[0].id,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
       })
       .returning()
       .catch((err) => {
@@ -333,11 +341,15 @@ export class AuthService {
 
     const token = res[0].token;
 
-    await this.emailService.sendEmail(
-      email,
-      'Password Reset',
-      `Please reset your password by clicking on this link: ${process.env.FRONTEND_URL}/reset-password/${token}`,
-    );
+    await this.emailService.sendEmail({
+      to: email,
+      subject: 'Password Reset',
+      template: 'password-reset',
+      data: {
+        name: user[0].firstName,
+        resetLink: `${process.env.FRONTEND_URL}/reset-password/${token}`,
+      },
+    });
 
     return {
       message: 'Password reset email sent',
