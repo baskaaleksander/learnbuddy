@@ -1,6 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { existsSync } from 'fs';
 import * as nodemailer from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer';
+import { join } from 'path';
+import * as pug from 'pug';
+import {
+  PasswordResetEmailData,
+  SendEmailInterface,
+  WelcomeEmailData,
+} from 'src/utils/types';
 
 @Injectable()
 export class EmailService {
@@ -16,12 +24,30 @@ export class EmailService {
     });
   }
 
-  async sendEmail(to: string, subject: string, text: string) {
+  private resolveEmailPath(): string {
+    const distTemplates = join(__dirname, '..', 'assets', 'templates');
+    if (existsSync(distTemplates)) return distTemplates;
+
+    const srcTemplates = join(process.cwd(), 'src', 'assets', 'templates');
+    return srcTemplates;
+  }
+
+  private renderTemplate(
+    templateName: 'welcome' | 'password-reset',
+    data: WelcomeEmailData | PasswordResetEmailData,
+  ) {
+    const templatePath = join(this.resolveEmailPath(), `${templateName}.pug`);
+
+    return pug.renderFile(templatePath, data);
+  }
+
+  async sendEmail({ to, subject, template, data }: SendEmailInterface) {
+    const html = this.renderTemplate(template, data);
     const mailOptions: Mail.Options = {
-      from: process.env.EMAIL_USER,
+      from: `LearnBuddy <${process.env.EMAIL_USER}>`,
       to,
       subject,
-      text,
+      html,
     };
 
     try {

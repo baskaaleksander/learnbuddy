@@ -46,3 +46,20 @@ export type MockDrizzle = {
   values: jest.Mock;
   set: jest.Mock;
 };
+
+export interface WelcomeEmailData {
+  name: string;
+  verifyLink: string;
+}
+
+export interface PasswordResetEmailData {
+  name: string;
+  resetLink: string;
+}
+
+export interface SendEmailInterface {
+  to: string;
+  subject: string;
+  template: 'welcome' | 'password-reset';
+  data: WelcomeEmailData | PasswordResetEmailData;
+}
