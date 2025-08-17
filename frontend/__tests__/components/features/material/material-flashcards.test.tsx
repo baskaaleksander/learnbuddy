@@ -1,10 +1,11 @@
 import React from "react";
 import { render, screen, waitFor } from "@/__tests__/utils/test-utils";
-import { within } from "@testing-library/react";
+import { fireEvent, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MaterialFlashcards from "@/components/features/material/material-flashcards";
 import { fetchGraphQL } from "@/utils/gql-axios";
 import { toast } from "sonner";
+import { GenerateAssetDialog } from "@/components/common/generate-asset";
 
 jest.mock("next/link", () => {
   return ({ children, href, ...props }: any) => (
@@ -172,6 +173,7 @@ describe("Material Flashcards", () => {
     });
   });
 
+  // add tokens mocking (generate-asset component tells that you dont have enough tokens)
   it("should handle flashcards regeneration", async () => {
     (fetchGraphQL as jest.Mock)
       .mockResolvedValueOnce({ getFlashcardStatsByMaterial: stats })
@@ -186,11 +188,11 @@ describe("Material Flashcards", () => {
 
     const user = userEvent.setup();
     const regenBtn = screen.getByRole("button", { name: /regenerate/i });
-    await user.click(regenBtn);
+    await fireEvent.click(regenBtn);
 
     const regenDialog = await screen.findByRole("dialog");
     const confirmRegen = within(regenDialog).getByRole("button", {
-      name: /^regenerate$/i,
+      name: /^regenerate $/i,
     });
     await user.click(confirmRegen);
 
