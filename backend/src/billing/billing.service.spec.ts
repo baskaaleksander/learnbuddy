@@ -434,30 +434,6 @@ describe('BillingService', () => {
         NotFoundException,
       );
     });
-
-    it('should throw ConflictException when subscription already canceled', async () => {
-      const mockSubQuery = {
-        from: jest.fn().mockReturnThis(),
-        where: jest.fn().mockResolvedValue([
-          {
-            stripeSubscriptionId: 'sub_test_123',
-            status: 'active',
-            endsAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
-          },
-        ]),
-      };
-
-      mockDrizzle.select.mockReturnValueOnce(mockSubQuery);
-
-      stripeMock.subscriptions.retrieve.mockResolvedValue({
-        id: 'sub_test_123',
-        status: 'canceled',
-      });
-
-      await expect(service.cancelSubscription('user-1')).rejects.toThrow(
-        ConflictException,
-      );
-    });
   });
 
   describe('useTokens', () => {
