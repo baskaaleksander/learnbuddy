@@ -60,7 +60,7 @@ describe("RegisterForm", () => {
       fireEvent.click(registerButton);
 
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith("/");
+        expect(mockPush).toHaveBeenCalledWith("/dashboard");
       });
     });
 
@@ -79,7 +79,7 @@ describe("RegisterForm", () => {
       render(<RegisterForm />);
 
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith("/");
+        expect(mockPush).toHaveBeenCalledWith("/dashboard");
       });
     });
   });

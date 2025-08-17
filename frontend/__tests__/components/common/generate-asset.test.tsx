@@ -41,7 +41,7 @@ describe("Generate Asset Dialog", () => {
 
     const dialog = screen.getByRole("dialog");
     expect(dialog).toBeInTheDocument();
-    expect(screen.getByText(/generate quiz/i)).toBeInTheDocument();
+    expect(screen.getByText(/^generate quiz$/i)).toBeInTheDocument();
     expect(
       screen.getByText(/generate a quiz from your material/i)
     ).toBeInTheDocument();
@@ -68,7 +68,7 @@ describe("Generate Asset Dialog", () => {
 
     const dialog = screen.getByRole("dialog");
     const generateBtn = within(dialog).getByRole("button", {
-      name: /^generate$/i,
+      name: /^generate quiz$/i,
     });
     await fireEvent.click(generateBtn);
 
@@ -89,7 +89,7 @@ describe("Generate Asset Dialog", () => {
 
     const dialog = screen.getByRole("dialog");
     const generateBtn = within(dialog).getByRole("button", {
-      name: /^generate$/i,
+      name: /^generate quiz$/i,
     });
     expect(generateBtn).toBeDisabled();
     expect(
