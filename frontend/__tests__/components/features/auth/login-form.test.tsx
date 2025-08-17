@@ -50,26 +50,33 @@ describe("LoginForm", () => {
       fireEvent.click(loginButton);
 
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith("/");
+        expect(mockPush).toHaveBeenCalledWith("/dashboard");
       });
     });
 
-    it("should redirect authenticated users to home page", async () => {
+    it("should redirect authenticated users to dashboard", async () => {
       const mockApi = api as jest.Mocked<typeof api>;
-      mockApi.get.mockResolvedValueOnce({
-        data: {
-          id: "1",
-          email: "test@example.com",
-          firstName: "Test",
-          role: "user",
-          tokensUsed: 0,
-        },
-      });
+      mockApi.get
+        .mockResolvedValueOnce({
+          data: {
+            id: "1",
+            email: "test@example.com",
+            firstName: "Test",
+            role: "user",
+            tokensUsed: 0,
+          },
+        })
+        .mockResolvedValueOnce({
+          data: {
+            tokensLimit: 100,
+            tokensUsed: 0,
+          },
+        });
 
       render(<LoginForm />);
 
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith("/");
+        expect(mockPush).toHaveBeenCalledWith("/dashboard");
       });
     });
   });
@@ -194,7 +201,7 @@ describe("LoginForm", () => {
       });
 
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith("/");
+        expect(mockPush).toHaveBeenCalledWith("/dashboard");
       });
     });
   });

@@ -59,15 +59,22 @@ describe("Session Persistence", () => {
     mockStore.accessToken = "stored-token";
 
     const mockApi = api as jest.Mocked<typeof api>;
-    mockApi.get.mockResolvedValueOnce({
-      data: {
-        id: "1",
-        email: "test@example.com",
-        firstName: "Test",
-        role: "user",
-        tokensUsed: 0,
-      },
-    });
+    mockApi.get
+      .mockResolvedValueOnce({
+        data: {
+          id: "1",
+          email: "test@example.com",
+          firstName: "Test",
+          role: "user",
+          tokensUsed: 0,
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          tokensLimit: 100,
+          tokensUsed: 0,
+        },
+      });
 
     render(
       <AuthProvider>

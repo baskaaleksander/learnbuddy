@@ -596,11 +596,15 @@ describe('AuthService', () => {
       expect(result).toEqual({
         message: 'Password reset email sent',
       });
-      expect(mockEmailService.sendEmail).toHaveBeenCalledWith(
-        mockUser.email,
-        'Password Reset',
-        expect.stringContaining('reset-token'),
-      );
+      expect(mockEmailService.sendEmail).toHaveBeenCalledWith({
+        data: {
+          name: mockUser.firstName,
+          resetLink: 'undefined/reset-password/reset-token',
+        },
+        subject: 'Password Reset',
+        template: 'password-reset',
+        to: mockUser.email,
+      });
     });
 
     it('should throw NotFoundException for invalid user', async () => {

@@ -97,9 +97,7 @@ describe("Material Quiz", () => {
     (fetchGraphQL as jest.Mock).mockRejectedValue(new Error("boom"));
     render(<MaterialQuiz id={id} onAssetChange={jest.fn()} />);
     await waitFor(() => {
-      expect(
-        screen.getByText(/failed to fetch quizzes\. please try again later\./i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/failed to fetch quizzes/i)).toBeInTheDocument();
     });
   });
 

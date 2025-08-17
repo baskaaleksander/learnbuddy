@@ -88,7 +88,11 @@ export function GenerateAssetDialog({
                 {triggerText} {assetData.title.toLowerCase()}
               </Button>
             ) : (
-              <Button disabled={buttonDisabled} onClick={onGenerateAction}>
+              <Button
+                data-test-id="generate-button"
+                disabled={buttonDisabled}
+                onClick={onGenerateAction}
+              >
                 {triggerText} {assetData.title.toLowerCase()}
               </Button>
             )}
@@ -129,7 +133,11 @@ export function GenerateAssetDialog({
               {triggerText} {assetData.title.toLowerCase()}
             </Button>
           ) : (
-            <Button disabled={buttonDisabled} onClick={onGenerateAction}>
+            <Button
+              data-test-id="generate-button"
+              disabled={buttonDisabled}
+              onClick={onGenerateAction}
+            >
               {triggerText} {assetData.title.toLowerCase()}
             </Button>
           )}

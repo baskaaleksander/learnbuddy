@@ -199,6 +199,11 @@ describe('StatsService', () => {
         innerJoin: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnValue([]),
       });
+      mockDrizzle.select.mockReturnValueOnce({
+        from: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnValue([]),
+      });
       const stats = await service.getUserStats(mockUser.id);
       expect(stats).toEqual({
         flashcardsCount: 0,
