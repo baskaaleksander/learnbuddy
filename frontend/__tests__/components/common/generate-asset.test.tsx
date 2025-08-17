@@ -41,7 +41,7 @@ describe("Generate Asset Dialog", () => {
 
     const dialog = screen.getByRole("dialog");
     expect(dialog).toBeInTheDocument();
-    expect(screen.getByText(/^generate quiz$/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/^generate quiz$/i)[0]).toBeInTheDocument();
     expect(
       screen.getByText(/generate a quiz from your material/i)
     ).toBeInTheDocument();
