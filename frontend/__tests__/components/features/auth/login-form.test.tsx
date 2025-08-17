@@ -50,11 +50,11 @@ describe("LoginForm", () => {
       fireEvent.click(loginButton);
 
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith("/");
+        expect(mockPush).toHaveBeenCalledWith("/dashboard");
       });
     });
 
-    it("should redirect authenticated users to home page", async () => {
+    it("should redirect authenticated users to dashboard", async () => {
       const mockApi = api as jest.Mocked<typeof api>;
       mockApi.get.mockResolvedValueOnce({
         data: {
@@ -194,7 +194,7 @@ describe("LoginForm", () => {
       });
 
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith("/");
+        expect(mockPush).toHaveBeenCalledWith("/dashboard");
       });
     });
   });
