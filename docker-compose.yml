@@ -9,12 +9,28 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
     restart: always
     ports:
       - "${REDIS_PORT}:6379"
+
+  migrate:
+    build:
+      context: ./backend
+    command: sh -c "npm run drizzle:push"
+    env_file:
+      - .env
+      - ./backend/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   backend:
     build:
@@ -25,7 +41,7 @@ services:
     ports:
       - "${BACKEND_PORT}:3001"
     depends_on:
-      - postgres
+      - migrate
       - redis
 
   frontend:
