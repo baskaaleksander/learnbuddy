@@ -1,12 +1,10 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:16-alpine
     restart: always
     env_file: .env
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "127.0.0.1:5340:${POSTGRES_PORT}"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -18,8 +16,10 @@ services:
   redis:
     image: redis:7-alpine
     restart: always
+    env_file:
+      - .env
     ports:
-      - "${REDIS_PORT}:6379"
+      - "127.0.0.1:6370:${REDIS_PORT}"
 
   migrate:
     build:
@@ -39,7 +39,7 @@ services:
       - .env
       - ./backend/.env
     ports:
-      - "${BACKEND_PORT}:3001"
+      - "127.0.0.1:${BACKEND_PORT}:5001"
     depends_on:
       - migrate
       - redis
@@ -51,7 +51,7 @@ services:
       - .env
       - ./frontend/.env
     ports:
-      - "${FRONTEND_PORT}:3000"
+      - "127.0.0.1:${FRONTEND_PORT}:3000"
     depends_on:
       - backend
 
